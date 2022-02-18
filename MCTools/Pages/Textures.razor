@@ -1,0 +1,179 @@
+﻿@page "/textures"
+@using MCTools.Models
+@using MCTools.Enums
+@using Blazored.LocalStorage
+@using MCTools.Controllers
+
+@inherits LayoutComponentBase
+@inject ISnackbar Snackbar
+@inject IDialogService Dialog
+@inject ILocalStorageService localStore
+@inject IJSRuntime JS
+@inject ApiController _apiController
+
+<MudText Typo="Typo.h3" GutterBottom="true">Textures Tool</MudText>
+
+<MudPaper Class="px-8">
+    <MudGrid Justify="Justify.Center">
+        <MudItem xs="12">
+            <InputFile id="fileInput" OnChange="UploadFile" hidden accept=".zip" />
+            <MudButton HtmlTag="label"
+                       Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Filled.CloudUpload"
+                       for="fileInput" style="width: 100%;" >
+                @UploadText
+            </MudButton>
+        </MudItem>
+        <MudItem xs="6">
+            <MudSelect T="MCEdition" Label="Edition" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Disabled="@DisableBedrockSupport"
+                       SelectedValues="new List<MCEdition>() { SelectedEdition }" SelectedValuesChanged="(e) => SelectedEdition = e.First()">
+                <MudSelectItem Value="MCEdition.Java">Java</MudSelectItem>
+                <MudSelectItem Value="MCEdition.Bedrock">Bedrock</MudSelectItem>
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="6">
+            <MudSelect T="MCVersion" Label="Version" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter"
+                       SelectedValues="new List<MCVersion>() { SelectedVersion }" SelectedValuesChanged="(e) => SelectedVersion = e.First()">
+                @foreach (MCVersion ver in MinecraftVersions)
+                {
+                    string suffix = ver.Type == "snapshot" ? " (Snapshot)" : (ver == LatestVersion ? " (Latest)" : "");
+                    string val = $"{ver.Id}{suffix}";
+                    <MudSelectItem Value="ver">@val</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="12" Class="pa-2">
+            <MudText Typo="Typo.h6" GutterBottom="true">Exclusions</MudText>
+            <MudGrid Justify="Justify.SpaceEvenly" Spacing="4">
+                <MudList Dense="true">
+                    @if (SelectedEdition == MCEdition.Java)
+                    {
+                        <MudItem>
+                            <MudSwitch @bind-Checked="ExcludeRealms" Label="Exclude Realms" Color="Color.Primary"/>
+                        </MudItem>
+                        <MudItem>
+                            <MudSwitch @bind-Checked="ExcludeFonts" Label="Exclude Fonts" Color="Color.Primary"/>
+                        </MudItem>
+                        <MudItem>
+                            <MudSwitch @bind-Checked="ExcludeOptifine" Label="Exclude Optifine" Color="Color.Primary"/>
+                        </MudItem>
+                    }
+                    else
+                    {
+                        <MudItem>
+                            <MudSwitch @bind-Checked="ExcludeRealms" Label="Exclude Realms" Color="Color.Primary"/>
+                        </MudItem>
+                        <MudItem>
+                            <MudSwitch @bind-Checked="ExcludeFonts" Label="Exclude Fonts" Color="Color.Primary"/>
+                        </MudItem>
+                        <MudItem>
+                            <MudSwitch @bind-Checked="ExcludeBedrockUI" Label="Exclude UI" Color="Color.Primary"/>
+                        </MudItem>
+                    }
+                </MudList>
+                <MudList Dense="true">
+                    <MudItem>
+                        <MudButton OnClick="@OpenBlacklistDialog" Style="width:256px;" Variant="Variant.Filled" Color="Color.Warning">Configure Blacklist</MudButton>
+                    </MudItem>
+                </MudList>
+            </MudGrid>
+        </MudItem>
+        <MudItem xs="12">
+            <MudGrid Justify="Justify.Center" Spacing="4">
+                <MudItem Class="d-flex align-center">
+                    <MudButton Size="Size.Large" Style="width:128px;" Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit"
+                               OnClick="async (e) => await Compare()" Disabled="@(!CanCompare)">Compare</MudButton>
+                </MudItem>
+                <MudItem Class="d-flex align-center">
+                    <MudButton Size="Size.Large" Style="width:128px;" Variant="Variant.Filled" Color="Color.Error" ButtonType="ButtonType.Reset"
+                               OnClick="@Reset" Disabled="@(File == null)">Reset</MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudItem>
+        <MudItem xs="12">
+            <MudTabs Outlined="true" Position="Position.Left" Rounded="true" Border="true"
+                     ApplyEffectsToContainer="true" PanelClass="pl-6 pt-2 pb-2">
+                <MudTabPanel Text="Matching Textures" Style="width:200px;">
+                    <MudItem Style="max-height: 300px; width: 100%; overflow-y: scroll;">
+                        @if (MatchingTexturesList.Count > 0)
+                        {
+                            <MudItem Style="position: absolute; top: 4px; right: 12px; z-index: 10;">
+                                <MudText>@MatchingTexturesList.Count</MudText>
+                            </MudItem>
+                            <MudItem Style="position: absolute; bottom: 4px; right: 4px; z-index: 10;">
+                                <MudTooltip Text="Export" Placement="Placement.Top">
+                                    <MudIconButton Icon="@Icons.Filled.Download" OnClick="ExportMatchingTextures"></MudIconButton>
+                                </MudTooltip>
+                            </MudItem>
+                            <MudList Dense="true">
+                                <Virtualize TItem="string" Items="MatchingTexturesList" ItemSize="36.02f" OverscanCount="64">
+                                    <MudListItem Text="@context"/>
+                                </Virtualize>
+                            </MudList>
+                        }
+                        else
+                        {
+                            <MudText>No matching textures</MudText>
+                        }
+                    </MudItem>
+                </MudTabPanel>
+                <MudTabPanel Text="Missing Textures" Style="width:200px;">
+                    <MudItem Style="max-height: 300px; width: 100%; overflow-y: scroll;">
+                        @if (MissingTexturesList.Count > 0)
+                        {
+                            <MudItem Style="position: absolute; top: 4px; right: 12px; z-index: 10;">
+                                <MudText>@MissingTexturesList.Count</MudText>
+                            </MudItem>
+                            <MudItem Style="position: absolute; bottom: 4px; right: 4px; z-index: 10;">
+                                <MudTooltip Text="Export" Placement="Placement.Top">
+                                    <MudIconButton Icon="@Icons.Filled.Download" OnClick="ExportMissingTextures"></MudIconButton>
+                                </MudTooltip>
+                            </MudItem>
+                            <MudList Dense="true">
+                                <Virtualize TItem="string" Items="MissingTexturesList" ItemSize="36.02f" OverscanCount="64">
+                                    <MudListItem Text="@context"/>
+                                </Virtualize>
+                            </MudList>
+                        }
+                        else
+                        {
+                            <MudText>No missing textures</MudText>
+                        }
+                    </MudItem>
+                </MudTabPanel>
+                <MudTabPanel Text="Unused Textures" Style="width: 200px;">
+                    <MudItem Style="max-height: 300px; width: 100%; overflow-y: scroll;">
+                        @if (UnusedTexturesList.Count > 0)
+                        {
+                            <MudItem Style="position: absolute; top: 4px; right: 12px; z-index: 10;">
+                                <MudText>@UnusedTexturesList.Count</MudText>
+                            </MudItem>
+                            <MudItem Style="position: absolute; bottom: 4px; right: 4px; z-index: 10;">
+                                <MudTooltip Text="Export" Placement="Placement.Top">
+                                    <MudIconButton Icon="@Icons.Filled.Download" OnClick="ExportUnusedTextures"></MudIconButton>
+                                </MudTooltip>
+                            </MudItem>
+                            <MudList Dense="true">
+                                <Virtualize TItem="string" Items="UnusedTexturesList" ItemSize="36.02f" OverscanCount="64">
+                                    <MudListItem Text="@context"/>
+                                </Virtualize>
+                            </MudList>
+                        }
+                        else
+                        {
+                            <MudText>No unused textures</MudText>
+                        }
+                    </MudItem>
+                </MudTabPanel>
+            </MudTabs>
+            @if (TotalTextures > 0)
+            {
+                <MudItem Class="pa-4">
+                    <MudText>Matching: @MatchingTexturesList.Count / @TotalTextures (@(Math.Round(((double)MatchingTexturesList.Count / TotalTextures) * 100, 2))%)</MudText>
+                    <MudText>Missing: @MissingTexturesList.Count / @TotalTextures (@(Math.Round(((double)MissingTexturesList.Count / TotalTextures) * 100, 2))%)</MudText>
+                </MudItem>
+            }
+        </MudItem>
+    </MudGrid>
+</MudPaper>

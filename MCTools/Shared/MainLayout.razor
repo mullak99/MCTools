@@ -1,0 +1,30 @@
+﻿@using Blazored.LocalStorage
+@inherits LayoutComponentBase
+
+@inject ILocalStorageService localStore
+
+<MudThemeProvider Theme="CurrentTheme" />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="0">
+        <MudIconButton Icon="@(IsDrawerOpen ? Icons.Material.Filled.MenuOpen : Icons.Material.Filled.Menu)" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => ToggleDrawer())" />
+        <MudText Typo="Typo.h6" Class="px-4">Minecraft Tools (Beta)</MudText>
+
+        <MudSpacer />
+        <MudItem Class="px-4">
+            <MudIconButton Icon="@Icons.Custom.Brands.Discord" Color="Color.Inherit" aria-label="discord" Link="https://discord.mullak99.co.uk" />
+            <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" aria-label="github" Link="https://github.com/mullak99"/>
+        </MudItem>
+        <MudIconButton Icon="@(IsDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" Color="Color.Inherit" OnClick="@ToggleTheme" />
+    </MudAppBar>
+    <MudDrawer @bind-Open="IsDrawerOpen" ClipMode="DrawerClipMode.Docked">
+        <NavMenu />
+    </MudDrawer>
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.Large" Class="justify-center py-2 px-4 mt-6">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
