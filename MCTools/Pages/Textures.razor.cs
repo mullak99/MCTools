@@ -43,6 +43,7 @@ namespace MCTools.Pages
         private bool ExcludeRealms { get; set; } = true;
         private bool ExcludeFonts { get; set; } = true;
         private bool ExcludeOptifine { get; set; } = true;
+        private bool ExcludeMisc { get; set; } = true;
         private bool ExcludeBedrockUI { get; set; }
 
         private List<string> BlacklistRegexJava = new List<string>();
@@ -50,10 +51,10 @@ namespace MCTools.Pages
 
         #region Defaults
         private readonly List<string> DefaultBlacklistJava = new List<string>()
-            { @"assets\/minecraft\/textures\/ctm", @"assets\/minecraft\/textures\/custom", @"textures\/colormap", @"background\/panorama_overlay.png" };
+            { @"_MACOSX", @"assets\/minecraft\/textures\/ctm", @"assets\/minecraft\/textures\/custom", @"textures\/colormap", @"background\/panorama_overlay.png" };
 
         private readonly List<string> DefaultBlacklistBedrock = new List<string>()
-            { @"texts\/", @"textures\/persona_thumbnails" };
+            { @"_MACOSX", @"texts\/", @"textures\/persona_thumbnails" };
         #endregion
         #endregion
 
@@ -166,6 +167,8 @@ namespace MCTools.Pages
                     tempBlackList.Add(@"assets\/realms");
                 if (ExcludeFonts)
                     tempBlackList.Add(@"textures\/font");
+                if (ExcludeMisc)
+                    tempBlackList.Add(@"textures\/misc");
                 if (ExcludeOptifine)
                     tempBlackList.Add(@"assets\/minecraft\/optifine");
             }
@@ -175,6 +178,8 @@ namespace MCTools.Pages
 
                 if (ExcludeFonts)
                     tempBlackList.Add(@"font\/");
+                if (ExcludeMisc)
+                    tempBlackList.Add(@"textures\/misc");
                 if (ExcludeBedrockUI)
                 {
                     tempBlackList.Add(@"textures\/gui");
