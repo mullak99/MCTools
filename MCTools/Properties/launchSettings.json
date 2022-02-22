@@ -16,7 +16,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "Mudblazor.Template": {
+    "MCTools": {
       "commandName": "Project",
       "dotnetRunMessages": "true",
       "launchBrowser": true,
