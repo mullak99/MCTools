@@ -55,7 +55,7 @@ namespace MCTools.Pages
             { @"_MACOSX", @"assets\/minecraft\/textures\/ctm", @"assets\/minecraft\/textures\/custom", @"textures\/colormap", @"background\/panorama_overlay.png" };
 
         private readonly List<string> DefaultBlacklistBedrock = new List<string>()
-            { @"_MACOSX", @"texts\/", @"textures\/persona_thumbnails" };
+            { @"_MACOSX", @"texts\/", @"textures\/persona_thumbnails", @"textures\/colormap" };
         #endregion
         #endregion
 
