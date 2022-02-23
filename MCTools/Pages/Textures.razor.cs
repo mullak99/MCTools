@@ -24,7 +24,6 @@ namespace MCTools.Pages
         #region Constants
         private const int MAX_FILESIZE_MB = 100;
         private const int MAX_FILESIZE_BYTES = MAX_FILESIZE_MB * 1024 * 1024;
-        private const bool DisableBedrockSupport = true;
         #endregion
 
         #region API Values
@@ -37,6 +36,8 @@ namespace MCTools.Pages
         private string UploadText => "Upload Resource Pack" + (File != null ? $": {File.Name}" : "");
         private MCVersion SelectedVersion { get; set; }
         private MCEdition SelectedEdition { get; set; } = MCEdition.Java;
+
+        private bool IsProcessing = false;
 
         private bool CanCompare => File is { Size: > 0 } && SelectedVersion != null && SelectedEdition > 0;
 
@@ -73,23 +74,7 @@ namespace MCTools.Pages
         #region Blazor Overrides
         protected override async Task OnInitializedAsync()
         {
-            try
-            {
-                MinecraftVersions = await _apiController.GetVersions();
-                if (MinecraftVersions is { Count: > 0 })
-                {
-                    LatestVersion = MinecraftVersions.First(x => x.Type == "release");
-                    SelectedVersion = LatestVersion;
-                }
-                else
-                    Snackbar.Add("Unable to fetch versions! Is the API down?", Severity.Error);
-            }
-            catch (Exception)
-            {
-                Snackbar.Add("An error occurred when loading versions! Check the console for errors.", Severity.Error);
-                throw;
-            }
-
+            await SelectedEditionChanged(SelectedEdition);
             await SetBlacklistFromLocalStorage();
             StateHasChanged();
         }
@@ -150,6 +135,63 @@ namespace MCTools.Pages
         }
         #endregion
 
+        #region Selection
+        public void SetDefaultVersionSelection()
+        {
+            if (MinecraftVersions is { Count: > 0 })
+            {
+                LatestVersion = MinecraftVersions.First(x => x.Type == "release");
+                SelectedVersion = LatestVersion;
+            }
+            else Snackbar.Add("Unable to fetch versions! Is the API down?", Severity.Error);
+        }
+
+        public async Task SelectedEditionChanged(MCEdition edition)
+        {
+            if (edition != SelectedEdition || MinecraftVersions.Count == 0)
+            {
+                try
+                {
+                    IsProcessing = true;
+                    SelectedEdition = edition;
+                    Reset();
+                    MinecraftVersions = new List<MCVersion>(); // Reset list
+
+                    if (edition == MCEdition.Java)
+                        MinecraftVersions = await _apiController.GetJavaVersions();
+                    else
+                        MinecraftVersions = await _apiController.GetBedrockVersions();
+
+                    SetDefaultVersionSelection();
+                }
+                catch (Exception)
+                {
+                    Snackbar.Add("An error occurred when loading versions! Check the console for errors.", Severity.Error);
+                    throw;
+                }
+                IsProcessing = false;
+            }
+        }
+
+        public string GetSuffix(MCVersion version)
+        {
+            switch (version.Type)
+            {
+                case "snapshot":
+                    return " (Snapshot)";
+                case "beta":
+                    return " (Beta)";
+                default:
+                {
+                    if (version == LatestVersion)
+                        return " (Latest)";
+                    break;
+                }
+            }
+            return string.Empty;
+        }
+        #endregion
+
         #region Operations
         #region UI Buttons
         /// <summary>
@@ -157,6 +199,8 @@ namespace MCTools.Pages
         /// </summary>
         private async Task Compare()
         {
+            IsProcessing = true;
+            StateHasChanged();
             List<string> tempBlackList = new List<string>();
 
             if (SelectedEdition == MCEdition.Java)
@@ -189,10 +233,14 @@ namespace MCTools.Pages
 
             try
             {
-                Assets = await _apiController.GetAssets(SelectedVersion.Id);
+                Assets = SelectedEdition == MCEdition.Java
+                    ? await _apiController.GetJavaAssets(SelectedVersion.Id)
+                    : await _apiController.GetBedrockAssets(SelectedVersion.Id);
+
                 if (Assets.Textures is not { Count: > 0 })
                 {
                     Snackbar.Add("Unable to load assets! Is the API down?", Severity.Error);
+                    IsProcessing = false;
                     return;
                 }
             }
@@ -202,6 +250,7 @@ namespace MCTools.Pages
                 throw;
             }
             await CompareTextures((await GetPackFileList() ?? new List<string>()), Assets.Textures, tempBlackList);
+            IsProcessing = false;
             StateHasChanged();
         }
 
@@ -316,6 +365,14 @@ namespace MCTools.Pages
             else
                 BlacklistRegexBedrock = blacklist;
         }
+
+        /// <summary>
+        /// Reset both blacklists
+        /// </summary>
+        private async Task ResetBothBlacklists()
+        {
+            await Task.WhenAll(ResetBlacklist(MCEdition.Java), ResetBlacklist(MCEdition.Bedrock));
+        }
         #endregion
 
         #region Upload
@@ -351,18 +408,21 @@ namespace MCTools.Pages
             if (file.Size > MAX_FILESIZE_BYTES) // Limit max filesize for resource pack
                 errors.Add($"Uploads cannot be greater than {MAX_FILESIZE_MB}MB");
 
+            string fileType = file.Name.Split('.').Last();
             if (SelectedEdition == MCEdition.Java)
             {
-                if (file.Name.Split('.').Last() != "zip") // Only support zip files for Java
+                if (fileType != "zip") // Only support zip files for Java
                     errors.Add($"Only zip files are supported");
             }
             else
             {
-                if (file.Name.Split('.').Last() != "zip" || file.Name.Split('.').Last() != "mcpack") // Only support zip & mcpack files for Bedrock
+                if (fileType is not ("zip" or "mcpack")) // Only support zip & mcpack files for Bedrock
                     errors.Add($"Only zip and mcpack files are supported");
             }
             return errors;
         }
+
+        private string GetSupportedFileTypes => SelectedEdition == MCEdition.Java ? ".zip" : ".zip, .mcpack";
         #endregion
 
         #region Export
@@ -388,6 +448,15 @@ namespace MCTools.Pages
         private async Task ExportUnusedTextures()
         {
             await Export(UnusedTexturesList, $"UnusedTextures_{File.Name}.txt");
+        }
+
+        /// <summary>
+        /// Copy String List to clipboard
+        /// </summary>
+        /// <param name="list">List of strings</param>
+        private async Task CopyTextToClipboard(List<string> list)
+        {
+            await JS.InvokeVoidAsync("clipboardCopy.copyText", string.Join(Environment.NewLine, list));
         }
 
         /// <summary>

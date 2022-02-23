@@ -15,3 +15,12 @@ function triggerFileDownload(fileName, url) {
     anchorElement.click();
     anchorElement.remove();
 }
+
+window.clipboardCopy = {
+    copyText: function (text) {
+        navigator.clipboard.writeText(text).then(function () {
+            })
+            .catch(function (error) {
+            });
+    }
+};

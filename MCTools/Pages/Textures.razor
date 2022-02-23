@@ -16,7 +16,7 @@
 <MudPaper Class="px-8">
     <MudGrid Justify="Justify.Center">
         <MudItem xs="12">
-            <InputFile id="fileInput" OnChange="UploadFile" hidden accept=".zip" />
+            <InputFile id="fileInput" OnChange="UploadFile" hidden accept="@GetSupportedFileTypes" />
             <MudButton HtmlTag="label"
                        Variant="Variant.Filled"
                        Color="Color.Primary"
@@ -26,78 +26,94 @@
             </MudButton>
         </MudItem>
         <MudItem xs="6">
-            <MudSelect T="MCEdition" Label="Edition" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Disabled="@DisableBedrockSupport"
-                       SelectedValues="new List<MCEdition>() { SelectedEdition }" SelectedValuesChanged="(e) => SelectedEdition = e.First()">
+            <MudSelect T="MCEdition" Label="Edition" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Disabled="IsProcessing"
+                       SelectedValues="new List<MCEdition>() { SelectedEdition }" SelectedValuesChanged="(e) => SelectedEditionChanged(e.First())">
                 <MudSelectItem Value="MCEdition.Java">Java</MudSelectItem>
                 <MudSelectItem Value="MCEdition.Bedrock">Bedrock</MudSelectItem>
             </MudSelect>
         </MudItem>
         <MudItem xs="6">
-            <MudSelect T="MCVersion" Label="Version" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter"
+            <MudSelect T="MCVersion" Label="Version" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Disabled="IsProcessing"
                        SelectedValues="new List<MCVersion>() { SelectedVersion }" SelectedValuesChanged="(e) => SelectedVersion = e.First()">
                 @foreach (MCVersion ver in MinecraftVersions)
                 {
-                    string suffix = ver.Type == "snapshot" ? " (Snapshot)" : (ver == LatestVersion ? " (Latest)" : "");
-                    string val = $"{ver.Id}{suffix}";
+                    string val = $"{ver.Id}{GetSuffix(ver)}";
                     <MudSelectItem Value="ver">@val</MudSelectItem>
                 }
             </MudSelect>
         </MudItem>
-        <MudItem xs="12" Class="pa-2">
+        <MudItem xs="12" Class="pa-2 my-1">
             <MudText Typo="Typo.h6" GutterBottom="true">Exclusions</MudText>
-            <MudGrid Justify="Justify.SpaceEvenly" Spacing="4">
-                <MudList Dense="true">
-                    @if (SelectedEdition == MCEdition.Java)
-                    {
-                        <MudItem>
-                            <MudSwitch @bind-Checked="ExcludeRealms" Label="Exclude Realms" Color="Color.Primary"/>
+            <MudGrid Justify="Justify.SpaceAround" Spacing="2" >
+                @if (SelectedEdition == MCEdition.Java)
+                {
+                    <MudList>
+                        <MudItem Class="my-1">
+                            <MudSwitch @bind-Checked="ExcludeRealms" Label="Exclude Realms" Color="Color.Primary" Disabled="IsProcessing" />
                         </MudItem>
-                        <MudItem>
-                            <MudSwitch @bind-Checked="ExcludeFonts" Label="Exclude Fonts" Color="Color.Primary"/>
+                        <MudItem Class="my-1">
+                            <MudSwitch @bind-Checked="ExcludeFonts" Label="Exclude Fonts" Color="Color.Primary" Disabled="IsProcessing" />
                         </MudItem>
-                        <MudItem>
-                            <MudSwitch @bind-Checked="ExcludeMisc" Label="Exclude Misc" Color="Color.Primary"/>
+                    </MudList>
+                    <MudList>
+                        <MudItem Class="my-1">
+                            <MudSwitch @bind-Checked="ExcludeMisc" Label="Exclude Misc" Color="Color.Primary" Disabled="IsProcessing" />
                         </MudItem>
-                        <MudItem>
-                            <MudSwitch @bind-Checked="ExcludeOptifine" Label="Exclude Optifine" Color="Color.Primary"/>
+                        <MudItem Class="my-1">
+                            <MudSwitch @bind-Checked="ExcludeOptifine" Label="Exclude Optifine" Color="Color.Primary" Disabled="IsProcessing" />
                         </MudItem>
-                    }
-                    else
-                    {
-                        <MudItem>
-                            <MudSwitch @bind-Checked="ExcludeRealms" Label="Exclude Realms" Color="Color.Primary"/>
+                    </MudList>
+                }
+                else
+                {
+                    <MudList>
+                        <MudItem Class="my-1">
+                            <MudSwitch @bind-Checked="ExcludeRealms" Label="Exclude Realms" Color="Color.Primary" Disabled="IsProcessing" />
                         </MudItem>
-                        <MudItem>
-                            <MudSwitch @bind-Checked="ExcludeFonts" Label="Exclude Fonts" Color="Color.Primary"/>
+                        <MudItem Class="my-1">
+                            <MudSwitch @bind-Checked="ExcludeFonts" Label="Exclude Fonts" Color="Color.Primary" Disabled="IsProcessing" />
                         </MudItem>
-                        <MudItem>
-                            <MudSwitch @bind-Checked="ExcludeMisc" Label="Exclude Misc" Color="Color.Primary"/>
+                    </MudList>
+                    <MudList>
+                        <MudItem Class="my-1">
+                            <MudSwitch @bind-Checked="ExcludeMisc" Label="Exclude Misc" Color="Color.Primary" Disabled="IsProcessing" />
                         </MudItem>
-                        <MudItem>
-                            <MudSwitch @bind-Checked="ExcludeBedrockUI" Label="Exclude UI" Color="Color.Primary"/>
+                        <MudItem Class="my-1">
+                            <MudSwitch @bind-Checked="ExcludeBedrockUI" Label="Exclude UI" Color="Color.Primary" Disabled="IsProcessing" />
                         </MudItem>
-                    }
-                </MudList>
-                <MudList Dense="true">
-                    <MudItem>
-                        <MudButton OnClick="@OpenBlacklistDialog" Style="width:256px;" Variant="Variant.Filled" Color="Color.Warning">Configure Blacklist</MudButton>
+                    </MudList>
+                }
+                <MudList>
+                    <MudItem Class="my-1">
+                        <MudButton OnClick="@OpenBlacklistDialog" Style="width:256px; height:36px;" Variant="Variant.Filled" Color="Color.Info" Disabled="IsProcessing">Configure Blacklist</MudButton>
+                    </MudItem>
+                    <MudItem Class="my-1">
+                        <MudButton OnClick="@ResetBothBlacklists" Style="width:256px; height:36px;" Variant="Variant.Filled" Color="Color.Warning" Disabled="IsProcessing">Reset Both Blacklists</MudButton>
                     </MudItem>
                 </MudList>
             </MudGrid>
         </MudItem>
-        <MudItem xs="12">
+        <MudItem xs="12" Class="py-1">
             <MudGrid Justify="Justify.Center" Spacing="4">
                 <MudItem Class="d-flex align-center">
                     <MudButton Size="Size.Large" Style="width:128px;" Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit"
-                               OnClick="async (e) => await Compare()" Disabled="@(!CanCompare)">Compare</MudButton>
+                               OnClick="@Compare" Disabled="@(!CanCompare || IsProcessing)">Compare</MudButton>
                 </MudItem>
                 <MudItem Class="d-flex align-center">
                     <MudButton Size="Size.Large" Style="width:128px;" Variant="Variant.Filled" Color="Color.Error" ButtonType="ButtonType.Reset"
-                               OnClick="@Reset" Disabled="@(File == null)">Reset</MudButton>
+                               OnClick="@Reset" Disabled="@(File == null || IsProcessing)">Reset</MudButton>
                 </MudItem>
             </MudGrid>
+            @if (IsProcessing)
+            {
+                <MudProgressLinear Color="Color.Primary" Size="Size.Small" Indeterminate="true" Class="my-7" />
+            }
+            else
+            {
+                <MudProgressLinear Color="Color.Primary" Size="Size.Small" Value="0" Max="100" Class="my-7" />
+            }
         </MudItem>
-        <MudItem xs="12">
+        <MudItem xs="12" Class="py-1">
             <MudTabs Outlined="true" Position="Position.Left" Rounded="true" Border="true"
                      ApplyEffectsToContainer="true" PanelClass="pl-6 pt-2 pb-2">
                 <MudTabPanel Text="Matching Textures" Style="width:200px;">
@@ -108,6 +124,9 @@
                                 <MudText>@MatchingTexturesList.Count</MudText>
                             </MudItem>
                             <MudItem Style="position: absolute; bottom: 4px; right: 4px; z-index: 10;">
+                                <MudTooltip Text="Copy" Placement="Placement.Top">
+                                    <MudIconButton Icon="@Icons.Filled.ContentCopy" OnClick="async () => await CopyTextToClipboard(MatchingTexturesList)"></MudIconButton>
+                                </MudTooltip>
                                 <MudTooltip Text="Export" Placement="Placement.Top">
                                     <MudIconButton Icon="@Icons.Filled.Download" OnClick="ExportMatchingTextures"></MudIconButton>
                                 </MudTooltip>
@@ -132,6 +151,9 @@
                                 <MudText>@MissingTexturesList.Count</MudText>
                             </MudItem>
                             <MudItem Style="position: absolute; bottom: 4px; right: 4px; z-index: 10;">
+                                <MudTooltip Text="Copy" Placement="Placement.Top">
+                                    <MudIconButton Icon="@Icons.Filled.ContentCopy" OnClick="async () => await CopyTextToClipboard(MissingTexturesList)"></MudIconButton>
+                                </MudTooltip>
                                 <MudTooltip Text="Export" Placement="Placement.Top">
                                     <MudIconButton Icon="@Icons.Filled.Download" OnClick="ExportMissingTextures"></MudIconButton>
                                 </MudTooltip>
@@ -156,6 +178,9 @@
                                 <MudText>@UnusedTexturesList.Count</MudText>
                             </MudItem>
                             <MudItem Style="position: absolute; bottom: 4px; right: 4px; z-index: 10;">
+                                <MudTooltip Text="Copy" Placement="Placement.Top">
+                                    <MudIconButton Icon="@Icons.Filled.ContentCopy" OnClick="async () => await CopyTextToClipboard(UnusedTexturesList)"></MudIconButton>
+                                </MudTooltip>
                                 <MudTooltip Text="Export" Placement="Placement.Top">
                                     <MudIconButton Icon="@Icons.Filled.Download" OnClick="ExportUnusedTextures"></MudIconButton>
                                 </MudTooltip>

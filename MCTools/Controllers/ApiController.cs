@@ -15,7 +15,7 @@ namespace MCTools.Controllers
             _client = client;
         }
 
-        public async Task<List<MCVersion>> GetVersions()
+        public async Task<List<MCVersion>> GetJavaVersions()
         {
             HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, $"{_client.BaseAddress}api/assets/versions");
             HttpResponseMessage res = await _client.SendAsync(req);
@@ -28,9 +28,35 @@ namespace MCTools.Controllers
             return new List<MCVersion>();
         }
 
-        public async Task<MCAssets> GetAssets(string version)
+        public async Task<List<MCVersion>> GetBedrockVersions()
+        {
+            HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, $"{_client.BaseAddress}api/assets/bedrock/versions");
+            HttpResponseMessage res = await _client.SendAsync(req);
+
+            if (res.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                string rawJson = await res.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<List<MCVersion>>(rawJson);
+            }
+            return new List<MCVersion>();
+        }
+
+        public async Task<MCAssets> GetJavaAssets(string version)
         {
             HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, $"{_client.BaseAddress}api/assets/version/{version}");
+            HttpResponseMessage res = await _client.SendAsync(req);
+
+            if (res.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                string rawJson = await res.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<MCAssets>(rawJson);
+            }
+            return new MCAssets();
+        }
+
+        public async Task<MCAssets> GetBedrockAssets(string version)
+        {
+            HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, $"{_client.BaseAddress}api/assets/bedrock/version/{version}");
             HttpResponseMessage res = await _client.SendAsync(req);
 
             if (res.StatusCode == System.Net.HttpStatusCode.OK)
