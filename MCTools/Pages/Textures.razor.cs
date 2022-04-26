@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using MCTools.Enums;
+using MCTools.Logic;
 using MCTools.Models;
 using MCTools.Shared.Dialog;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.JSInterop;
 using MudBlazor;
 using Newtonsoft.Json;
 
@@ -24,10 +24,18 @@ namespace MCTools.Pages
         #region Constants
         private const int MAX_FILESIZE_MB = 100;
         private const int MAX_FILESIZE_BYTES = MAX_FILESIZE_MB * 1024 * 1024;
+
+        private const float VIRTUALIZER_ITEM_SIZE = 36.02f;
+        private const int VIRTUALIZER_OVERSCAN = 64;
+
+        private const string TABLE_TAB_PANEL_STYLE = "width:200px;";
+        private const string TABLE_CONTENT_STYLE = "max-height: 300px; width: 100%; overflow-y: scroll;";
+        private const string TABLE_COUNT_STYLE = "position: absolute; top: 4px; right: 12px; z-index: 10;";
+        private const string TABLE_OPTIONS_STYLE = "position: absolute; bottom: 4px; right: 4px; z-index: 10;";
         #endregion
 
         #region API Values
-        private List<MCVersion> MinecraftVersions { get; set; } = new List<MCVersion>();
+        private List<MCVersion> MinecraftVersions { get; set; } = new();
         private MCVersion LatestVersion { get; set; }
         private MCAssets Assets { get; set; }
         #endregion
@@ -37,7 +45,13 @@ namespace MCTools.Pages
         private MCVersion SelectedVersion { get; set; }
         private MCEdition SelectedEdition { get; set; } = MCEdition.Java;
 
-        private bool IsProcessing = false;
+        private bool IsProcessing;
+
+        #if DEBUG
+        private bool DebugMode = true;
+        #else
+        private bool DebugMode = false;
+        #endif
 
         private bool CanCompare => File is { Size: > 0 } && SelectedVersion != null && SelectedEdition > 0;
 
@@ -47,14 +61,17 @@ namespace MCTools.Pages
         private bool ExcludeMisc { get; set; } = true;
         private bool ExcludeBedrockUI { get; set; }
 
-        private List<string> BlacklistRegexJava = new List<string>();
-        private List<string> BlacklistRegexBedrock = new List<string>();
+        private bool UseParallel { get; set; }
+        private bool PerfLogging { get; set; }
+
+        private List<string> BlacklistRegexJava = new();
+        private List<string> BlacklistRegexBedrock = new();
 
         #region Defaults
-        private readonly List<string> DefaultBlacklistJava = new List<string>()
+        private readonly List<string> DefaultBlacklistJava = new()
             { @"_MACOSX", @"assets\/minecraft\/textures\/ctm", @"assets\/minecraft\/textures\/custom", @"textures\/colormap", @"background\/panorama_overlay.png" };
 
-        private readonly List<string> DefaultBlacklistBedrock = new List<string>()
+        private readonly List<string> DefaultBlacklistBedrock = new()
             { @"_MACOSX", @"texts\/", @"textures\/persona_thumbnails", @"textures\/colormap" };
         #endregion
         #endregion
@@ -62,25 +79,41 @@ namespace MCTools.Pages
         #region Results
         public IBrowserFile File { get; set; }
 
-        private List<string> MatchingTexturesList = new List<string>();
-        private List<string> MissingTexturesList = new List<string>();
-        private List<string> UnusedTexturesList = new List<string>();
+        private List<string> MatchingTexturesList = new();
+        private List<string> MissingTexturesList = new();
+        private List<string> UnusedTexturesList = new();
 
-        private int TotalTextures = 0;
+        private int TotalTextures;
         #endregion
 
+        private JSHelper jsHelper;
         #endregion
 
         #region Blazor Overrides
         protected override async Task OnInitializedAsync()
         {
-            await SelectedEditionChanged(SelectedEdition);
-            await SetBlacklistFromLocalStorage();
+            jsHelper = new JSHelper(JS);
+            await Task.WhenAll(SelectedEditionChanged(SelectedEdition), SetBlacklistFromLocalStorage(), GetDebugFromLocalStorage());
             StateHasChanged();
         }
         #endregion
 
         #region Local Storage
+        /// <summary>
+        /// Get debug mode status from the users local storage
+        /// </summary>
+        private async Task GetDebugFromLocalStorage()
+        {
+            try
+            {
+                DebugMode = await localStore.GetItemAsync<bool?>("debugMode") ?? false;
+            }
+            catch (Exception)
+            {
+                DebugMode = false;
+            }
+        }
+
         /// <summary>
         /// Set blacklists from the users local storage
         /// </summary>
@@ -229,6 +262,9 @@ namespace MCTools.Pages
                     tempBlackList.Add(@"textures\/gui");
                     tempBlackList.Add(@"textures\/ui");
                 }
+
+                // Bedrock asset generation can be slow when generated for the first time, maybe schedule the API to get them periodically?
+                Snackbar.Add("Generating Bedrock assets for the first time can be slow.", Severity.Warning);
             }
 
             try
@@ -285,27 +321,65 @@ namespace MCTools.Pages
             // Run through all of the reference (MC) textures
             Task refTask = Task.Run(() =>
             {
-                refFiles.ForEach(x =>
+                Stopwatch st = Stopwatch.StartNew();
+                if (UseParallel)
                 {
-                    if (!blacklist.Any(rule => Regex.IsMatch(x, rule)))
+                    Parallel.ForEach(refFiles, (x) =>
                     {
-                        TotalTextures++;
-                        if (packFiles.Contains(x))
-                            MatchingTexturesList.Add(x); // Pack contains this texture
-                        else
-                            MissingTexturesList.Add(x); // Pack doesn't contain this texture
-                    }
-                });
+                        if (!blacklist.Any(rule => Regex.IsMatch(x, rule)))
+                        {
+                            TotalTextures++;
+                            if (packFiles.Contains(x))
+                                MatchingTexturesList.Add(x); // Pack contains this texture
+                            else
+                                MissingTexturesList.Add(x); // Pack doesn't contain this texture
+                        }
+                    });
+                }
+                else
+                {
+                    refFiles.ForEach(x =>
+                    {
+                        if (!blacklist.Any(rule => Regex.IsMatch(x, rule)))
+                        {
+                            TotalTextures++;
+                            if (packFiles.Contains(x))
+                                MatchingTexturesList.Add(x); // Pack contains this texture
+                            else
+                                MissingTexturesList.Add(x); // Pack doesn't contain this texture
+                        }
+                    });
+                }
+                st.Stop();
+
+                if (PerfLogging)
+                    Console.WriteLine($"Ran through all reference textures in {st.ElapsedMilliseconds}ms");
             });
 
             // Run through all of the pack textures
             Task packTask = Task.Run(() =>
             {
-                packFiles.ForEach(x =>
+                Stopwatch st = Stopwatch.StartNew();
+                if (UseParallel)
                 {
-                    if (!blacklist.Any(rule => Regex.IsMatch(x, rule)) && !refFiles.Contains(x))
-                        UnusedTexturesList.Add(x); // MC doesn't contain this texture
-                });
+                    Parallel.ForEach(packFiles, (x) =>
+                    {
+                        if (!blacklist.Any(rule => Regex.IsMatch(x, rule)) && !refFiles.Contains(x))
+                            UnusedTexturesList.Add(x); // MC doesn't contain this texture
+                    });
+                }
+                else
+                {
+                    packFiles.ForEach(x =>
+                    {
+                        if (!blacklist.Any(rule => Regex.IsMatch(x, rule)) && !refFiles.Contains(x))
+                            UnusedTexturesList.Add(x); // MC doesn't contain this texture
+                    });
+                }
+                st.Stop();
+
+                if (PerfLogging)
+                    Console.WriteLine($"Ran through all pack textures in {st.ElapsedMilliseconds}ms");
             });
             await Task.WhenAll(refTask, packTask); // Run async to improve speed
         }
@@ -322,12 +396,29 @@ namespace MCTools.Pages
             List<string> usefulFiles = new List<string>();
             using (ZipArchive zip = new ZipArchive(ms))
             {
-                foreach (ZipArchiveEntry file in zip.Entries)
+                Stopwatch st = Stopwatch.StartNew();
+                if (UseParallel)
                 {
-                    // Include all PNGs, if Bedrock, include TGAs
-                    if (file.FullName.EndsWith("png") || (SelectedEdition == MCEdition.Bedrock && file.FullName.EndsWith("tga")))
-                        usefulFiles.Add(file.FullName);
+                    Parallel.ForEach(zip.Entries, (file) =>
+                    {
+                        // Include all PNGs, if Bedrock, include TGAs
+                        if (file.FullName.EndsWith("png") || (SelectedEdition == MCEdition.Bedrock && file.FullName.EndsWith("tga")))
+                            usefulFiles.Add(file.FullName);
+                    });
                 }
+                else
+                {
+                    foreach (ZipArchiveEntry file in zip.Entries)
+                    {
+                        // Include all PNGs, if Bedrock, include TGAs
+                        if (file.FullName.EndsWith("png") || (SelectedEdition == MCEdition.Bedrock && file.FullName.EndsWith("tga")))
+                            usefulFiles.Add(file.FullName);
+                    }
+                }
+                st.Stop();
+
+                if (PerfLogging)
+                    Console.WriteLine($"Got all pack textures in {st.ElapsedMilliseconds}ms");
             }
             return usefulFiles;
         }
@@ -456,7 +547,7 @@ namespace MCTools.Pages
         /// <param name="list">List of strings</param>
         private async Task CopyTextToClipboard(List<string> list)
         {
-            await JS.InvokeVoidAsync("clipboardCopy.copyText", string.Join(Environment.NewLine, list));
+            await jsHelper.CopyTextToClipboard(list);
         }
 
         /// <summary>
@@ -466,8 +557,7 @@ namespace MCTools.Pages
         /// <param name="fileName">Exported files filename</param>
         private async Task Export(List<string> listToExport, string fileName)
         {
-            using var streamRef = new DotNetStreamReference(new MemoryStream(Encoding.UTF8.GetBytes(string.Join("\n", listToExport))));
-            await JS.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
+            await jsHelper.ExportListToFile(listToExport, fileName);
         }
         #endregion
     }

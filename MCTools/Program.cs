@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MudBlazor.Services;
 using System;
 using System.Net.Http;
+using System.Reflection;
 using System.Threading.Tasks;
 using Blazored.LocalStorage;
 using MCTools.Controllers;
@@ -13,6 +14,8 @@ namespace MCTools
 {
     public class Program
     {
+        private static bool IsBetaRelease;
+
         public static async Task Main(string[] args)
         {
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -34,6 +37,10 @@ namespace MCTools
 
             builder.Services.AddBlazoredLocalStorage();
 
+            string releaseType = builder.Configuration.GetValue<string>("Application:ReleaseType");
+            IsBetaRelease = releaseType.ToUpper() == "BETA";
+            Console.WriteLine($"Build Date: {GetBuildDate():yyyyMMddHHmmss}, Release Type: {releaseType}");
+
             var environment = builder.Configuration.GetValue<string>("Application:Environment");
             var url = builder.Configuration.GetValue<string>($"Endpoint:{environment}");
             Console.WriteLine($"API Endpoint: {url}");
@@ -42,6 +49,17 @@ namespace MCTools
             builder.Services.AddScoped<ApiController>();
 
             await builder.Build().RunAsync();
+        }
+
+        public static bool IsBeta()
+        {
+            return IsBetaRelease;
+        }
+
+        public static DateTime GetBuildDate()
+        {
+            var attribute = Assembly.GetExecutingAssembly().GetCustomAttribute<BuildDateAttribute>();
+            return attribute?.DateTime ?? default(DateTime);
         }
     }
 }
