@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ master ]
 
+env:
+  CSPROJ: MCTools/MCTools.csproj
+  PUBLISH_PATH: publish
+
 jobs:
   build:
 
@@ -24,4 +28,9 @@ jobs:
     - name: Test
       run: dotnet test --no-build --verbosity normal
     - name: Publish
-      run: dotnet publish MCTools/MCTools.csproj -c Release -o /publish
+      run: dotnet publish ${{ env.CSPROJ }} -c Release -o ${{ env.PUBLISH_PATH }}
+    - name: Upload Publish Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: MCTools Artifact
+        path: /home/runner/work/MCTools/MCTools/${{ env.PUBLISH_PATH }}/
