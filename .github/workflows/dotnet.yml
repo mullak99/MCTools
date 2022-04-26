@@ -2,17 +2,16 @@ name: .NET
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, develop ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, develop ]
 
 env:
   CSPROJ: MCTools/MCTools.csproj
-  PUBLISH_PATH: publish
+  PUBLISH_PATH: bin/Publish
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -29,8 +28,13 @@ jobs:
       run: dotnet test --no-build --verbosity normal
     - name: Publish
       run: dotnet publish ${{ env.CSPROJ }} -c Release -o ${{ env.PUBLISH_PATH }}
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: Build
+        path: /home/runner/work/MCTools/MCTools/MCTools/bin/Release/net6.0
     - name: Upload Publish Artifact
       uses: actions/upload-artifact@v2
       with:
-        name: MCTools Artifact
+        name: Publish
         path: /home/runner/work/MCTools/MCTools/${{ env.PUBLISH_PATH }}/
