@@ -2,17 +2,16 @@ name: .NET
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, develop ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, develop ]
 
 env:
   CSPROJ: MCTools/MCTools.csproj
-  PUBLISH_PATH: publish
+  PUBLISH_PATH: bin/Publish
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -32,5 +31,6 @@ jobs:
     - name: Upload Publish Artifact
       uses: actions/upload-artifact@v2
       with:
-        name: MCTools Artifact
+        name: Publish
         path: /home/runner/work/MCTools/MCTools/${{ env.PUBLISH_PATH }}/
+        retention-days: 30
