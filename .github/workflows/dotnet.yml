@@ -1,0 +1,36 @@
+name: .NET
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  CSPROJ: MCTools/MCTools.csproj
+  PUBLISH_PATH: publish
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET 6.0
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build -c Release --no-restore
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+    - name: Publish
+      run: dotnet publish ${{ env.CSPROJ }} -c Release -o ${{ env.PUBLISH_PATH }}
+    - name: Upload Publish Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: MCTools Artifact
+        path: /home/runner/work/MCTools/MCTools/${{ env.PUBLISH_PATH }}/
