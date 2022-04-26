@@ -9,6 +9,7 @@ on:
 env:
   CSPROJ: MCTools/MCTools.csproj
   PUBLISH_PATH: bin/Publish
+  RELEASE_TYPE: Release
 
 jobs:
   build:
@@ -23,11 +24,11 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build -c Release --no-restore
+      run: dotnet build -c ${{ env.RELEASE_TYPE }} --no-restore
     - name: Test
       run: dotnet test --no-build --verbosity normal
     - name: Publish
-      run: dotnet publish ${{ env.CSPROJ }} -c Release -o ${{ env.PUBLISH_PATH }}
+      run: dotnet publish ${{ env.CSPROJ }} -c ${{ env.RELEASE_TYPE }} -o ${{ env.PUBLISH_PATH }}
     - name: Upload Publish Artifact
       uses: actions/upload-artifact@v2
       with:
