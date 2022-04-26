@@ -9,19 +9,13 @@
 		<TrimMode>link</TrimMode>
 	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-	<RunAOTCompilation>True</RunAOTCompilation>
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<RunAOTCompilation>False</RunAOTCompilation>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-	<RunAOTCompilation>True</RunAOTCompilation>
-  </PropertyGroup>
-
-	<ItemGroup>
-		<AssemblyAttribute Include="BuildDateAttribute">
-			<_Parameter1>$([System.DateTime]::UtcNow.ToString("yyyyMMddHHmmss"))</_Parameter1>
-		</AssemblyAttribute>
-	</ItemGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<RunAOTCompilation>False</RunAOTCompilation>
+	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Blazored.LocalStorage" Version="4.2.0" />
