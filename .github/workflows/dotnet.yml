@@ -28,13 +28,9 @@ jobs:
       run: dotnet test --no-build --verbosity normal
     - name: Publish
       run: dotnet publish ${{ env.CSPROJ }} -c Release -o ${{ env.PUBLISH_PATH }}
-    - name: Upload Build Artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: Build
-        path: /home/runner/work/MCTools/MCTools/MCTools/bin/Release/net6.0
     - name: Upload Publish Artifact
       uses: actions/upload-artifact@v2
       with:
         name: Publish
         path: /home/runner/work/MCTools/MCTools/${{ env.PUBLISH_PATH }}/
+        retention-days: 30
