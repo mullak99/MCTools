@@ -1,13 +1,13 @@
 ﻿@inherits LayoutComponentBase
 
 <MudDialog>
-    <DialogContent>
-        <MudTextField T="string" Label="Blacklist" Variant="Variant.Outlined" @bind-Text="@BlacklistEdited" Lines="8" />
-        <label>This uses regex statements. One per line.</label>
-    </DialogContent>
-    <DialogActions>
-        <MudButton Color="Color.Error" OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Warning" OnClick="Reset">Reset</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit">Save</MudButton>
-    </DialogActions>
+	<DialogContent>
+		<MudTextField T="string" Label="Blacklist" Variant="Variant.Outlined" @bind-Text="@BlacklistEdited" Lines="8" />
+		<label>This uses regex statements. One per line.</label>
+	</DialogContent>
+	<DialogActions>
+		<MudButton Color="Color.Error" OnClick="Cancel">Cancel</MudButton>
+		<MudButton Color="Color.Warning" OnClick="Reset">Reset</MudButton>
+		<MudButton Color="Color.Primary" OnClick="Submit">Save</MudButton>
+	</DialogActions>
 </MudDialog>
