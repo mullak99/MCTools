@@ -3,10 +3,29 @@
 <MudText Typo="Typo.h3">Minecraft Tools @(Program.IsBeta() ? " (Beta)" : string.Empty)</MudText>
 <MudText Class="mb-8">This app is a work-in-progress. More tools will be coming soon!</MudText>
 
-<MudAlert Severity="Severity.Normal">
-	<p>If you experience any issues, please contact me!</p>
+@if (Program.IsBeta())
+{
+	<MudAlert Severity="Severity.Warning">
+		<p>You are using MCTools Beta!</p>
+		<p>If you experience any issues, <a href="@Program.GetStableUrl()">visit the stable site</a>.</p>
+	</MudAlert>
+}
+else
+{
+	<MudAlert Severity="Severity.Normal">
+		<p>You are using MCTools Stable.</p>
+		<p>If you want to test experimental features, <a href="@Program.GetBetaUrl()">visit the beta site</a>.</p>
+	</MudAlert>
+}
+
+
+<MudAlert Class="mt-4" Severity="Severity.Normal">
+	<p>If you encounter any issues, please report them on the GitHub Issues page:</p>
+	<br/>
+	<p>Issues: <MudLink Href="https://github.com/mullak99/MCTools/issues" Typo="Typo.body2" Color="Color.Inherit"><b>https://github.com/mullak99/MCTools/issues</b></MudLink></p>
+	<br/>
+	<p>Alternatively, you may contact me on the following:</p>
 	<br/>
 	<p>Discord: mullak99#1999</p>
 	<p>Email: <MudLink Href="mailto:mullak99@mullak99.co.uk" Typo="Typo.body2" Color="Color.Inherit"><b>mullak99@mullak99.co.uk</b></MudLink></p>
 </MudAlert>
-
