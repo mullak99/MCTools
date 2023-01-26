@@ -65,7 +65,7 @@ namespace MCTools
 
 		public static string GetVersion()
 		{
-			Version version = Assembly.GetEntryAssembly().GetName().Version;
+			Version version = Assembly.GetEntryAssembly()?.GetName().Version;
 			string verString = $"v{version.Major}.{version.Minor}.{version.Revision}";
 
 			if (IsBeta())

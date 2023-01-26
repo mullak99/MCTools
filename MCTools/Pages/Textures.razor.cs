@@ -59,6 +59,9 @@ namespace MCTools.Pages
 		private bool ExcludeFonts { get; set; } = true;
 		private bool ExcludeOptifine { get; set; } = true;
 		private bool ExcludeMisc { get; set; } = true;
+		private bool ExcludeNonVanillaNamespaces { get; set; } = true;
+		private bool ExcludeEmissives { get; set; } = true;
+
 		private bool ExcludeBedrockUI { get; set; }
 
 		private bool UseParallel { get; set; }
@@ -69,7 +72,7 @@ namespace MCTools.Pages
 
 		#region Defaults
 		private readonly List<string> DefaultBlacklistJava = new()
-			{ @"_MACOSX", @"assets\/minecraft\/textures\/ctm", @"assets\/minecraft\/textures\/custom", @"textures\/colormap", @"background\/panorama_overlay.png" };
+			{ @"_MACOSX", @"assets\/minecraft\/textures\/ctm", @"assets\/minecraft\/textures\/custom", @"textures\/colormap", @"background\/panorama_overlay.png", @"assets\/minecraft\/textures\/environment\/clouds.png" };
 
 		private readonly List<string> DefaultBlacklistBedrock = new()
 			{ @"_MACOSX", @"texts\/", @"textures\/persona_thumbnails", @"textures\/colormap" };
@@ -247,6 +250,10 @@ namespace MCTools.Pages
 					tempBlackList.Add(@"textures\/misc");
 				if (ExcludeOptifine)
 					tempBlackList.Add(@"assets\/minecraft\/optifine");
+				if (ExcludeNonVanillaNamespaces)
+					tempBlackList.Add(@"assets\/\b(?!minecraft\b|realms\b).*?\b");
+				if (ExcludeEmissives)
+					tempBlackList.Add(@"textures\/.+\/.+_e(missive)?\.png");
 			}
 			else
 			{
@@ -427,19 +434,21 @@ namespace MCTools.Pages
 		/// <summary>
 		/// Open Blacklist Dialog with the appropriate regex list
 		/// </summary>
-		private void OpenBlacklistDialog()
+		private void OpenBlacklistDialog(MCEdition edition)
 		{
 			DialogOptions options = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
 			#pragma warning disable CS8974 // Converting method group to non-delegate type
 			DialogParameters parameters = new DialogParameters()
 			{
-				{"Edition", SelectedEdition},
-				{"Blacklist", SelectedEdition == MCEdition.Java ? BlacklistRegexJava : BlacklistRegexBedrock},
-				{"DefaultBlacklist", SelectedEdition == MCEdition.Java ? DefaultBlacklistJava : DefaultBlacklistBedrock},
+				{"Edition", edition},
+				{"Blacklist", edition == MCEdition.Java ? BlacklistRegexJava : BlacklistRegexBedrock},
+				{"DefaultBlacklist", edition == MCEdition.Java ? DefaultBlacklistJava : DefaultBlacklistBedrock},
 				{"Callback", UpdateBlacklist } // Callback to update blacklist
 			};
 			#pragma warning restore CS8974 // Converting method group to non-delegate type
-			Dialog.Show<TexturesBlacklistDialog>("Custom Blacklist", parameters, options);
+
+			string title = $"Custom Blacklist ({(edition == MCEdition.Java ? "Java" : "Bedrock")})";
+			Dialog.Show<TexturesBlacklistDialog>(title, parameters, options);
 		}
 
 		/// <summary>
@@ -454,6 +463,32 @@ namespace MCTools.Pages
 				BlacklistRegexJava = blacklist;
 			else
 				BlacklistRegexBedrock = blacklist;
+		}
+
+		/// <summary>
+		/// Open Reset Blacklist Confirmation Dialog
+		/// </summary>
+		private void OpenResetConfirmationDialog()
+		{
+			DialogOptions options = new DialogOptions() { MaxWidth = MaxWidth.Small, FullWidth = true };
+			#pragma warning disable CS8974 // Converting method group to non-delegate type
+			DialogParameters parameters = new DialogParameters()
+			{
+				{"ConfirmationText", "Are you sure you want to reset both blacklists?"},
+				{"Callback", ResetBlacklistCallback}
+			};
+			#pragma warning restore CS8974 // Converting method group to non-delegate type
+			Dialog.Show<ConfirmationDialog>("Reset Both Blacklists?", parameters, options);
+		}
+
+		/// <summary>
+		/// Callback to handle blacklist resetting
+		/// </summary>
+		/// <param name="reset">Whether to reset the blacklists</param>
+		private void ResetBlacklistCallback(bool reset)
+		{
+			if (reset)
+				ResetBothBlacklists().ConfigureAwait(true);
 		}
 
 		/// <summary>
