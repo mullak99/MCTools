@@ -24,20 +24,20 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <None Include="wwwroot\icon-32.png">
-	    <Pack>True</Pack>
-	    <PackagePath>\</PackagePath>
-	  </None>
+		<None Include="wwwroot\icon-32.png">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Blazored.LocalStorage" Version="4.2.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.4" />
-		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.4" PrivateAssets="all" />
-		<PackageReference Include="MudBlazor.ThemeManager" Version="1.0.6" />
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+		<PackageReference Include="Blazored.LocalStorage" Version="4.3.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.13" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.13" PrivateAssets="all" />
+		<PackageReference Include="MudBlazor.ThemeManager" Version="1.0.7" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
 		<PackageReference Include="System.Net.Http.Json" Version="6.0.0" />
-		<PackageReference Include="MudBlazor" Version="6.0.9" />
+		<PackageReference Include="MudBlazor" Version="6.1.7" />
 	</ItemGroup>
 
 	<ItemGroup>
