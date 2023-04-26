@@ -48,6 +48,7 @@ namespace MCTools.Shared
 		/// </summary>
 		private async Task GetDebugFromLocalStorage()
 		{
+			#if !DEBUG
 			try
 			{
 				DebugMode = await localStore.GetItemAsync<bool?>("debugMode") ?? false;
@@ -56,6 +57,7 @@ namespace MCTools.Shared
 			{
 				DebugMode = false;
 			}
+			#endif
 		}
 
 		/// <summary>
