@@ -3,13 +3,14 @@
 @using MCTools.Enums
 @using Blazored.LocalStorage
 @using MCTools.Controllers
+@using MCTools.Logic
 
 @inherits LayoutComponentBase
 @inject ISnackbar Snackbar
 @inject IDialogService Dialog
 @inject ILocalStorageService localStore
-@inject IJSRuntime JS
 @inject ApiController _apiController
+@inject JSHelper _JsHelper
 
 <MudText Typo="Typo.h3" GutterBottom="true">Textures Tool</MudText>
 
@@ -20,7 +21,7 @@
 			<MudButton HtmlTag="label"
 					   Variant="Variant.Filled"
 					   Color="Color.Primary"
-					   StartIcon="@Icons.Filled.CloudUpload"
+					   StartIcon="@Icons.Material.Filled.CloudUpload"
 					   for="fileInput" style="width: 100%;" >
 				@UploadText
 			</MudButton>
@@ -37,7 +38,7 @@
 					   SelectedValues="new List<MCVersion>() { SelectedVersion }" SelectedValuesChanged="(e) => SelectedVersion = e.First()">
 				@foreach (MCVersion ver in MinecraftVersions)
 				{
-					string val = $"{ver.Id}{GetSuffix(ver)}";
+					string val = $"{ver.Id}{ver.GetSuffix(LatestVersion)}";
 					<MudSelectItem Value="ver">@val</MudSelectItem>
 				}
 			</MudSelect>
@@ -122,7 +123,7 @@
 				</MudList>
 			</MudGrid>
 		</MudItem>
-		@if (DebugMode)
+		@if (MainLayout.DebugMode)
 		{
 			<MudItem xs="12" Class="pa-2 my-1">
 				<MudText Typo="Typo.h6" GutterBottom="true">Debug</MudText>
@@ -172,10 +173,10 @@
 							</MudItem>
 							<MudItem Style="@TABLE_OPTIONS_STYLE">
 								<MudTooltip Text="Copy" Placement="Placement.Top">
-									<MudIconButton Icon="@Icons.Filled.ContentCopy" OnClick="async () => await CopyTextToClipboard(MatchingTexturesList)"></MudIconButton>
+									<MudIconButton Icon="@Icons.Material.Filled.ContentCopy" OnClick="async () => await CopyTextToClipboard(MatchingTexturesList)"></MudIconButton>
 								</MudTooltip>
 								<MudTooltip Text="Export" Placement="Placement.Top">
-									<MudIconButton Icon="@Icons.Filled.Download" OnClick="ExportMatchingTextures"></MudIconButton>
+									<MudIconButton Icon="@Icons.Material.Filled.Download" OnClick="ExportMatchingTextures"></MudIconButton>
 								</MudTooltip>
 							</MudItem>
 							<MudList Dense="true">
@@ -199,10 +200,10 @@
 							</MudItem>
 							<MudItem Style="@TABLE_OPTIONS_STYLE">
 								<MudTooltip Text="Copy" Placement="Placement.Top">
-									<MudIconButton Icon="@Icons.Filled.ContentCopy" OnClick="async () => await CopyTextToClipboard(MissingTexturesList)"></MudIconButton>
+									<MudIconButton Icon="@Icons.Material.Filled.ContentCopy" OnClick="async () => await CopyTextToClipboard(MissingTexturesList)"></MudIconButton>
 								</MudTooltip>
 								<MudTooltip Text="Export" Placement="Placement.Top">
-									<MudIconButton Icon="@Icons.Filled.Download" OnClick="ExportMissingTextures"></MudIconButton>
+									<MudIconButton Icon="@Icons.Material.Filled.Download" OnClick="ExportMissingTextures"></MudIconButton>
 								</MudTooltip>
 							</MudItem>
 							<MudList Dense="true">
@@ -226,10 +227,10 @@
 							</MudItem>
 							<MudItem Style="@TABLE_OPTIONS_STYLE">
 								<MudTooltip Text="Copy" Placement="Placement.Top">
-									<MudIconButton Icon="@Icons.Filled.ContentCopy" OnClick="async () => await CopyTextToClipboard(UnusedTexturesList)"></MudIconButton>
+									<MudIconButton Icon="@Icons.Material.Filled.ContentCopy" OnClick="async () => await CopyTextToClipboard(UnusedTexturesList)"></MudIconButton>
 								</MudTooltip>
 								<MudTooltip Text="Export" Placement="Placement.Top">
-									<MudIconButton Icon="@Icons.Filled.Download" OnClick="ExportUnusedTextures"></MudIconButton>
+									<MudIconButton Icon="@Icons.Material.Filled.Download" OnClick="ExportUnusedTextures"></MudIconButton>
 								</MudTooltip>
 							</MudItem>
 							<MudList Dense="true">

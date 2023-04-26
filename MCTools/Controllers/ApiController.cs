@@ -66,5 +66,15 @@ namespace MCTools.Controllers
 			}
 			return new MCAssets();
 		}
+
+		public async Task<string> GetJavaJar(string version)
+		{
+			HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, $"{_client.BaseAddress}api/v1.0/assets/version/{version}/jar");
+			HttpResponseMessage res = await _client.SendAsync(req);
+
+			if (res.StatusCode == System.Net.HttpStatusCode.OK)
+				return await res.Content.ReadAsStringAsync();
+			return string.Empty;
+		}
 	}
 }

@@ -36,6 +36,7 @@
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.13" PrivateAssets="all" />
 		<PackageReference Include="MudBlazor.ThemeManager" Version="1.0.7" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+		<PackageReference Include="SharpZipLib" Version="1.4.2" />
 		<PackageReference Include="System.Net.Http.Json" Version="6.0.0" />
 		<PackageReference Include="MudBlazor" Version="6.1.7" />
 	</ItemGroup>

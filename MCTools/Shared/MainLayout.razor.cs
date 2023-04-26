@@ -11,9 +11,25 @@ namespace MCTools.Shared
 		public bool IsDarkMode { get; set; } = true;
 		public bool IsDrawerOpen { get; set; } = true;
 
+		#if DEBUG
+		public static bool DebugMode = true;
+		#else
+		public static bool DebugMode = false;
+		#endif
+
 		private MudTheme GetCurrentTheme() => IsDarkMode ? DarkTheme : DefaultTheme;
 
 		protected override async Task OnInitializedAsync()
+		{
+			await Task.WhenAll(GetCurrentThemeFromLocalStorage(), GetDebugFromLocalStorage());
+			await InvokeAsync(StateHasChanged);
+		}
+
+		/// <summary>
+		/// Get current theme from the users local storage
+		/// </summary>
+		/// <returns></returns>
+		private async Task GetCurrentThemeFromLocalStorage()
 		{
 			try
 			{
@@ -25,7 +41,21 @@ namespace MCTools.Shared
 				IsDarkMode = true;
 			}
 			CurrentTheme = GetCurrentTheme();
-			StateHasChanged();
+		}
+
+		/// <summary>
+		/// Get debug mode status from the users local storage
+		/// </summary>
+		private async Task GetDebugFromLocalStorage()
+		{
+			try
+			{
+				DebugMode = await localStore.GetItemAsync<bool?>("debugMode") ?? false;
+			}
+			catch (Exception)
+			{
+				DebugMode = false;
+			}
 		}
 
 		/// <summary>

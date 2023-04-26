@@ -7,7 +7,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using MCTools.Enums;
-using MCTools.Logic;
 using MCTools.Models;
 using MCTools.Shared.Dialog;
 using Microsoft.AspNetCore.Components;
@@ -47,12 +46,6 @@ namespace MCTools.Pages
 
 		private bool IsProcessing;
 
-		#if DEBUG
-		private bool DebugMode = true;
-		#else
-		private bool DebugMode = false;
-		#endif
-
 		private bool CanCompare => File is { Size: > 0 } && SelectedVersion != null && SelectedEdition > 0;
 
 		private bool ExcludeRealms { get; set; } = true;
@@ -88,35 +81,17 @@ namespace MCTools.Pages
 
 		private int TotalTextures;
 		#endregion
-
-		private JSHelper jsHelper;
 		#endregion
 
 		#region Blazor Overrides
 		protected override async Task OnInitializedAsync()
 		{
-			jsHelper = new JSHelper(JS);
-			await Task.WhenAll(SelectedEditionChanged(SelectedEdition), SetBlacklistFromLocalStorage(), GetDebugFromLocalStorage());
+			await Task.WhenAll(SelectedEditionChanged(SelectedEdition), SetBlacklistFromLocalStorage());
 			StateHasChanged();
 		}
 		#endregion
 
 		#region Local Storage
-		/// <summary>
-		/// Get debug mode status from the users local storage
-		/// </summary>
-		private async Task GetDebugFromLocalStorage()
-		{
-			try
-			{
-				DebugMode = await localStore.GetItemAsync<bool?>("debugMode") ?? false;
-			}
-			catch (Exception)
-			{
-				DebugMode = false;
-			}
-		}
-
 		/// <summary>
 		/// Set blacklists from the users local storage
 		/// </summary>
@@ -206,24 +181,6 @@ namespace MCTools.Pages
 				}
 				IsProcessing = false;
 			}
-		}
-
-		public string GetSuffix(MCVersion version)
-		{
-			switch (version.Type)
-			{
-				case "snapshot":
-					return " (Snapshot)";
-				case "beta":
-					return " (Beta)";
-				default:
-				{
-					if (version == LatestVersion)
-						return " (Latest)";
-					break;
-				}
-			}
-			return string.Empty;
 		}
 		#endregion
 
@@ -400,32 +357,25 @@ namespace MCTools.Pages
 			await File.OpenReadStream(MAX_FILESIZE_BYTES).CopyToAsync(ms);
 
 			List<string> usefulFiles = new List<string>();
-			using (ZipArchive zip = new ZipArchive(ms))
+			using ZipArchive zip = new ZipArchive(ms);
+			Stopwatch st = Stopwatch.StartNew();
+			if (UseParallel)
 			{
-				Stopwatch st = Stopwatch.StartNew();
-				if (UseParallel)
+				Parallel.ForEach(zip.Entries, (file) =>
 				{
-					Parallel.ForEach(zip.Entries, (file) =>
-					{
-						// Include all PNGs, if Bedrock, include TGAs
-						if (file.FullName.EndsWith("png") || (SelectedEdition == MCEdition.Bedrock && file.FullName.EndsWith("tga")))
-							usefulFiles.Add(file.FullName);
-					});
-				}
-				else
-				{
-					foreach (ZipArchiveEntry file in zip.Entries)
-					{
-						// Include all PNGs, if Bedrock, include TGAs
-						if (file.FullName.EndsWith("png") || (SelectedEdition == MCEdition.Bedrock && file.FullName.EndsWith("tga")))
-							usefulFiles.Add(file.FullName);
-					}
-				}
-				st.Stop();
-
-				if (PerfLogging)
-					Console.WriteLine($"Got all pack textures in {st.ElapsedMilliseconds}ms");
+					// Include all PNGs, if Bedrock, include TGAs
+					if (file.FullName.EndsWith("png") || (SelectedEdition == MCEdition.Bedrock && file.FullName.EndsWith("tga")))
+						usefulFiles.Add(file.FullName);
+				});
 			}
+			else
+			{
+				usefulFiles.AddRange(from file in zip.Entries where file.FullName.EndsWith("png") || (SelectedEdition == MCEdition.Bedrock && file.FullName.EndsWith("tga")) select file.FullName);
+			}
+			st.Stop();
+
+			if (PerfLogging)
+				Console.WriteLine($"Got all pack textures in {st.ElapsedMilliseconds}ms");
 			return usefulFiles;
 		}
 		#endregion
@@ -555,34 +505,26 @@ namespace MCTools.Pages
 		/// Export a text file containing the matching textures
 		/// </summary>
 		private async Task ExportMatchingTextures()
-		{
-			await Export(MatchingTexturesList, $"MatchingTextures_{File.Name}.txt");
-		}
+			=> await Export(MatchingTexturesList, $"MatchingTextures_{File.Name}.txt");
 
 		/// <summary>
 		/// Export a text file containing the missing textures
 		/// </summary>
 		private async Task ExportMissingTextures()
-		{
-			await Export(MissingTexturesList, $"MissingTextures_{File.Name}.txt");
-		}
+			=> await Export(MissingTexturesList, $"MissingTextures_{File.Name}.txt");
 
 		/// <summary>
 		/// Export a text file containing the unused textures
 		/// </summary>
 		private async Task ExportUnusedTextures()
-		{
-			await Export(UnusedTexturesList, $"UnusedTextures_{File.Name}.txt");
-		}
+			=> await Export(UnusedTexturesList, $"UnusedTextures_{File.Name}.txt");
 
 		/// <summary>
 		/// Copy String List to clipboard
 		/// </summary>
 		/// <param name="list">List of strings</param>
 		private async Task CopyTextToClipboard(List<string> list)
-		{
-			await jsHelper.CopyTextToClipboard(list);
-		}
+			=> await _JsHelper.CopyTextToClipboard(list);
 
 		/// <summary>
 		/// Export a text file containing a list of strings
@@ -590,9 +532,7 @@ namespace MCTools.Pages
 		/// <param name="listToExport">List of string to export (each on a new line)</param>
 		/// <param name="fileName">Exported files filename</param>
 		private async Task Export(List<string> listToExport, string fileName)
-		{
-			await jsHelper.ExportListToFile(listToExport, fileName);
-		}
+			=> await _JsHelper.ExportListToFile(listToExport, fileName);
 		#endregion
 	}
 }
