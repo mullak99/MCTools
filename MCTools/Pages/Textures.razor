@@ -1,5 +1,5 @@
 ﻿@page "/textures"
-@using MCTools.Models
+@using MCTools.Components
 @using MCTools.Enums
 @using Blazored.LocalStorage
 @using MCTools.Controllers
@@ -13,7 +13,6 @@
 @inject JSHelper _JsHelper
 
 <MudText Typo="Typo.h3" GutterBottom="true">Textures Tool</MudText>
-
 <MudPaper Class="px-8">
 	<MudGrid Justify="Justify.Center">
 		<MudItem xs="12">
@@ -26,23 +25,7 @@
 				@UploadText
 			</MudButton>
 		</MudItem>
-		<MudItem xs="6">
-			<MudSelect T="MCEdition" Label="Edition" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Disabled="IsProcessing"
-					   SelectedValues="new List<MCEdition>() { SelectedEdition }" SelectedValuesChanged="(e) => SelectedEditionChanged(e.First())">
-				<MudSelectItem Value="MCEdition.Java">Java</MudSelectItem>
-				<MudSelectItem Value="MCEdition.Bedrock">Bedrock</MudSelectItem>
-			</MudSelect>
-		</MudItem>
-		<MudItem xs="6">
-			<MudSelect T="MCVersion" Label="Version" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Disabled="IsProcessing"
-					   SelectedValues="new List<MCVersion>() { SelectedVersion }" SelectedValuesChanged="(e) => SelectedVersion = e.First()">
-				@foreach (MCVersion ver in MinecraftVersions)
-				{
-					string val = $"{ver.Id}{ver.GetSuffix(LatestVersion)}";
-					<MudSelectItem Value="ver">@val</MudSelectItem>
-				}
-			</MudSelect>
-		</MudItem>
+		<VersionSelector ApiController="_apiController" VersionChanged="SelectedVersionChanged" EditionChanged="SelectedEditionChanged" IsProcessing="IsProcessing" />
 		<MudItem xs="12" Class="pa-2 my-1">
 			<MudText Typo="Typo.h6" GutterBottom="true">Exclusions</MudText>
 			<MudGrid Justify="Justify.SpaceAround" Spacing="2" >

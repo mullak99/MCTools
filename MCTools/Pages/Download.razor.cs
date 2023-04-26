@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip;
 using MCTools.Enums;
@@ -16,68 +15,20 @@ namespace MCTools.Pages
 	public partial class Download : LayoutComponentBase
 	{
 		#region Variables
-
-		#region Constants
-		#endregion
-
-		#region API Values
-		private List<MCVersion> MinecraftVersions { get; set; } = new();
-		private MCVersion LatestVersion { get; set; }
-		#endregion
-
 		#region Options
-		private MCVersion SelectedVersion { get; set; }
-		private MCEdition SelectedEdition { get; set; } = MCEdition.Java;
 
+		private MCVersion SelectedVersion;
+		private MCEdition SelectedEdition;
 		private bool IsProcessing;
+
+		private void SelectedVersionChanged(MCVersion version)
+			=> SelectedVersion = version;
+
+		private void SelectedEditionChanged(MCEdition edition)
+			=> SelectedEdition = edition;
 		#endregion
 
 		private bool PerfLogging { get; set; }
-		#endregion
-
-		#region Blazor Overrides
-		protected override async Task OnInitializedAsync()
-		{
-			await SelectedEditionChanged(SelectedEdition);
-			StateHasChanged();
-		}
-		#endregion
-
-		#region Selection
-		public void SetDefaultVersionSelection()
-		{
-			if (MinecraftVersions is { Count: > 0 })
-			{
-				LatestVersion = MinecraftVersions.First(x => x.Type == "release");
-				SelectedVersion = LatestVersion;
-			}
-			else Snackbar.Add("Unable to fetch versions! Is the API down?", Severity.Error);
-		}
-
-		public async Task SelectedEditionChanged(MCEdition edition)
-		{
-			if (edition != SelectedEdition || MinecraftVersions.Count == 0)
-			{
-				try
-				{
-					IsProcessing = true;
-					SelectedEdition = edition;
-					MinecraftVersions = new List<MCVersion>(); // Reset list
-
-					MinecraftVersions = edition == MCEdition.Java
-						? await _apiController.GetJavaVersions()
-						: await _apiController.GetBedrockVersions();
-
-					SetDefaultVersionSelection();
-				}
-				catch (Exception)
-				{
-					Snackbar.Add("An error occurred when loading versions! Check the console for errors.", Severity.Error);
-					throw;
-				}
-				IsProcessing = false;
-			}
-		}
 		#endregion
 
 		#region Operations
@@ -107,7 +58,11 @@ namespace MCTools.Pages
 						await DownloadFromUrl(jarDownload, assets);
 						break;
 					case MCEdition.Bedrock:
-						throw new NotImplementedException();
+						string zipUrl = SelectedVersion.Url;
+						if (string.IsNullOrWhiteSpace(zipUrl))
+							return;
+						await DownloadFromUrl(zipUrl, null); // Don't filter Bedrock assets: The size of the original ZIP would make this slow.
+						break;
 				}
 			}).ConfigureAwait(false);
 
@@ -117,73 +72,86 @@ namespace MCTools.Pages
 		private async Task DownloadFromUrl(string url, MCAssets assets)
 		{
 			byte[] zipBytes = await _httpClient.GetByteArrayAsync(url).ConfigureAwait(false);
-
-			// Extract the relevant files from the ZIP/JAR
-			Stopwatch perfLogging = new Stopwatch();
+			Stopwatch perfLogging = new();
 
 			if (PerfLogging)
 				perfLogging.Start();
 
-			var extractedFiles = new ConcurrentDictionary<string, byte[]>();
-			using var zipStream = new MemoryStream(zipBytes);
-			using var archive = new ZipFile(zipStream);
-
-			var tasks = new List<Task>();
-
-			foreach (ZipEntry entry in archive)
+			// Filter down the assets based on the MCAssets provided
+			if (assets != null)
 			{
-				if (!assets.Textures.Contains(entry.Name)) continue;
+				// Extract the relevant files from the ZIP/JAR
+				var extractedFiles = new ConcurrentDictionary<string, byte[]>();
+				using var zipStream = new MemoryStream(zipBytes);
+				using var archive = new ZipFile(zipStream);
 
-				tasks.Add(Task.Run(async () =>
+				var tasks = new List<Task>();
+
+				foreach (ZipEntry entry in archive)
 				{
-					using var ms = new MemoryStream();
-					await using var entryStream = archive.GetInputStream(entry);
-					await entryStream.CopyToAsync(ms).ConfigureAwait(false);
-					extractedFiles.TryAdd(entry.Name, ms.ToArray());
-				}));
-			}
+					if (!assets.Textures.Contains(entry.Name)) continue;
 
-			await Task.WhenAll(tasks).ConfigureAwait(false);
-
-			if (PerfLogging)
-			{
-				Console.WriteLine($"Extracted assets in {perfLogging.ElapsedMilliseconds}ms");
-				perfLogging.Restart();
-			}
-
-			// Zip up the extracted files and download them to the browser
-			if (extractedFiles.Count > 0)
-			{
-				byte[] zippedBytes;
-				using (var ms = new MemoryStream())
-				{
-					await using (var finalArchive = new ZipOutputStream(ms))
+					tasks.Add(Task.Run(async () =>
 					{
-						tasks.Clear();
-
-						foreach (var entry in extractedFiles)
-						{
-							tasks.Add(Task.Run(async () =>
-							{
-								var zipEntry = new ZipEntry(entry.Key);
-								await finalArchive.PutNextEntryAsync(zipEntry).ConfigureAwait(false);
-								finalArchive.Write(entry.Value, 0, entry.Value.Length);
-								finalArchive.CloseEntry();
-							}));
-						}
-
-						await Task.WhenAll(tasks).ConfigureAwait(false);
-					}
-					zippedBytes = ms.ToArray();
+						using var ms = new MemoryStream();
+						await using var entryStream = archive.GetInputStream(entry);
+						await entryStream.CopyToAsync(ms).ConfigureAwait(false);
+						extractedFiles.TryAdd(entry.Name, ms.ToArray());
+					}));
 				}
+
+				await Task.WhenAll(tasks).ConfigureAwait(false);
 
 				if (PerfLogging)
 				{
-					Console.WriteLine($"Created final zip in {perfLogging.ElapsedMilliseconds}ms");
+					Console.WriteLine($"Extracted assets in {perfLogging.ElapsedMilliseconds}ms");
 					perfLogging.Restart();
 				}
 
-				await _jsHelper.DownloadZip($"Minecraft-{(SelectedEdition == MCEdition.Java ? "Java" : "Bedrock")}-{assets.Minecraft.Version}.zip", zippedBytes);
+				// Zip up the extracted files and download them to the browser
+				if (extractedFiles.Count > 0)
+				{
+					byte[] zippedBytes;
+					using (var ms = new MemoryStream())
+					{
+						await using (var finalArchive = new ZipOutputStream(ms))
+						{
+							tasks.Clear();
+
+							foreach (var entry in extractedFiles)
+							{
+								tasks.Add(Task.Run(async () =>
+								{
+									var zipEntry = new ZipEntry(entry.Key);
+									await finalArchive.PutNextEntryAsync(zipEntry).ConfigureAwait(false);
+									finalArchive.Write(entry.Value, 0, entry.Value.Length);
+									finalArchive.CloseEntry();
+								}));
+							}
+
+							await Task.WhenAll(tasks).ConfigureAwait(false);
+						}
+						zippedBytes = ms.ToArray();
+					}
+
+					if (PerfLogging)
+					{
+						Console.WriteLine($"Created final zip in {perfLogging.ElapsedMilliseconds}ms");
+						perfLogging.Restart();
+					}
+
+					await _jsHelper.DownloadZip($"Minecraft-{(SelectedEdition == MCEdition.Java ? "Java" : "Bedrock")}-{assets.Minecraft.Version}.zip", zippedBytes);
+
+					if (PerfLogging)
+					{
+						perfLogging.Stop();
+						Console.WriteLine($"Download to browser in {perfLogging.ElapsedMilliseconds}ms");
+					}
+				}
+			}
+			else
+			{
+				await _jsHelper.DownloadZip($"Minecraft-{(SelectedEdition == MCEdition.Java ? "Java" : "Bedrock")}-{assets.Minecraft.Version}.zip", zipBytes);
 
 				if (PerfLogging)
 				{

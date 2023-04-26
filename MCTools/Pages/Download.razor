@@ -1,8 +1,7 @@
 ﻿@page "/assets"
-@using MCTools.Models
-@using MCTools.Enums
 @using MCTools.Controllers
 @using MCTools.Logic
+@using MCTools.Components
 
 @inherits LayoutComponentBase
 @inject ISnackbar Snackbar
@@ -10,27 +9,10 @@
 @inject HttpClient _httpClient
 @inject JSHelper _jsHelper
 
-<MudText Typo="Typo.h3" GutterBottom="true">Asset Download</MudText>
-
+<MudText Typo="Typo.h3" GutterBottom="true">Vanilla Texture Assets</MudText>
 <MudPaper Class="px-8">
 	<MudGrid Justify="Justify.Center">
-		<MudItem xs="6">
-			<MudSelect T="MCEdition" Label="Edition" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Disabled="IsProcessing"
-					   SelectedValues="new List<MCEdition>() { SelectedEdition }" SelectedValuesChanged="(e) => SelectedEditionChanged(e.First())">
-				<MudSelectItem Value="MCEdition.Java">Java</MudSelectItem>
-				<MudSelectItem Value="MCEdition.Bedrock" Disabled="true">Bedrock</MudSelectItem>
-			</MudSelect>
-		</MudItem>
-		<MudItem xs="6">
-			<MudSelect T="MCVersion" Label="Version" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Disabled="IsProcessing"
-			           SelectedValues="new List<MCVersion>() { SelectedVersion }" SelectedValuesChanged="(e) => SelectedVersion = e.First()">
-				@foreach (MCVersion ver in MinecraftVersions)
-				{
-					string val = $"{ver.Id}{ver.GetSuffix(LatestVersion)}";
-					<MudSelectItem Value="ver">@val</MudSelectItem>
-				}
-			</MudSelect>
-		</MudItem>
+		<VersionSelector ApiController="_apiController" VersionChanged="SelectedVersionChanged" EditionChanged="SelectedEditionChanged" IsProcessing="IsProcessing" DisableBedrock="true" />
 		@if (MainLayout.DebugMode)
 		{
 			<MudItem xs="12" Class="pa-2 my-1">
@@ -60,7 +42,7 @@
 			           style="width: 100%;"
 			           Disabled="IsProcessing"
 			           OnClick="@DownloadAssets">
-				Download Texture Assets
+				Download Vanilla Texture Assets
 			</MudButton>
 		</MudItem>
 	</MudGrid>

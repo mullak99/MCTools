@@ -34,16 +34,13 @@ namespace MCTools.Pages
 		#endregion
 
 		#region API Values
-		private List<MCVersion> MinecraftVersions { get; set; } = new();
-		private MCVersion LatestVersion { get; set; }
 		private MCAssets Assets { get; set; }
 		#endregion
 
 		#region Options
 		private string UploadText => "Upload Resource Pack" + (File != null ? $": {File.Name}" : "");
-		private MCVersion SelectedVersion { get; set; }
-		private MCEdition SelectedEdition { get; set; } = MCEdition.Java;
-
+		private MCVersion SelectedVersion;
+		private MCEdition SelectedEdition;
 		private bool IsProcessing;
 
 		private bool CanCompare => File is { Size: > 0 } && SelectedVersion != null && SelectedEdition > 0;
@@ -62,6 +59,12 @@ namespace MCTools.Pages
 
 		private List<string> BlacklistRegexJava = new();
 		private List<string> BlacklistRegexBedrock = new();
+
+		private void SelectedVersionChanged(MCVersion version)
+			=> SelectedVersion = version;
+
+		private void SelectedEditionChanged(MCEdition edition)
+			=> SelectedEdition = edition;
 
 		#region Defaults
 		private readonly List<string> DefaultBlacklistJava = new()
@@ -86,8 +89,7 @@ namespace MCTools.Pages
 		#region Blazor Overrides
 		protected override async Task OnInitializedAsync()
 		{
-			await Task.WhenAll(SelectedEditionChanged(SelectedEdition), SetBlacklistFromLocalStorage());
-			StateHasChanged();
+			await SetBlacklistFromLocalStorage();
 		}
 		#endregion
 
@@ -142,44 +144,6 @@ namespace MCTools.Pages
 			{
 				BlacklistRegexBedrock = DefaultBlacklistBedrock;
 				await localStore.SetItemAsStringAsync("blacklistBedrock", JsonConvert.SerializeObject(BlacklistRegexJava));
-			}
-		}
-		#endregion
-
-		#region Selection
-		public void SetDefaultVersionSelection()
-		{
-			if (MinecraftVersions is { Count: > 0 })
-			{
-				LatestVersion = MinecraftVersions.First(x => x.Type == "release");
-				SelectedVersion = LatestVersion;
-			}
-			else Snackbar.Add("Unable to fetch versions! Is the API down?", Severity.Error);
-		}
-
-		public async Task SelectedEditionChanged(MCEdition edition)
-		{
-			if (edition != SelectedEdition || MinecraftVersions.Count == 0)
-			{
-				try
-				{
-					IsProcessing = true;
-					SelectedEdition = edition;
-					Reset();
-					MinecraftVersions = new List<MCVersion>(); // Reset list
-
-					MinecraftVersions = edition == MCEdition.Java
-						? await _apiController.GetJavaVersions()
-						: await _apiController.GetBedrockVersions();
-
-					SetDefaultVersionSelection();
-				}
-				catch (Exception)
-				{
-					Snackbar.Add("An error occurred when loading versions! Check the console for errors.", Severity.Error);
-					throw;
-				}
-				IsProcessing = false;
 			}
 		}
 		#endregion

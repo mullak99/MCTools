@@ -1,0 +1,89 @@
+﻿@using MCTools.Enums
+@using MCTools.Models
+@using MCTools.Controllers
+@inject ISnackbar Snackbar
+
+<MudItem xs="6">
+	<MudSelect T="MCEdition" Label="Edition" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Disabled="DisableControls"
+	           SelectedValues="new List<MCEdition>() { SelectedEdition }" SelectedValuesChanged="(e) => SelectedEditionChanged(e.First())">
+		<MudSelectItem Value="MCEdition.Java" Disabled="@DisableJava">Java</MudSelectItem>
+		<MudSelectItem Value="MCEdition.Bedrock" Disabled="@DisableBedrock">Bedrock</MudSelectItem>
+	</MudSelect>
+</MudItem>
+<MudItem xs="6">
+	<MudSelect T="MCVersion" Label="Version" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Disabled="DisableControls"
+			   SelectedValues="new List<MCVersion>() { SelectedVersion }" SelectedValuesChanged="(e) => SelectedVersionChanged(e.First())">
+		@foreach (MCVersion ver in MinecraftVersions)
+		{
+			string val = $"{ver.Id}{ver.GetSuffix(LatestVersion)}";
+			<MudSelectItem Value="ver">@val</MudSelectItem>
+		}
+	</MudSelect>
+</MudItem>
+
+@code {
+	[Parameter] public ApiController ApiController { get; set; }
+	[Parameter] public EventCallback<MCVersion> VersionChanged { get; set; }
+	[Parameter] public EventCallback<MCEdition> EditionChanged { get; set; }
+	[Parameter] public bool IsProcessing { get; set; }
+	[Parameter] public bool DisableJava { get; set; }
+	[Parameter] public bool DisableBedrock { get; set; }
+
+	private MCVersion SelectedVersion { get; set; }
+	private MCEdition SelectedEdition { get; set; } = MCEdition.Java;
+	private List<MCVersion> MinecraftVersions { get; set; } = new();
+	private MCVersion LatestVersion { get; set; }
+
+	private bool IsLoading;
+
+	private bool DisableControls => IsLoading || IsProcessing;
+
+	protected override async Task OnInitializedAsync()
+		=> await SelectedEditionChanged(SelectedEdition);
+
+	public void SetDefaultVersionSelection()
+	{
+		if (MinecraftVersions is { Count: > 0 })
+		{
+			LatestVersion = MinecraftVersions.First(x => x.Type == "release");
+			SelectedVersion = LatestVersion;
+		}
+		else Snackbar.Add("Unable to fetch versions! Is the API down?", Severity.Error);
+	}
+
+	public async Task SelectedEditionChanged(MCEdition edition)
+	{
+		if (edition != SelectedEdition || MinecraftVersions.Count == 0)
+		{
+			try
+			{
+				IsLoading = true;
+				SelectedEdition = edition;
+				MinecraftVersions = new List<MCVersion>(); // Reset list
+
+				MinecraftVersions = edition == MCEdition.Java
+					? await ApiController.GetJavaVersions()
+					: await ApiController.GetBedrockVersions();
+
+				SetDefaultVersionSelection();
+			}
+			catch (Exception)
+			{
+				Snackbar.Add("An error occurred when loading versions! Check the console for errors.", Severity.Error);
+				throw;
+			}
+			IsLoading = false;
+
+			if (EditionChanged.HasDelegate)
+				await EditionChanged.InvokeAsync(edition);
+		}
+	}
+
+	private async Task SelectedVersionChanged(MCVersion version)
+	{
+		SelectedVersion = version;
+
+		if (VersionChanged.HasDelegate)
+			await VersionChanged.InvokeAsync(version);
+	}
+}
