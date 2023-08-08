@@ -28,6 +28,7 @@ namespace MCTools.Pages
 			=> SelectedEdition = edition;
 		#endregion
 
+		private bool OutputSourceUrl { get; set; }
 		private bool PerfLogging { get; set; }
 		#endregion
 
@@ -38,33 +39,37 @@ namespace MCTools.Pages
 			IsProcessing = true;
 
 			// DownloadFromUrl causes the UI to freeze, its not the download itself since its still slow when cached.
-			Console.WriteLine("Extracting the JAR/ZIP for the specified assets and zipping those up freezes the web app, despite it being done on a background thread. More investigation needed.");
-			Snackbar.Add("The Web App may become unresponsive for a moment. See console for more details.", Severity.Warning);
+			Console.WriteLine("Extracting and processing the JAR/ZIP can take a while. While it may appear to be stuck, it isn't. More optimisations are needed.");
+			Snackbar.Add("This process can take a while. See console for more details.", Severity.Warning);
 
-			await Task.Run(async () =>
+			switch (SelectedEdition)
 			{
-				switch (SelectedEdition)
-				{
-					case MCEdition.Java:
-						Task<string> jarDownloadTask = _apiController.GetJavaJar(SelectedVersion.Id);
-						Task<MCAssets> assetsTask = _apiController.GetJavaAssets(SelectedVersion.Id);
-						await Task.WhenAll(jarDownloadTask, assetsTask);
+				case MCEdition.Java:
+					Task<string> jarDownloadTask = _apiController.GetJavaJar(SelectedVersion.Id);
+					Task<MCAssets> assetsTask = _apiController.GetJavaAssets(SelectedVersion.Id);
+					await Task.WhenAll(jarDownloadTask, assetsTask);
 
-						string jarDownload = jarDownloadTask.Result;
-						MCAssets assets = assetsTask.Result;
+					string jarDownload = jarDownloadTask.Result;
+					MCAssets assets = assetsTask.Result;
+					if (string.IsNullOrWhiteSpace(jarDownload))
+						return;
 
-						if (string.IsNullOrWhiteSpace(jarDownload))
-							return;
-						await DownloadFromUrl(jarDownload, assets);
-						break;
-					case MCEdition.Bedrock:
-						string zipUrl = SelectedVersion.Url;
-						if (string.IsNullOrWhiteSpace(zipUrl))
-							return;
-						await DownloadFromUrl(zipUrl, null); // Don't filter Bedrock assets: The size of the original ZIP would make this slow.
-						break;
-				}
-			}).ConfigureAwait(false);
+					if (OutputSourceUrl)
+						Console.WriteLine($"Client JAR: {jarDownload}");
+
+					await DownloadFromUrl(jarDownload, assets);
+					break;
+				case MCEdition.Bedrock:
+					string zipUrl = SelectedVersion.Url;
+					if (string.IsNullOrWhiteSpace(zipUrl))
+						return;
+
+					if (OutputSourceUrl)
+						Console.WriteLine($"Bedrock Assets: {zipUrl}");
+
+					await DownloadFromUrl(zipUrl, null); // Don't filter Bedrock assets: The size of the original ZIP would make this slow.
+					break;
+			}
 
 			IsProcessing = false;
 		}
@@ -81,26 +86,20 @@ namespace MCTools.Pages
 			if (assets != null)
 			{
 				// Extract the relevant files from the ZIP/JAR
-				var extractedFiles = new ConcurrentDictionary<string, byte[]>();
-				using var zipStream = new MemoryStream(zipBytes);
-				using var archive = new ZipFile(zipStream);
-
-				var tasks = new List<Task>();
+				ConcurrentDictionary<string, byte[]> extractedFiles = new();
+				using MemoryStream zipStream = new(zipBytes);
+				using ZipFile archive = new(zipStream);
 
 				foreach (ZipEntry entry in archive)
 				{
 					if (!assets.Textures.Contains(entry.Name)) continue;
 
-					tasks.Add(Task.Run(async () =>
-					{
-						using var ms = new MemoryStream();
-						await using var entryStream = archive.GetInputStream(entry);
-						await entryStream.CopyToAsync(ms).ConfigureAwait(false);
-						extractedFiles.TryAdd(entry.Name, ms.ToArray());
-					}));
+					using MemoryStream ms = new();
+					await using Stream entryStream = archive.GetInputStream(entry);
+					await entryStream.CopyToAsync(ms).ConfigureAwait(false);
+					extractedFiles.TryAdd(entry.Name, ms.ToArray());
+					await Task.Delay(1); // Yield to the UI thread
 				}
-
-				await Task.WhenAll(tasks).ConfigureAwait(false);
 
 				if (PerfLogging)
 				{
@@ -112,24 +111,18 @@ namespace MCTools.Pages
 				if (extractedFiles.Count > 0)
 				{
 					byte[] zippedBytes;
-					using (var ms = new MemoryStream())
+					using (MemoryStream ms = new())
 					{
-						await using (var finalArchive = new ZipOutputStream(ms))
+						await using (ZipOutputStream finalArchive = new(ms))
 						{
-							tasks.Clear();
-
-							foreach (var entry in extractedFiles)
+							foreach (KeyValuePair<string, byte[]> entry in extractedFiles)
 							{
-								tasks.Add(Task.Run(async () =>
-								{
-									var zipEntry = new ZipEntry(entry.Key);
-									await finalArchive.PutNextEntryAsync(zipEntry).ConfigureAwait(false);
-									finalArchive.Write(entry.Value, 0, entry.Value.Length);
-									finalArchive.CloseEntry();
-								}));
+								ZipEntry zipEntry = new(entry.Key);
+								await finalArchive.PutNextEntryAsync(zipEntry).ConfigureAwait(false);
+								finalArchive.Write(entry.Value, 0, entry.Value.Length);
+								finalArchive.CloseEntry();
+								await Task.Delay(1); // Yield to the UI thread
 							}
-
-							await Task.WhenAll(tasks).ConfigureAwait(false);
 						}
 						zippedBytes = ms.ToArray();
 					}

@@ -1,4 +1,11 @@
-﻿using System;
+﻿using MCTools.Enums;
+using MCTools.Models;
+using MCTools.Shared.Dialog;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
+using MudBlazor;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -6,13 +13,6 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using MCTools.Enums;
-using MCTools.Models;
-using MCTools.Shared.Dialog;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Forms;
-using MudBlazor;
-using Newtonsoft.Json;
 
 namespace MCTools.Pages
 {
@@ -51,6 +51,8 @@ namespace MCTools.Pages
 		private bool ExcludeMisc { get; set; } = true;
 		private bool ExcludeNonVanillaNamespaces { get; set; } = true;
 		private bool ExcludeEmissives { get; set; } = true;
+		private bool ExcludeTitleGui { get; set; } = true;
+		private bool ExcludeOverlays { get; set; }
 
 		private bool ExcludeBedrockUI { get; set; }
 
@@ -68,10 +70,26 @@ namespace MCTools.Pages
 
 		#region Defaults
 		private readonly List<string> DefaultBlacklistJava = new()
-			{ @"_MACOSX", @"assets\/minecraft\/textures\/ctm", @"assets\/minecraft\/textures\/custom", @"textures\/colormap", @"background\/panorama_overlay.png", @"assets\/minecraft\/textures\/environment\/clouds.png" };
+			{
+				@"_MACOSX",
+				@"assets\/minecraft\/textures\/ctm",
+				@"assets\/minecraft\/textures\/custom",
+				@"textures\/colormap",
+				@"background\/panorama_overlay.png",
+				@"assets\/minecraft\/textures\/environment\/clouds.png",
+				@"assets\/minecraft\/textures\/trims\/color_palettes",
+				@"assets\/minecraft\/textures\/gui\/presets",
+				@"assets\/minecraft\/textures\/entity\/llama\/spit.png",
+				@"assets\/minecraft\/textures\/block\/lightning_rod_on.png"
+			};
 
 		private readonly List<string> DefaultBlacklistBedrock = new()
-			{ @"_MACOSX", @"texts\/", @"textures\/persona_thumbnails", @"textures\/colormap" };
+			{
+				@"_MACOSX",
+				@"texts\/",
+				@"textures\/persona_thumbnails",
+				@"textures\/colormap"
+			};
 		#endregion
 		#endregion
 
@@ -164,7 +182,10 @@ namespace MCTools.Pages
 				tempBlackList.AddRange(BlacklistRegexJava);
 
 				if (ExcludeRealms)
-					tempBlackList.Add(@"assets\/realms");
+					tempBlackList.AddRange(new List<string>()
+					{
+						@"assets\/realms", @"assets\/minecraft\/textures\/gui\/realms"
+					});
 				if (ExcludeFonts)
 					tempBlackList.Add(@"textures\/font");
 				if (ExcludeMisc)
@@ -175,6 +196,8 @@ namespace MCTools.Pages
 					tempBlackList.Add(@"assets\/\b(?!minecraft\b|realms\b).*?\b");
 				if (ExcludeEmissives)
 					tempBlackList.Add(@"textures\/.+\/.+_e(missive)?\.png");
+				if (ExcludeTitleGui)
+					tempBlackList.Add(@"assets\/minecraft\/textures\/gui\/title");
 			}
 			else
 			{
@@ -328,19 +351,41 @@ namespace MCTools.Pages
 				Parallel.ForEach(zip.Entries, (file) =>
 				{
 					// Include all PNGs, if Bedrock, include TGAs
-					if (file.FullName.EndsWith("png") || (SelectedEdition == MCEdition.Bedrock && file.FullName.EndsWith("tga")))
-						usefulFiles.Add(file.FullName);
+					string fileName = GetFileName(file.FullName);
+					if (fileName != null)
+						usefulFiles.Add(fileName);
 				});
 			}
 			else
 			{
-				usefulFiles.AddRange(from file in zip.Entries where file.FullName.EndsWith("png") || (SelectedEdition == MCEdition.Bedrock && file.FullName.EndsWith("tga")) select file.FullName);
+				foreach (ZipArchiveEntry file in zip.Entries)
+				{
+					// Include all PNGs, if Bedrock, include TGAs
+					string fileName = GetFileName(file.FullName);
+					if (fileName != null)
+						usefulFiles.Add(fileName);
+				}
 			}
 			st.Stop();
 
 			if (PerfLogging)
 				Console.WriteLine($"Got all pack textures in {st.ElapsedMilliseconds}ms");
-			return usefulFiles;
+			return usefulFiles.Distinct().ToList();
+		}
+
+		private string? GetFileName(string fileName)
+		{
+			if (fileName.EndsWith("png") || (SelectedEdition == MCEdition.Bedrock && fileName.EndsWith("tga")))
+			{
+				if (!ExcludeOverlays)
+				{
+					string[] split = fileName.Split('/', '\\');
+					if (split.Length > 1 && split[1].ToLower() == "assets")
+						fileName = fileName.Remove(0, fileName.IndexOf('/') + 1);
+				}
+				return fileName;
+			}
+			return null;
 		}
 		#endregion
 

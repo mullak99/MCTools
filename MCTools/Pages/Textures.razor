@@ -47,6 +47,11 @@
 								<MudSwitch @bind-Checked="ExcludeNonVanillaNamespaces" Label="Exclude Non-Vanilla Namespaces" Color="Color.Primary" Disabled="IsProcessing"/>
 							</MudTooltip>
 						</MudItem>
+						<MudItem Class="my-1">
+							<MudTooltip Text="Exclude all title-related textures from the comparison (../textures/gui/title)" Placement="Placement.Bottom">
+								<MudSwitch @bind-Checked="ExcludeTitleGui" Label="Exclude Title GUI" Color="Color.Primary" Disabled="IsProcessing"/>
+							</MudTooltip>
+						</MudItem>
 					</MudList>
 					<MudList>
 						<MudItem Class="my-1">
@@ -62,6 +67,11 @@
 						<MudItem Class="my-1">
 							<MudTooltip Text="Exclude emmisives (e.g. <whatever>_e.png) from the comparison" Placement="Placement.Bottom">
 								<MudSwitch @bind-Checked="ExcludeEmissives" Label="Exclude Emissives" Color="Color.Primary" Disabled="IsProcessing"/>
+							</MudTooltip>
+						</MudItem>
+						<MudItem Class="my-1">
+							<MudTooltip Text="Exclude overlays from the comparison" Placement="Placement.Bottom">
+								<MudSwitch @bind-Checked="ExcludeOverlays" Label="Exclude Overlays" Color="Color.Primary" Disabled="IsProcessing"/>
 							</MudTooltip>
 						</MudItem>
 					</MudList>
@@ -146,7 +156,7 @@
 		</MudItem>
 		<MudItem xs="12" Class="py-1">
 			<MudTabs Outlined="true" Position="Position.Left" Rounded="true" Border="true"
-					 ApplyEffectsToContainer="true" PanelClass="pl-6 pt-2 pb-2">
+					 ApplyEffectsToContainer="true" PanelClass="pl-2 pt-1 pb-1">
 				<MudTabPanel Text="Matching Textures" Style="@TABLE_TAB_PANEL_STYLE">
 					<MudItem Style="@TABLE_CONTENT_STYLE">
 						@if (MatchingTexturesList.Count > 0)

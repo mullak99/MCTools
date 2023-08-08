@@ -20,6 +20,11 @@
 				<MudGrid Justify="Justify.SpaceAround" Spacing="2" >
 					<MudList>
 						<MudItem Class="my-1">
+							<MudSwitch @bind-Checked="OutputSourceUrl" Label="Output Source URL" Color="Color.Primary" Disabled="IsProcessing" />
+						</MudItem>
+					</MudList>
+					<MudList>
+						<MudItem Class="my-1">
 							<MudSwitch @bind-Checked="PerfLogging" Label="Performance Logging" Color="Color.Primary" Disabled="IsProcessing" />
 						</MudItem>
 					</MudList>
@@ -36,12 +41,12 @@
 				<MudProgressLinear Color="Color.Primary" Size="Size.Small" Value="0" Max="100" Class="my-7" />
 			}
 			<MudButton HtmlTag="label"
-			           Variant="Variant.Filled"
-			           Color="Color.Primary"
-			           StartIcon="@Icons.Material.Filled.CloudDownload"
-			           style="width: 100%;"
-			           Disabled="IsProcessing"
-			           OnClick="@DownloadAssets">
+					   Variant="Variant.Filled"
+					   Color="Color.Primary"
+					   StartIcon="@Icons.Material.Filled.CloudDownload"
+					   style="width: 100%;"
+					   Disabled="IsProcessing"
+					   OnClick="@DownloadAssets">
 				Download Vanilla Texture Assets
 			</MudButton>
 		</MudItem>
