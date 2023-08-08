@@ -10,5 +10,23 @@ namespace MCTools.Models
 		public string Url { get; set; }
 		public DateTime Time { get; set; }
 		public DateTime ReleaseTime { get; set; }
+
+		public string GetSuffix(MCVersion latestVersion)
+		{
+			switch (Type)
+			{
+				case "snapshot":
+					return " (Snapshot)";
+				case "beta":
+					return " (Beta)";
+				default:
+				{
+					if (this == latestVersion)
+						return " (Latest)";
+					break;
+				}
+			}
+			return string.Empty;
+		}
 	}
 }

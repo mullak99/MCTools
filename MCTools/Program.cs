@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Blazored.LocalStorage;
 using MCTools.Controllers;
+using MCTools.Logic;
 using Microsoft.Extensions.Configuration;
 using MudBlazor;
 
@@ -15,7 +16,7 @@ namespace MCTools
 	public class Program
 	{
 		private static bool IsBetaRelease;
-		private const byte BetaTag = 1;
+		private const byte BetaTag = 3;
 
 		private static string StableUrl;
 		private static string BetaUrl;
@@ -54,14 +55,13 @@ namespace MCTools
 
 			builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(url) });
 			builder.Services.AddScoped<ApiController>();
+			builder.Services.AddScoped<JSHelper>();
 
 			await builder.Build().RunAsync();
 		}
 
 		public static bool IsBeta()
-		{
-			return IsBetaRelease;
-		}
+			=> IsBetaRelease;
 
 		public static string GetVersion()
 		{
@@ -75,13 +75,9 @@ namespace MCTools
 		}
 
 		public static string GetStableUrl()
-		{
-			return StableUrl;
-		}
+			=> StableUrl;
 
 		public static string GetBetaUrl()
-		{
-			return BetaUrl;
-		}
+			=> BetaUrl;
 	}
 }

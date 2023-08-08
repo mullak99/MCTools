@@ -1,12 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
 	<PropertyGroup>
 		<TargetFramework>net6.0</TargetFramework>
-		<PackageProjectUrl>https://github.com/mullak99/MCTools</PackageProjectUrl>
-		<AssemblyVersion>1.0.1.0</AssemblyVersion>
-		<FileVersion>1.0.1.0</FileVersion>
+		<PackageProjectUrl>https://mctools.mullak99.co.uk/</PackageProjectUrl>
+		<AssemblyVersion>1.1.0.0</AssemblyVersion>
+		<FileVersion>1.1.0.0</FileVersion>
 		<EnableTrimAnalyzer>True</EnableTrimAnalyzer>
 		<PublishTrimmed>True</PublishTrimmed>
 		<TrimMode>link</TrimMode>
+		<ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
+		<RepositoryUrl>https://github.com/mullak99/MCTools</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageIcon>icon-32.png</PackageIcon>
+		<ApplicationIcon>wwwroot\favicon.ico</ApplicationIcon>
+		<SignAssembly>False</SignAssembly>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -18,11 +24,19 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<None Include="wwwroot\icon-32.png">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="Blazored.LocalStorage" Version="4.3.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.13" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.13" PrivateAssets="all" />
 		<PackageReference Include="MudBlazor.ThemeManager" Version="1.0.7" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+		<PackageReference Include="SharpZipLib" Version="1.4.2" />
 		<PackageReference Include="System.Net.Http.Json" Version="6.0.0" />
 		<PackageReference Include="MudBlazor" Version="6.1.7" />
 	</ItemGroup>
@@ -49,10 +63,16 @@
 		<Content Update="wwwroot\js\app.js">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
+		<Content Update="wwwroot\service-worker.js">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Update="wwwroot\service-worker.published.js">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
 	</ItemGroup>
 
-	<PropertyGroup>
-		<SourceRevisionId>build$([System.DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ss:fffZ"))</SourceRevisionId>
-	</PropertyGroup>
+	<ItemGroup>
+		<ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
+	</ItemGroup>
 
 </Project>

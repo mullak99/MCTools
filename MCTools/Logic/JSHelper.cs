@@ -35,5 +35,10 @@ namespace MCTools.Logic
 			using var streamRef = new DotNetStreamReference(new MemoryStream(Encoding.UTF8.GetBytes(string.Join("\n", listToExport))));
 			await JS.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
 		}
+
+		public async Task DownloadZip(string fileName, byte[] contents)
+		{
+			await JS.InvokeVoidAsync("BlazorDownloadFile", fileName, "application/zip", Convert.ToBase64String(contents));
+		}
 	}
 }

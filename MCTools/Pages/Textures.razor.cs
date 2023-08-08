@@ -1,4 +1,11 @@
-﻿using System;
+﻿using MCTools.Enums;
+using MCTools.Models;
+using MCTools.Shared.Dialog;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
+using MudBlazor;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -6,14 +13,6 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using MCTools.Enums;
-using MCTools.Logic;
-using MCTools.Models;
-using MCTools.Shared.Dialog;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Forms;
-using MudBlazor;
-using Newtonsoft.Json;
 
 namespace MCTools.Pages
 {
@@ -35,23 +34,14 @@ namespace MCTools.Pages
 		#endregion
 
 		#region API Values
-		private List<MCVersion> MinecraftVersions { get; set; } = new();
-		private MCVersion LatestVersion { get; set; }
 		private MCAssets Assets { get; set; }
 		#endregion
 
 		#region Options
 		private string UploadText => "Upload Resource Pack" + (File != null ? $": {File.Name}" : "");
-		private MCVersion SelectedVersion { get; set; }
-		private MCEdition SelectedEdition { get; set; } = MCEdition.Java;
-
+		private MCVersion SelectedVersion;
+		private MCEdition SelectedEdition;
 		private bool IsProcessing;
-
-		#if DEBUG
-		private bool DebugMode = true;
-		#else
-		private bool DebugMode = false;
-		#endif
 
 		private bool CanCompare => File is { Size: > 0 } && SelectedVersion != null && SelectedEdition > 0;
 
@@ -61,6 +51,8 @@ namespace MCTools.Pages
 		private bool ExcludeMisc { get; set; } = true;
 		private bool ExcludeNonVanillaNamespaces { get; set; } = true;
 		private bool ExcludeEmissives { get; set; } = true;
+		private bool ExcludeTitleGui { get; set; } = true;
+		private bool ExcludeOverlays { get; set; }
 
 		private bool ExcludeBedrockUI { get; set; }
 
@@ -70,12 +62,34 @@ namespace MCTools.Pages
 		private List<string> BlacklistRegexJava = new();
 		private List<string> BlacklistRegexBedrock = new();
 
+		private void SelectedVersionChanged(MCVersion version)
+			=> SelectedVersion = version;
+
+		private void SelectedEditionChanged(MCEdition edition)
+			=> SelectedEdition = edition;
+
 		#region Defaults
 		private readonly List<string> DefaultBlacklistJava = new()
-			{ @"_MACOSX", @"assets\/minecraft\/textures\/ctm", @"assets\/minecraft\/textures\/custom", @"textures\/colormap", @"background\/panorama_overlay.png", @"assets\/minecraft\/textures\/environment\/clouds.png" };
+			{
+				@"_MACOSX",
+				@"assets\/minecraft\/textures\/ctm",
+				@"assets\/minecraft\/textures\/custom",
+				@"textures\/colormap",
+				@"background\/panorama_overlay.png",
+				@"assets\/minecraft\/textures\/environment\/clouds.png",
+				@"assets\/minecraft\/textures\/trims\/color_palettes",
+				@"assets\/minecraft\/textures\/gui\/presets",
+				@"assets\/minecraft\/textures\/entity\/llama\/spit.png",
+				@"assets\/minecraft\/textures\/block\/lightning_rod_on.png"
+			};
 
 		private readonly List<string> DefaultBlacklistBedrock = new()
-			{ @"_MACOSX", @"texts\/", @"textures\/persona_thumbnails", @"textures\/colormap" };
+			{
+				@"_MACOSX",
+				@"texts\/",
+				@"textures\/persona_thumbnails",
+				@"textures\/colormap"
+			};
 		#endregion
 		#endregion
 
@@ -88,35 +102,16 @@ namespace MCTools.Pages
 
 		private int TotalTextures;
 		#endregion
-
-		private JSHelper jsHelper;
 		#endregion
 
 		#region Blazor Overrides
 		protected override async Task OnInitializedAsync()
 		{
-			jsHelper = new JSHelper(JS);
-			await Task.WhenAll(SelectedEditionChanged(SelectedEdition), SetBlacklistFromLocalStorage(), GetDebugFromLocalStorage());
-			StateHasChanged();
+			await SetBlacklistFromLocalStorage();
 		}
 		#endregion
 
 		#region Local Storage
-		/// <summary>
-		/// Get debug mode status from the users local storage
-		/// </summary>
-		private async Task GetDebugFromLocalStorage()
-		{
-			try
-			{
-				DebugMode = await localStore.GetItemAsync<bool?>("debugMode") ?? false;
-			}
-			catch (Exception)
-			{
-				DebugMode = false;
-			}
-		}
-
 		/// <summary>
 		/// Set blacklists from the users local storage
 		/// </summary>
@@ -171,62 +166,6 @@ namespace MCTools.Pages
 		}
 		#endregion
 
-		#region Selection
-		public void SetDefaultVersionSelection()
-		{
-			if (MinecraftVersions is { Count: > 0 })
-			{
-				LatestVersion = MinecraftVersions.First(x => x.Type == "release");
-				SelectedVersion = LatestVersion;
-			}
-			else Snackbar.Add("Unable to fetch versions! Is the API down?", Severity.Error);
-		}
-
-		public async Task SelectedEditionChanged(MCEdition edition)
-		{
-			if (edition != SelectedEdition || MinecraftVersions.Count == 0)
-			{
-				try
-				{
-					IsProcessing = true;
-					SelectedEdition = edition;
-					Reset();
-					MinecraftVersions = new List<MCVersion>(); // Reset list
-
-					MinecraftVersions = edition == MCEdition.Java
-						? await _apiController.GetJavaVersions()
-						: await _apiController.GetBedrockVersions();
-
-					SetDefaultVersionSelection();
-				}
-				catch (Exception)
-				{
-					Snackbar.Add("An error occurred when loading versions! Check the console for errors.", Severity.Error);
-					throw;
-				}
-				IsProcessing = false;
-			}
-		}
-
-		public string GetSuffix(MCVersion version)
-		{
-			switch (version.Type)
-			{
-				case "snapshot":
-					return " (Snapshot)";
-				case "beta":
-					return " (Beta)";
-				default:
-				{
-					if (version == LatestVersion)
-						return " (Latest)";
-					break;
-				}
-			}
-			return string.Empty;
-		}
-		#endregion
-
 		#region Operations
 		#region UI Buttons
 		/// <summary>
@@ -243,7 +182,10 @@ namespace MCTools.Pages
 				tempBlackList.AddRange(BlacklistRegexJava);
 
 				if (ExcludeRealms)
-					tempBlackList.Add(@"assets\/realms");
+					tempBlackList.AddRange(new List<string>()
+					{
+						@"assets\/realms", @"assets\/minecraft\/textures\/gui\/realms"
+					});
 				if (ExcludeFonts)
 					tempBlackList.Add(@"textures\/font");
 				if (ExcludeMisc)
@@ -254,6 +196,8 @@ namespace MCTools.Pages
 					tempBlackList.Add(@"assets\/\b(?!minecraft\b|realms\b).*?\b");
 				if (ExcludeEmissives)
 					tempBlackList.Add(@"textures\/.+\/.+_e(missive)?\.png");
+				if (ExcludeTitleGui)
+					tempBlackList.Add(@"assets\/minecraft\/textures\/gui\/title");
 			}
 			else
 			{
@@ -400,33 +344,48 @@ namespace MCTools.Pages
 			await File.OpenReadStream(MAX_FILESIZE_BYTES).CopyToAsync(ms);
 
 			List<string> usefulFiles = new List<string>();
-			using (ZipArchive zip = new ZipArchive(ms))
+			using ZipArchive zip = new ZipArchive(ms);
+			Stopwatch st = Stopwatch.StartNew();
+			if (UseParallel)
 			{
-				Stopwatch st = Stopwatch.StartNew();
-				if (UseParallel)
+				Parallel.ForEach(zip.Entries, (file) =>
 				{
-					Parallel.ForEach(zip.Entries, (file) =>
-					{
-						// Include all PNGs, if Bedrock, include TGAs
-						if (file.FullName.EndsWith("png") || (SelectedEdition == MCEdition.Bedrock && file.FullName.EndsWith("tga")))
-							usefulFiles.Add(file.FullName);
-					});
-				}
-				else
-				{
-					foreach (ZipArchiveEntry file in zip.Entries)
-					{
-						// Include all PNGs, if Bedrock, include TGAs
-						if (file.FullName.EndsWith("png") || (SelectedEdition == MCEdition.Bedrock && file.FullName.EndsWith("tga")))
-							usefulFiles.Add(file.FullName);
-					}
-				}
-				st.Stop();
-
-				if (PerfLogging)
-					Console.WriteLine($"Got all pack textures in {st.ElapsedMilliseconds}ms");
+					// Include all PNGs, if Bedrock, include TGAs
+					string fileName = GetFileName(file.FullName);
+					if (fileName != null)
+						usefulFiles.Add(fileName);
+				});
 			}
-			return usefulFiles;
+			else
+			{
+				foreach (ZipArchiveEntry file in zip.Entries)
+				{
+					// Include all PNGs, if Bedrock, include TGAs
+					string fileName = GetFileName(file.FullName);
+					if (fileName != null)
+						usefulFiles.Add(fileName);
+				}
+			}
+			st.Stop();
+
+			if (PerfLogging)
+				Console.WriteLine($"Got all pack textures in {st.ElapsedMilliseconds}ms");
+			return usefulFiles.Distinct().ToList();
+		}
+
+		private string? GetFileName(string fileName)
+		{
+			if (fileName.EndsWith("png") || (SelectedEdition == MCEdition.Bedrock && fileName.EndsWith("tga")))
+			{
+				if (!ExcludeOverlays)
+				{
+					string[] split = fileName.Split('/', '\\');
+					if (split.Length > 1 && split[1].ToLower() == "assets")
+						fileName = fileName.Remove(0, fileName.IndexOf('/') + 1);
+				}
+				return fileName;
+			}
+			return null;
 		}
 		#endregion
 
@@ -555,34 +514,26 @@ namespace MCTools.Pages
 		/// Export a text file containing the matching textures
 		/// </summary>
 		private async Task ExportMatchingTextures()
-		{
-			await Export(MatchingTexturesList, $"MatchingTextures_{File.Name}.txt");
-		}
+			=> await Export(MatchingTexturesList, $"MatchingTextures_{File.Name}.txt");
 
 		/// <summary>
 		/// Export a text file containing the missing textures
 		/// </summary>
 		private async Task ExportMissingTextures()
-		{
-			await Export(MissingTexturesList, $"MissingTextures_{File.Name}.txt");
-		}
+			=> await Export(MissingTexturesList, $"MissingTextures_{File.Name}.txt");
 
 		/// <summary>
 		/// Export a text file containing the unused textures
 		/// </summary>
 		private async Task ExportUnusedTextures()
-		{
-			await Export(UnusedTexturesList, $"UnusedTextures_{File.Name}.txt");
-		}
+			=> await Export(UnusedTexturesList, $"UnusedTextures_{File.Name}.txt");
 
 		/// <summary>
 		/// Copy String List to clipboard
 		/// </summary>
 		/// <param name="list">List of strings</param>
 		private async Task CopyTextToClipboard(List<string> list)
-		{
-			await jsHelper.CopyTextToClipboard(list);
-		}
+			=> await _JsHelper.CopyTextToClipboard(list);
 
 		/// <summary>
 		/// Export a text file containing a list of strings
@@ -590,9 +541,7 @@ namespace MCTools.Pages
 		/// <param name="listToExport">List of string to export (each on a new line)</param>
 		/// <param name="fileName">Exported files filename</param>
 		private async Task Export(List<string> listToExport, string fileName)
-		{
-			await jsHelper.ExportListToFile(listToExport, fileName);
-		}
+			=> await _JsHelper.ExportListToFile(listToExport, fileName);
 		#endregion
 	}
 }

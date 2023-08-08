@@ -1,18 +1,18 @@
 ﻿@page "/textures"
-@using MCTools.Models
+@using MCTools.Components
 @using MCTools.Enums
 @using Blazored.LocalStorage
 @using MCTools.Controllers
+@using MCTools.Logic
 
 @inherits LayoutComponentBase
 @inject ISnackbar Snackbar
 @inject IDialogService Dialog
 @inject ILocalStorageService localStore
-@inject IJSRuntime JS
 @inject ApiController _apiController
+@inject JSHelper _JsHelper
 
 <MudText Typo="Typo.h3" GutterBottom="true">Textures Tool</MudText>
-
 <MudPaper Class="px-8">
 	<MudGrid Justify="Justify.Center">
 		<MudItem xs="12">
@@ -20,28 +20,12 @@
 			<MudButton HtmlTag="label"
 					   Variant="Variant.Filled"
 					   Color="Color.Primary"
-					   StartIcon="@Icons.Filled.CloudUpload"
+					   StartIcon="@Icons.Material.Filled.CloudUpload"
 					   for="fileInput" style="width: 100%;" >
 				@UploadText
 			</MudButton>
 		</MudItem>
-		<MudItem xs="6">
-			<MudSelect T="MCEdition" Label="Edition" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Disabled="IsProcessing"
-					   SelectedValues="new List<MCEdition>() { SelectedEdition }" SelectedValuesChanged="(e) => SelectedEditionChanged(e.First())">
-				<MudSelectItem Value="MCEdition.Java">Java</MudSelectItem>
-				<MudSelectItem Value="MCEdition.Bedrock">Bedrock</MudSelectItem>
-			</MudSelect>
-		</MudItem>
-		<MudItem xs="6">
-			<MudSelect T="MCVersion" Label="Version" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Disabled="IsProcessing"
-					   SelectedValues="new List<MCVersion>() { SelectedVersion }" SelectedValuesChanged="(e) => SelectedVersion = e.First()">
-				@foreach (MCVersion ver in MinecraftVersions)
-				{
-					string val = $"{ver.Id}{GetSuffix(ver)}";
-					<MudSelectItem Value="ver">@val</MudSelectItem>
-				}
-			</MudSelect>
-		</MudItem>
+		<VersionSelector ApiController="_apiController" VersionChanged="SelectedVersionChanged" EditionChanged="SelectedEditionChanged" IsProcessing="IsProcessing" />
 		<MudItem xs="12" Class="pa-2 my-1">
 			<MudText Typo="Typo.h6" GutterBottom="true">Exclusions</MudText>
 			<MudGrid Justify="Justify.SpaceAround" Spacing="2" >
@@ -63,6 +47,11 @@
 								<MudSwitch @bind-Checked="ExcludeNonVanillaNamespaces" Label="Exclude Non-Vanilla Namespaces" Color="Color.Primary" Disabled="IsProcessing"/>
 							</MudTooltip>
 						</MudItem>
+						<MudItem Class="my-1">
+							<MudTooltip Text="Exclude all title-related textures from the comparison (../textures/gui/title)" Placement="Placement.Bottom">
+								<MudSwitch @bind-Checked="ExcludeTitleGui" Label="Exclude Title GUI" Color="Color.Primary" Disabled="IsProcessing"/>
+							</MudTooltip>
+						</MudItem>
 					</MudList>
 					<MudList>
 						<MudItem Class="my-1">
@@ -78,6 +67,11 @@
 						<MudItem Class="my-1">
 							<MudTooltip Text="Exclude emmisives (e.g. <whatever>_e.png) from the comparison" Placement="Placement.Bottom">
 								<MudSwitch @bind-Checked="ExcludeEmissives" Label="Exclude Emissives" Color="Color.Primary" Disabled="IsProcessing"/>
+							</MudTooltip>
+						</MudItem>
+						<MudItem Class="my-1">
+							<MudTooltip Text="Exclude overlays from the comparison" Placement="Placement.Bottom">
+								<MudSwitch @bind-Checked="ExcludeOverlays" Label="Exclude Overlays" Color="Color.Primary" Disabled="IsProcessing"/>
 							</MudTooltip>
 						</MudItem>
 					</MudList>
@@ -122,7 +116,7 @@
 				</MudList>
 			</MudGrid>
 		</MudItem>
-		@if (DebugMode)
+		@if (MainLayout.DebugMode)
 		{
 			<MudItem xs="12" Class="pa-2 my-1">
 				<MudText Typo="Typo.h6" GutterBottom="true">Debug</MudText>
@@ -162,7 +156,7 @@
 		</MudItem>
 		<MudItem xs="12" Class="py-1">
 			<MudTabs Outlined="true" Position="Position.Left" Rounded="true" Border="true"
-					 ApplyEffectsToContainer="true" PanelClass="pl-6 pt-2 pb-2">
+					 ApplyEffectsToContainer="true" PanelClass="pl-2 pt-1 pb-1">
 				<MudTabPanel Text="Matching Textures" Style="@TABLE_TAB_PANEL_STYLE">
 					<MudItem Style="@TABLE_CONTENT_STYLE">
 						@if (MatchingTexturesList.Count > 0)
@@ -172,10 +166,10 @@
 							</MudItem>
 							<MudItem Style="@TABLE_OPTIONS_STYLE">
 								<MudTooltip Text="Copy" Placement="Placement.Top">
-									<MudIconButton Icon="@Icons.Filled.ContentCopy" OnClick="async () => await CopyTextToClipboard(MatchingTexturesList)"></MudIconButton>
+									<MudIconButton Icon="@Icons.Material.Filled.ContentCopy" OnClick="async () => await CopyTextToClipboard(MatchingTexturesList)"></MudIconButton>
 								</MudTooltip>
 								<MudTooltip Text="Export" Placement="Placement.Top">
-									<MudIconButton Icon="@Icons.Filled.Download" OnClick="ExportMatchingTextures"></MudIconButton>
+									<MudIconButton Icon="@Icons.Material.Filled.Download" OnClick="ExportMatchingTextures"></MudIconButton>
 								</MudTooltip>
 							</MudItem>
 							<MudList Dense="true">
@@ -199,10 +193,10 @@
 							</MudItem>
 							<MudItem Style="@TABLE_OPTIONS_STYLE">
 								<MudTooltip Text="Copy" Placement="Placement.Top">
-									<MudIconButton Icon="@Icons.Filled.ContentCopy" OnClick="async () => await CopyTextToClipboard(MissingTexturesList)"></MudIconButton>
+									<MudIconButton Icon="@Icons.Material.Filled.ContentCopy" OnClick="async () => await CopyTextToClipboard(MissingTexturesList)"></MudIconButton>
 								</MudTooltip>
 								<MudTooltip Text="Export" Placement="Placement.Top">
-									<MudIconButton Icon="@Icons.Filled.Download" OnClick="ExportMissingTextures"></MudIconButton>
+									<MudIconButton Icon="@Icons.Material.Filled.Download" OnClick="ExportMissingTextures"></MudIconButton>
 								</MudTooltip>
 							</MudItem>
 							<MudList Dense="true">
@@ -226,10 +220,10 @@
 							</MudItem>
 							<MudItem Style="@TABLE_OPTIONS_STYLE">
 								<MudTooltip Text="Copy" Placement="Placement.Top">
-									<MudIconButton Icon="@Icons.Filled.ContentCopy" OnClick="async () => await CopyTextToClipboard(UnusedTexturesList)"></MudIconButton>
+									<MudIconButton Icon="@Icons.Material.Filled.ContentCopy" OnClick="async () => await CopyTextToClipboard(UnusedTexturesList)"></MudIconButton>
 								</MudTooltip>
 								<MudTooltip Text="Export" Placement="Placement.Top">
-									<MudIconButton Icon="@Icons.Filled.Download" OnClick="ExportUnusedTextures"></MudIconButton>
+									<MudIconButton Icon="@Icons.Material.Filled.Download" OnClick="ExportUnusedTextures"></MudIconButton>
 								</MudTooltip>
 							</MudItem>
 							<MudList Dense="true">
