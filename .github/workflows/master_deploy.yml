@@ -1,0 +1,52 @@
+name: Deploy (Master)
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  CSPROJ: MCTools/MCTools.csproj
+  PUBLISH_PATH: bin/Publish
+  RELEASE_TYPE: Release
+  ENVIRONMENT: Production
+  RELEASETYPE: Stable
+  SERVER_TARGET: /var/www/mctools
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET 6.0
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build -c ${{ env.RELEASE_TYPE }} --no-restore
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+    - name: Variable Substitution
+      uses: microsoft/variable-substitution@v1
+      with:
+        files: 'MCTools/wwwroot/appsettings.json'
+      env:
+        Application.Environment: ${{ env.ENVIRONMENT }}
+        Application.ReleaseType: ${{ env.RELEASETYPE }}
+    - name: Publish
+      run: dotnet publish ${{ env.CSPROJ }} -c ${{ env.RELEASE_TYPE }} -o ${{ env.PUBLISH_PATH }}
+    - name: Deploy
+      uses: appleboy/scp-action@v0.1.4
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.SSHKEY }}
+        port: ${{ secrets.PORT }}
+        source: "${{ env.PUBLISH_PATH }}/*"
+        target: ${{ env.SERVER_TARGET }}
+        strip_components: 2
+        rm: true
