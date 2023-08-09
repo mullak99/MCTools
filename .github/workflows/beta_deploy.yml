@@ -1,4 +1,4 @@
-name: Deploy (Beta)
+name: MCTools (Beta)
 
 on:
   push:

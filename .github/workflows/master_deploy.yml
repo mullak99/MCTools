@@ -1,4 +1,4 @@
-name: Deploy (Master)
+name: MCTools (Stable)
 
 on:
   push:
