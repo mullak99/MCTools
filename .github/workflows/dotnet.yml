@@ -1,15 +1,17 @@
-name: .NET
+name: Deploy (Beta)
 
 on:
   push:
-    branches: [ master, develop ]
+    branches: [ beta ]
   pull_request:
-    branches: [ master, develop ]
+    branches: [ beta ]
 
 env:
   CSPROJ: MCTools/MCTools.csproj
   PUBLISH_PATH: bin/Publish
   RELEASE_TYPE: Release
+  ENVIRONMENT: Production
+  RELEASETYPE: Beta
 
 jobs:
   build:
@@ -27,11 +29,22 @@ jobs:
       run: dotnet build -c ${{ env.RELEASE_TYPE }} --no-restore
     - name: Test
       run: dotnet test --no-build --verbosity normal
+    - name: Variable Substitution
+      uses: microsoft/variable-substitution@v1
+      with:
+        files: 'MCTools/wwwroot/appsettings.json'
+      env:
+        Application.Environment: ${{ env.ENVIRONMENT }}
+        Application.ReleaseType: ${{ env.RELEASETYPE }}
     - name: Publish
       run: dotnet publish ${{ env.CSPROJ }} -c ${{ env.RELEASE_TYPE }} -o ${{ env.PUBLISH_PATH }}
-    - name: Upload Publish Artifact
-      uses: actions/upload-artifact@v2
+    - name: Deploy
+      uses: appleboy/scp-action@master
+      env:
+        HOST: ${{ secrets.HOST }}
+        USERNAME: ${{ secrets.USERNAME }}
+        PORT: ${{ secrets.PORT }}
+        KEY: ${{ secrets.SSHKEY }}
       with:
-        name: Publish
-        path: /home/runner/work/MCTools/MCTools/${{ env.PUBLISH_PATH }}/
-        retention-days: 30
+        source: "."
+        target: "/var/www/mctools-beta"
