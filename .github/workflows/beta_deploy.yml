@@ -45,6 +45,6 @@ jobs:
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.SSHKEY }}
         port: ${{ secrets.PORT }}
-        source: "."
+        source:  ${{ env.PUBLISH_PATH }}
         target: "/var/www/mctools-beta"
         rm: true
