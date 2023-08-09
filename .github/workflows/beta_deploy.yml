@@ -3,8 +3,12 @@ name: Deploy (Beta)
 on:
   push:
     branches: [ beta ]
+    paths:
+      - 'MCTools/**'
   pull_request:
     branches: [ beta ]
+    paths:
+      - 'MCTools/**'
 
 env:
   CSPROJ: MCTools/MCTools.csproj
