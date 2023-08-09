@@ -12,7 +12,7 @@ namespace MCTools.Shared
 		public bool IsDrawerOpen { get; set; } = true;
 
 		#if DEBUG
-		public static bool DebugMode = true;
+		public const bool DebugMode = true;
 		#else
 		public static bool DebugMode = false;
 		#endif
@@ -46,6 +46,7 @@ namespace MCTools.Shared
 		/// <summary>
 		/// Get debug mode status from the users local storage
 		/// </summary>
+#pragma warning disable CS1998
 		private async Task GetDebugFromLocalStorage()
 		{
 			#if !DEBUG
@@ -59,6 +60,7 @@ namespace MCTools.Shared
 			}
 			#endif
 		}
+#pragma warning restore CS1998
 
 		/// <summary>
 		/// Toggle between dark and light theme
@@ -76,9 +78,9 @@ namespace MCTools.Shared
 			IsDrawerOpen = !IsDrawerOpen;
 		}
 
-		private MudTheme DefaultTheme => new MudTheme()
+		private MudTheme DefaultTheme => new()
 		{
-			Palette = new Palette()
+			Palette = new PaletteLight()
 			{
 				Black = "#272c34",
 				Background = "#ffffff",
@@ -94,9 +96,9 @@ namespace MCTools.Shared
 			}
 		};
 
-		private MudTheme DarkTheme => new MudTheme()
+		private MudTheme DarkTheme => new()
 		{
-			Palette = new Palette()
+			Palette = new PaletteDark()
 			{
 				Black = "#27272f",
 				Background = "#181818",

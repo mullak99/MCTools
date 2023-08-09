@@ -1,22 +1,21 @@
+using Blazored.LocalStorage;
+using MCTools.Controllers;
+using MCTools.Logic;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using MudBlazor;
 using MudBlazor.Services;
 using System;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
-using Blazored.LocalStorage;
-using MCTools.Controllers;
-using MCTools.Logic;
-using Microsoft.Extensions.Configuration;
-using MudBlazor;
 
 namespace MCTools
 {
 	public class Program
 	{
 		private static bool IsBetaRelease;
-		private const byte BetaTag = 3;
+		private const byte BetaTag = 1;
 
 		private static string StableUrl;
 		private static string BetaUrl;
@@ -26,7 +25,7 @@ namespace MCTools
 			var builder = WebAssemblyHostBuilder.CreateDefault(args);
 			builder.RootComponents.Add<App>("#app");
 
-			builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+			builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
 			builder.Services.AddMudServices(config =>
 				{
@@ -42,18 +41,18 @@ namespace MCTools
 
 			builder.Services.AddBlazoredLocalStorage();
 
-			string releaseType = builder.Configuration.GetValue<string>("Application:ReleaseType");
+			string releaseType = builder.Configuration["Application:ReleaseType"] ?? "Stable";
 			IsBetaRelease = releaseType.ToUpper() == "BETA";
 			Console.WriteLine($"Release Type: {releaseType}");
 
-			var environment = builder.Configuration.GetValue<string>("Application:Environment");
-			var url = builder.Configuration.GetValue<string>($"Endpoint:{environment}");
+			string environment = builder.Configuration["Application:Environment"] ?? "Production";
+			string url = builder.Configuration[$"Endpoint:{environment}"];
 			Console.WriteLine($"API Endpoint: {url}");
 
-			StableUrl = builder.Configuration.GetValue<string>("Urls:Stable");
-			BetaUrl = builder.Configuration.GetValue<string>("Urls:Beta");
+			StableUrl = builder.Configuration["Urls:Stable"];
+			BetaUrl = builder.Configuration["Urls:Beta"];
 
-			builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(url) });
+			builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(url ?? string.Empty) });
 			builder.Services.AddScoped<ApiController>();
 			builder.Services.AddScoped<JSHelper>();
 
@@ -66,8 +65,10 @@ namespace MCTools
 		public static string GetVersion()
 		{
 			Version version = Assembly.GetEntryAssembly()?.GetName().Version;
-			string verString = $"v{version.Major}.{version.Minor}.{version.Revision}";
+			if (version == null)
+				return "UNKNOWN";
 
+			string verString = $"v{version.Major}.{version.Minor}.{version.Revision}";
 			if (IsBeta())
 				verString += $"-BETA{BetaTag}";
 

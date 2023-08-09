@@ -5,7 +5,7 @@
 
 <MudItem xs="6">
 	<MudSelect T="MCEdition" Label="Edition" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Disabled="DisableControls"
-	           SelectedValues="new List<MCEdition>() { SelectedEdition }" SelectedValuesChanged="(e) => SelectedEditionChanged(e.First())">
+			   SelectedValues="new List<MCEdition>() { SelectedEdition }" SelectedValuesChanged="(e) => SelectedEditionChanged(e.First())">
 		<MudSelectItem Value="MCEdition.Java" Disabled="@DisableJava">Java</MudSelectItem>
 		<MudSelectItem Value="MCEdition.Bedrock" Disabled="@DisableBedrock">Bedrock</MudSelectItem>
 	</MudSelect>
@@ -15,8 +15,7 @@
 			   SelectedValues="new List<MCVersion>() { SelectedVersion }" SelectedValuesChanged="(e) => SelectedVersionChanged(e.First())">
 		@foreach (MCVersion ver in MinecraftVersions)
 		{
-			string val = $"{ver.Id}{ver.GetSuffix(LatestVersion)}";
-			<MudSelectItem Value="ver">@val</MudSelectItem>
+			<MudSelectItem Value="ver">@($"{ver.Id}{ver.GetSuffix(LatestVersion)}")</MudSelectItem>
 		}
 	</MudSelect>
 </MudItem>

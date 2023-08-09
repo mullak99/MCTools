@@ -8,8 +8,6 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -38,12 +36,12 @@ namespace MCTools.Pages
 		#endregion
 
 		#region Options
-		private string UploadText => "Upload Resource Pack" + (File != null ? $": {File.Name}" : "");
+		private string UploadText => "Upload Resource Pack" + (Pack != null ? $": {Pack.Name}" : "");
 		private MCVersion SelectedVersion;
 		private MCEdition SelectedEdition;
 		private bool IsProcessing;
 
-		private bool CanCompare => File is { Size: > 0 } && SelectedVersion != null && SelectedEdition > 0;
+		private bool CanCompare => Pack is { Size: > 0 } && SelectedVersion != null && SelectedEdition > 0;
 
 		private bool ExcludeRealms { get; set; } = true;
 		private bool ExcludeFonts { get; set; } = true;
@@ -52,11 +50,9 @@ namespace MCTools.Pages
 		private bool ExcludeNonVanillaNamespaces { get; set; } = true;
 		private bool ExcludeEmissives { get; set; } = true;
 		private bool ExcludeTitleGui { get; set; } = true;
-		private bool ExcludeOverlays { get; set; }
 
 		private bool ExcludeBedrockUI { get; set; }
 
-		private bool UseParallel { get; set; }
 		private bool PerfLogging { get; set; }
 
 		private List<string> BlacklistRegexJava = new();
@@ -94,7 +90,7 @@ namespace MCTools.Pages
 		#endregion
 
 		#region Results
-		public IBrowserFile File { get; set; }
+		public ResourcePack Pack { get; set; }
 
 		private List<string> MatchingTexturesList = new();
 		private List<string> MissingTexturesList = new();
@@ -161,7 +157,7 @@ namespace MCTools.Pages
 			else
 			{
 				BlacklistRegexBedrock = DefaultBlacklistBedrock;
-				await localStore.SetItemAsStringAsync("blacklistBedrock", JsonConvert.SerializeObject(BlacklistRegexJava));
+				await localStore.SetItemAsStringAsync("blacklistBedrock", JsonConvert.SerializeObject(BlacklistRegexBedrock));
 			}
 		}
 		#endregion
@@ -175,14 +171,14 @@ namespace MCTools.Pages
 		{
 			IsProcessing = true;
 			StateHasChanged();
-			List<string> tempBlackList = new List<string>();
+			List<string> tempBlackList = new();
 
 			if (SelectedEdition == MCEdition.Java)
 			{
 				tempBlackList.AddRange(BlacklistRegexJava);
 
 				if (ExcludeRealms)
-					tempBlackList.AddRange(new List<string>()
+					tempBlackList.AddRange(new List<string>
 					{
 						@"assets\/realms", @"assets\/minecraft\/textures\/gui\/realms"
 					});
@@ -235,7 +231,7 @@ namespace MCTools.Pages
 				Snackbar.Add("An error occurred when loading assets! Check the console for errors.", Severity.Error);
 				throw;
 			}
-			await CompareTextures((await GetPackFileList() ?? new List<string>()), Assets.Textures, tempBlackList);
+			await CompareTextures(Assets.Textures, tempBlackList);
 			IsProcessing = false;
 			StateHasChanged();
 		}
@@ -248,7 +244,7 @@ namespace MCTools.Pages
 			MatchingTexturesList = new List<string>();
 			MissingTexturesList = new List<string>();
 			UnusedTexturesList = new List<string>();
-			File = null;
+			Pack = null;
 			TotalTextures = 0;
 		}
 		#endregion
@@ -256,11 +252,10 @@ namespace MCTools.Pages
 		/// <summary>
 		/// Compare uploaded packs textures against Minecraft's texture list
 		/// </summary>
-		/// <param name="packFiles">List of textures from the uploaded resource pack</param>
 		/// <param name="refFiles">List of Minecraft official texture assets</param>
 		/// <param name="blacklist">Regex statements for textures to ignore</param>
 		/// <returns></returns>
-		private async Task CompareTextures(List<string> packFiles, List<string> refFiles, List<string> blacklist)
+		private async Task CompareTextures(List<string> refFiles, List<string> blacklist)
 		{
 			// Clear texture lists
 			MatchingTexturesList.Clear();
@@ -268,124 +263,56 @@ namespace MCTools.Pages
 			UnusedTexturesList.Clear();
 			TotalTextures = 0;
 
+			Stopwatch st = Stopwatch.StartNew();
+			await Pack.Process(MAX_FILESIZE_BYTES);
+			st.Stop();
+
+			if (PerfLogging)
+				Console.WriteLine($"Got all pack textures in {st.ElapsedMilliseconds}ms");
+
+			List<string> packFiles = Pack.GetTextures();
+
 			// Run through all of the reference (MC) textures
 			Task refTask = Task.Run(() =>
 			{
-				Stopwatch st = Stopwatch.StartNew();
-				if (UseParallel)
+				Stopwatch rSt = Stopwatch.StartNew();
+				refFiles.ForEach(x =>
 				{
-					Parallel.ForEach(refFiles, (x) =>
+					if (!blacklist.Any(rule => Regex.IsMatch(x, rule)))
 					{
-						if (!blacklist.Any(rule => Regex.IsMatch(x, rule)))
-						{
-							TotalTextures++;
-							if (packFiles.Contains(x))
-								MatchingTexturesList.Add(x); // Pack contains this texture
-							else
-								MissingTexturesList.Add(x); // Pack doesn't contain this texture
-						}
-					});
-				}
-				else
-				{
-					refFiles.ForEach(x =>
-					{
-						if (!blacklist.Any(rule => Regex.IsMatch(x, rule)))
-						{
-							TotalTextures++;
-							if (packFiles.Contains(x))
-								MatchingTexturesList.Add(x); // Pack contains this texture
-							else
-								MissingTexturesList.Add(x); // Pack doesn't contain this texture
-						}
-					});
-				}
-				st.Stop();
+						TotalTextures++;
+						if (packFiles.Contains(x))
+							MatchingTexturesList.Add(x); // Pack contains this texture
+						else
+							MissingTexturesList.Add(x); // Pack doesn't contain this texture
+					}
+				});
+				rSt.Stop();
 
 				if (PerfLogging)
-					Console.WriteLine($"Ran through all reference textures in {st.ElapsedMilliseconds}ms");
+					Console.WriteLine($"Ran through all reference textures in {rSt.ElapsedMilliseconds}ms");
 			});
 
 			// Run through all of the pack textures
 			Task packTask = Task.Run(() =>
 			{
-				Stopwatch st = Stopwatch.StartNew();
-				if (UseParallel)
+				Stopwatch pSt = Stopwatch.StartNew();
+				packFiles.ForEach(x =>
 				{
-					Parallel.ForEach(packFiles, (x) =>
-					{
-						if (!blacklist.Any(rule => Regex.IsMatch(x, rule)) && !refFiles.Contains(x))
-							UnusedTexturesList.Add(x); // MC doesn't contain this texture
-					});
-				}
-				else
-				{
-					packFiles.ForEach(x =>
-					{
-						if (!blacklist.Any(rule => Regex.IsMatch(x, rule)) && !refFiles.Contains(x))
-							UnusedTexturesList.Add(x); // MC doesn't contain this texture
-					});
-				}
-				st.Stop();
+					if (!blacklist.Any(rule => Regex.IsMatch(x, rule)) && !refFiles.Contains(x))
+						UnusedTexturesList.Add(x); // MC doesn't contain this texture
+				});
+				pSt.Stop();
 
 				if (PerfLogging)
-					Console.WriteLine($"Ran through all pack textures in {st.ElapsedMilliseconds}ms");
+					Console.WriteLine($"Ran through all pack textures in {pSt.ElapsedMilliseconds}ms");
 			});
+
+			Stopwatch tSt = Stopwatch.StartNew();
 			await Task.WhenAll(refTask, packTask); // Run async to improve speed
-		}
-
-		/// <summary>
-		/// Get a list of all textures within the uploaded resource pack
-		/// </summary>
-		/// <returns>List of textures</returns>
-		private async Task<List<string>> GetPackFileList()
-		{
-			await using MemoryStream ms = new MemoryStream(MAX_FILESIZE_BYTES);
-			await File.OpenReadStream(MAX_FILESIZE_BYTES).CopyToAsync(ms);
-
-			List<string> usefulFiles = new List<string>();
-			using ZipArchive zip = new ZipArchive(ms);
-			Stopwatch st = Stopwatch.StartNew();
-			if (UseParallel)
-			{
-				Parallel.ForEach(zip.Entries, (file) =>
-				{
-					// Include all PNGs, if Bedrock, include TGAs
-					string fileName = GetFileName(file.FullName);
-					if (fileName != null)
-						usefulFiles.Add(fileName);
-				});
-			}
-			else
-			{
-				foreach (ZipArchiveEntry file in zip.Entries)
-				{
-					// Include all PNGs, if Bedrock, include TGAs
-					string fileName = GetFileName(file.FullName);
-					if (fileName != null)
-						usefulFiles.Add(fileName);
-				}
-			}
-			st.Stop();
-
+			tSt.Stop();
 			if (PerfLogging)
-				Console.WriteLine($"Got all pack textures in {st.ElapsedMilliseconds}ms");
-			return usefulFiles.Distinct().ToList();
-		}
-
-		private string? GetFileName(string fileName)
-		{
-			if (fileName.EndsWith("png") || (SelectedEdition == MCEdition.Bedrock && fileName.EndsWith("tga")))
-			{
-				if (!ExcludeOverlays)
-				{
-					string[] split = fileName.Split('/', '\\');
-					if (split.Length > 1 && split[1].ToLower() == "assets")
-						fileName = fileName.Remove(0, fileName.IndexOf('/') + 1);
-				}
-				return fileName;
-			}
-			return null;
+				Console.WriteLine($"Compared textures in {tSt.ElapsedMilliseconds}ms");
 		}
 		#endregion
 
@@ -464,20 +391,22 @@ namespace MCTools.Pages
 		/// Upload resource pack
 		/// </summary>
 		/// <param name="e"></param>
-		private void UploadFile(InputFileChangeEventArgs e)
+		private async Task UploadFile(InputFileChangeEventArgs e)
 		{
+			IsProcessing = true;
 			List<string> errors = PackValidation(e.File);
 			if (errors.Count > 0) // Show warnings for any validation errors
 			{
 				errors.ForEach(x => Snackbar.Add(x, Severity.Warning));
-				File = null;
+				Pack = null;
 			}
 			else // Pack is valid
 			{
 				Snackbar.Add("Resource pack uploaded!", Severity.Success);
-				File = e.File;
+				Pack = new(e.File, SelectedEdition);
+				await Pack.Init(MAX_FILESIZE_BYTES);
 			}
-
+			IsProcessing = false;
 			StateHasChanged();
 		}
 
@@ -496,12 +425,12 @@ namespace MCTools.Pages
 			if (SelectedEdition == MCEdition.Java)
 			{
 				if (fileType != "zip") // Only support zip files for Java
-					errors.Add($"Only zip files are supported");
+					errors.Add("Only zip files are supported");
 			}
 			else
 			{
 				if (fileType is not ("zip" or "mcpack")) // Only support zip & mcpack files for Bedrock
-					errors.Add($"Only zip and mcpack files are supported");
+					errors.Add("Only zip and mcpack files are supported");
 			}
 			return errors;
 		}
@@ -514,19 +443,19 @@ namespace MCTools.Pages
 		/// Export a text file containing the matching textures
 		/// </summary>
 		private async Task ExportMatchingTextures()
-			=> await Export(MatchingTexturesList, $"MatchingTextures_{File.Name}.txt");
+			=> await Export(MatchingTexturesList, $"MatchingTextures_{Pack.Name}.txt");
 
 		/// <summary>
 		/// Export a text file containing the missing textures
 		/// </summary>
 		private async Task ExportMissingTextures()
-			=> await Export(MissingTexturesList, $"MissingTextures_{File.Name}.txt");
+			=> await Export(MissingTexturesList, $"MissingTextures_{Pack.Name}.txt");
 
 		/// <summary>
 		/// Export a text file containing the unused textures
 		/// </summary>
 		private async Task ExportUnusedTextures()
-			=> await Export(UnusedTexturesList, $"UnusedTextures_{File.Name}.txt");
+			=> await Export(UnusedTexturesList, $"UnusedTextures_{Pack.Name}.txt");
 
 		/// <summary>
 		/// Copy String List to clipboard
