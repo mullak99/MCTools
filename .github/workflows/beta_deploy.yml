@@ -48,4 +48,5 @@ jobs:
         port: ${{ secrets.PORT }}
         source: "${{ env.PUBLISH_PATH }}/*"
         target: ${{ env.SERVER_TARGET }}
+        strip_components: 2
         rm: true
