@@ -12,6 +12,7 @@ env:
   RELEASE_TYPE: Release
   ENVIRONMENT: Production
   RELEASETYPE: Beta
+  SERVER_TARGET: /var/www/mctools-beta
 
 jobs:
   build:
@@ -45,6 +46,6 @@ jobs:
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.SSHKEY }}
         port: ${{ secrets.PORT }}
-        source:  ${{ env.PUBLISH_PATH }}
-        target: "/var/www/mctools-beta"
+        source: "${{ env.PUBLISH_PATH }}/*"
+        target: ${{ env.SERVER_TARGET }}
         rm: true
