@@ -1,12 +1,12 @@
-name: MCTools (Beta)
+name: MCTools (Stable)
 
 on:
   push:
-    branches: [ beta ]
+    branches: [ master ]
     paths:
       - 'MCTools/**'
   pull_request:
-    branches: [ beta ]
+    branches: [ master ]
     paths:
       - 'MCTools/**'
 
@@ -15,8 +15,8 @@ env:
   PUBLISH_PATH: bin/Publish
   RELEASE_TYPE: Release
   ENVIRONMENT: Production
-  RELEASETYPE: Beta
-  SERVER_TARGET: /var/www/mctools-beta
+  RELEASETYPE: Stable
+  SERVER_TARGET: /var/www/mctools
 
 jobs:
   build:
