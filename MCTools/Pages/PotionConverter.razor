@@ -23,6 +23,8 @@
 			</MudButton>
 		</MudItem>
 		<VersionSelector ApiController="_apiController" VersionChanged="SelectedVersionChanged" EditionChanged="SelectedEditionChanged" IsProcessing="IsProcessing" DisableBedrock="true" DisableVersions="true" />
+		<MudText Typo="Typo.caption" Align="Align.Center" GutterBottom="true" Class="mt-1">Note: Select the edition you are converting from.</MudText>
+		<OverlayToggles Pack="Pack" IsProcessing="IsProcessing" />
 		@if (MainLayout.DebugMode)
 		{
 			<MudItem xs="12" Class="pa-2 my-1">
@@ -55,7 +57,7 @@
 			           Color="Color.Primary"
 			           StartIcon="@Icons.Material.Filled.Start"
 			           style="width: 100%;"
-					   Disabled="@(IsProcessing || Pack == null)"
+			           Disabled="@(IsProcessing || Pack == null)"
 			           OnClick="@ConvertAssets">
 				Convert Potion Textures
 			</MudButton>
