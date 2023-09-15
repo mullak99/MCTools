@@ -180,15 +180,31 @@ namespace MCTools.Pages
 				await using (ZipOutputStream zipOutputStream = new ZipOutputStream(memoryStream))
 				{
 					potions.ForEach(async potion => await CreatePotions(potion, potionBottle, splashPotionBottle, lingeringPotionBottle, tippedArrowBase, potionOverlay, tippedArrowOverlay, zipOutputStream));
+
+					if (DebugLogging)
+						Console.WriteLine("Copying base textures");
+
+					await CopyTexture(potionBottle, "potion_bottle_empty.png", zipOutputStream);
+					await CopyTexture(lingeringPotionBottle, "potion_bottle_lingering_empty.png", zipOutputStream);
+					await CopyTexture(tippedArrowBase, "tipped_arrow_base.png", zipOutputStream);
+					await CopyTexture(tippedArrowOverlay, "tipped_arrow_head.png", zipOutputStream);
 				}
 				byte[] zipBytes = memoryStream.ToArray();
-				await _jsHelper.DownloadZip("Potions.zip", zipBytes);
+				MCEdition convertedToEdition = SelectedEdition == MCEdition.Bedrock ? MCEdition.Java : MCEdition.Bedrock;
+				await _jsHelper.DownloadZip($"Potions-{convertedToEdition}-{Path.GetFileNameWithoutExtension(Pack.Name)}.zip", zipBytes);
 			}
 			zipWriteSw.Stop();
 			if (PerfLogging)
 				Console.WriteLine($"Writing zip file took {zipWriteSw.ElapsedMilliseconds}ms");
 
 			IsProcessing = false;
+		}
+
+		private async Task CopyTexture(Image source, string destination, ZipOutputStream zipOutputStream)
+		{
+			using MemoryStream pngStream = new();
+			await source.SaveAsPngAsync(pngStream);
+			await AddEntryToZipFileAsync(zipOutputStream, destination, pngStream);
 		}
 
 		private async Task AddEntryToZipFileAsync(ZipOutputStream zipOutputStream, string entryName, Stream data)
