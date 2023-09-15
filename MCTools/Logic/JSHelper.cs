@@ -9,7 +9,7 @@ namespace MCTools.Logic
 {
 	public class JSHelper
 	{
-		private IJSRuntime JS;
+		private readonly IJSRuntime JS;
 
 		public JSHelper(IJSRuntime jsRuntime)
 		{

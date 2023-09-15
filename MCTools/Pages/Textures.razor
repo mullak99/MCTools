@@ -4,6 +4,7 @@
 @using Blazored.LocalStorage
 @using MCTools.Controllers
 @using MCTools.Logic
+@using MCTools.Models
 
 @inherits LayoutComponentBase
 @inject ISnackbar Snackbar
@@ -69,11 +70,6 @@
 								<MudSwitch @bind-Checked="ExcludeEmissives" Label="Exclude Emissives" Color="Color.Primary" Disabled="IsProcessing"/>
 							</MudTooltip>
 						</MudItem>
-						<MudItem Class="my-1">
-							<MudTooltip Text="Exclude overlays from the comparison" Placement="Placement.Bottom">
-								<MudSwitch @bind-Checked="ExcludeOverlays" Label="Exclude Overlays" Color="Color.Primary" Disabled="IsProcessing"/>
-							</MudTooltip>
-						</MudItem>
 					</MudList>
 				}
 				else
@@ -116,16 +112,28 @@
 				</MudList>
 			</MudGrid>
 		</MudItem>
+		@if (Pack is {Overlays: { } } && Pack.Overlays.Any())
+		{
+			<MudItem xs="12" Class="pa-2 my-1">
+				<MudText Typo="Typo.h6" GutterBottom="true">Overlays</MudText>
+				<MudGrid Justify="Justify.SpaceEvenly" Spacing="2" Class="mx-10">
+					@foreach (Assets overlay in Pack.Overlays)
+					{
+						<MudItem Class="my-1" xs="4">
+							<MudTooltip Text="@($"Include '{overlay.Name}' when comparing textures")" Placement="Placement.Bottom">
+								<MudSwitch @bind-Checked="overlay.Enabled" Label="@($"Include '{overlay.Name}'")" Color="Color.Primary" Disabled="IsProcessing"/>
+							</MudTooltip>
+						</MudItem>
+					}
+				</MudGrid>
+			</MudItem>
+			<MudText Typo="Typo.caption" Align="Align.Center" GutterBottom="true" Class="mt-1">Note: Versions older than 1.20.2 (23w31a) don't support overlays! It's recommended to turn ALL overlays off for older versions.</MudText>
+		}
 		@if (MainLayout.DebugMode)
 		{
 			<MudItem xs="12" Class="pa-2 my-1">
 				<MudText Typo="Typo.h6" GutterBottom="true">Debug</MudText>
 				<MudGrid Justify="Justify.SpaceAround" Spacing="2" >
-					<MudList>
-						<MudItem Class="my-1">
-							<MudSwitch @bind-Checked="UseParallel" Label="Use Parallel ForEach" Color="Color.Primary" Disabled="IsProcessing" />
-						</MudItem>
-					</MudList>
 					<MudList>
 						<MudItem Class="my-1">
 							<MudSwitch @bind-Checked="PerfLogging" Label="Performance Logging" Color="Color.Primary" Disabled="IsProcessing" />
@@ -142,7 +150,7 @@
 				</MudItem>
 				<MudItem Class="d-flex align-center">
 					<MudButton Size="Size.Large" Style="width:128px;" Variant="Variant.Filled" Color="Color.Error" ButtonType="ButtonType.Reset"
-							   OnClick="@Reset" Disabled="@(File == null || IsProcessing)">Reset</MudButton>
+							   OnClick="@Reset" Disabled="@(Pack == null || IsProcessing)">Reset</MudButton>
 				</MudItem>
 			</MudGrid>
 			@if (IsProcessing)
@@ -154,9 +162,8 @@
 				<MudProgressLinear Color="Color.Primary" Size="Size.Small" Value="0" Max="100" Class="my-7" />
 			}
 		</MudItem>
-		<MudItem xs="12" Class="py-1">
-			<MudTabs Outlined="true" Position="Position.Left" Rounded="true" Border="true"
-					 ApplyEffectsToContainer="true" PanelClass="pl-2 pt-1 pb-1">
+		<MudItem xs="12" Class="pt-1 pb-4">
+			<MudTabs Outlined="true" Position="Position.Left" Rounded="true" Border="true" ApplyEffectsToContainer="true" PanelClass="pl-2 pt-1 pb-1">
 				<MudTabPanel Text="Matching Textures" Style="@TABLE_TAB_PANEL_STYLE">
 					<MudItem Style="@TABLE_CONTENT_STYLE">
 						@if (MatchingTexturesList.Count > 0)
@@ -180,7 +187,7 @@
 						}
 						else
 						{
-							<MudText>No matching textures</MudText>
+							<MudText Align="Align.Center" Class="mt-2">No matching textures</MudText>
 						}
 					</MudItem>
 				</MudTabPanel>
@@ -207,7 +214,7 @@
 						}
 						else
 						{
-							<MudText>No missing textures</MudText>
+							<MudText Align="Align.Center" Class="mt-2">No missing textures</MudText>
 						}
 					</MudItem>
 				</MudTabPanel>
@@ -234,7 +241,7 @@
 						}
 						else
 						{
-							<MudText>No unused textures</MudText>
+							<MudText Align="Align.Center" Class="mt-2">No unused textures</MudText>
 						}
 					</MudItem>
 				</MudTabPanel>
