@@ -63,6 +63,10 @@ namespace MCTools.Pages
 		private async Task UploadFile(InputFileChangeEventArgs e)
 		{
 			IsProcessing = true;
+
+			Console.WriteLine("Converting potions can take a few seconds. While it may appear to be stuck, it isn't. More optimisations are needed.");
+			Snackbar.Add("This process can take a few seconds. See console for more details.", Severity.Warning);
+
 			List<string> errors = Validation.PackValidation(SelectedEdition, e.File);
 			if (errors.Count > 0) // Show warnings for any validation errors
 			{
