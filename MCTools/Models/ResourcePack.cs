@@ -119,6 +119,18 @@ namespace MCTools.Models
 			return textures.Distinct().ToList();
 		}
 
+		public string GetTexturePath(string path)
+		{
+			if (BaseAssets.Textures.Contains(path))
+				return Path.Combine(path);
+
+			string overlayPath = Overlays.FirstOrDefault(x => x.Enabled && x.Textures.Contains(path))?.Name;
+			return overlayPath != null ? Path.Combine(overlayPath, path) : null;
+		}
+
+		public IBrowserFile GetFile()
+			=> _packFile;
+
 		private string GetFileName(string fileName, MCEdition selectedEdition)
 		{
 			if (fileName.EndsWith("png") || (selectedEdition == MCEdition.Bedrock && fileName.EndsWith("tga")))

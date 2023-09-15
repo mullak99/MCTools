@@ -17,7 +17,7 @@
 <MudPaper Class="px-8">
 	<MudGrid Justify="Justify.Center">
 		<MudItem xs="12">
-			<InputFile id="fileInput" OnChange="UploadFile" hidden accept="@GetSupportedFileTypes" />
+			<InputFile id="fileInput" OnChange="UploadFile" hidden accept="@Validation.GetSupportedPackFormats(SelectedEdition)" />
 			<MudButton HtmlTag="label"
 					   Variant="Variant.Filled"
 					   Color="Color.Primary"

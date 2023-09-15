@@ -11,7 +11,7 @@
 	</MudSelect>
 </MudItem>
 <MudItem xs="6">
-	<MudSelect T="MCVersion" Label="Version" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Disabled="DisableControls"
+	<MudSelect T="MCVersion" Label="Version" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Disabled="DisableVersionSelector"
 			   SelectedValues="new List<MCVersion>() { SelectedVersion }" SelectedValuesChanged="(e) => SelectedVersionChanged(e.First())">
 		@foreach (MCVersion ver in MinecraftVersions)
 		{
@@ -27,6 +27,7 @@
 	[Parameter] public bool IsProcessing { get; set; }
 	[Parameter] public bool DisableJava { get; set; }
 	[Parameter] public bool DisableBedrock { get; set; }
+	[Parameter] public bool DisableVersions { get; set; }
 
 	private MCVersion SelectedVersion { get; set; }
 	private MCEdition SelectedEdition { get; set; } = MCEdition.Java;
@@ -36,6 +37,7 @@
 	private bool IsLoading;
 
 	private bool DisableControls => IsLoading || IsProcessing;
+	private bool DisableVersionSelector => DisableControls || DisableVersions;
 
 	protected override async Task OnInitializedAsync()
 		=> await SelectedEditionChanged(SelectedEdition);

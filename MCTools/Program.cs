@@ -20,6 +20,8 @@ namespace MCTools
 		private static string StableUrl;
 		private static string BetaUrl;
 
+		public static string BaseAddress;
+
 		public static async Task Main(string[] args)
 		{
 			var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -55,6 +57,8 @@ namespace MCTools
 			builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(url ?? string.Empty) });
 			builder.Services.AddScoped<ApiController>();
 			builder.Services.AddScoped<JSHelper>();
+
+			BaseAddress = builder.HostEnvironment.BaseAddress;
 
 			await builder.Build().RunAsync();
 		}

@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using MCTools.Logic;
 
 namespace MCTools.Pages
 {
@@ -19,9 +20,6 @@ namespace MCTools.Pages
 		#region Variables
 
 		#region Constants
-		private const int MAX_FILESIZE_MB = 100;
-		private const int MAX_FILESIZE_BYTES = MAX_FILESIZE_MB * 1024 * 1024;
-
 		private const float VIRTUALIZER_ITEM_SIZE = 36.02f;
 		private const int VIRTUALIZER_OVERSCAN = 64;
 
@@ -264,7 +262,7 @@ namespace MCTools.Pages
 			TotalTextures = 0;
 
 			Stopwatch st = Stopwatch.StartNew();
-			await Pack.Process(MAX_FILESIZE_BYTES);
+			await Pack.Process(Validation.GetMaxFileSizeBytes());
 			st.Stop();
 
 			if (PerfLogging)
@@ -394,7 +392,7 @@ namespace MCTools.Pages
 		private async Task UploadFile(InputFileChangeEventArgs e)
 		{
 			IsProcessing = true;
-			List<string> errors = PackValidation(e.File);
+			List<string> errors = Validation.PackValidation(SelectedEdition, e.File);
 			if (errors.Count > 0) // Show warnings for any validation errors
 			{
 				errors.ForEach(x => Snackbar.Add(x, Severity.Warning));
@@ -404,38 +402,11 @@ namespace MCTools.Pages
 			{
 				Snackbar.Add("Resource pack uploaded!", Severity.Success);
 				Pack = new(e.File, SelectedEdition);
-				await Pack.Init(MAX_FILESIZE_BYTES);
+				await Pack.Init(Validation.GetMaxFileSizeBytes());
 			}
 			IsProcessing = false;
 			StateHasChanged();
 		}
-
-		/// <summary>
-		/// Ensure the uploaded file is valid
-		/// </summary>
-		/// <param name="file">Uploaded file</param>
-		/// <returns>A list of errors</returns>
-		private List<string> PackValidation(IBrowserFile file)
-		{
-			List<string> errors = new List<string>();
-			if (file.Size > MAX_FILESIZE_BYTES) // Limit max filesize for resource pack
-				errors.Add($"Uploads cannot be greater than {MAX_FILESIZE_MB}MB");
-
-			string fileType = file.Name.Split('.').Last();
-			if (SelectedEdition == MCEdition.Java)
-			{
-				if (fileType != "zip") // Only support zip files for Java
-					errors.Add("Only zip files are supported");
-			}
-			else
-			{
-				if (fileType is not ("zip" or "mcpack")) // Only support zip & mcpack files for Bedrock
-					errors.Add("Only zip and mcpack files are supported");
-			}
-			return errors;
-		}
-
-		private string GetSupportedFileTypes => SelectedEdition == MCEdition.Java ? ".zip" : ".zip, .mcpack";
 		#endregion
 
 		#region Export
