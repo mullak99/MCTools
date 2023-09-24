@@ -15,7 +15,7 @@ namespace MCTools
 	public class Program
 	{
 		private static bool IsBetaRelease;
-		private const byte BetaTag = 1;
+		private const byte BetaTag = 2;
 
 		private static string StableUrl;
 		private static string BetaUrl;
