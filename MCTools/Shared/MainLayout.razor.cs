@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using MCTools.Shared.Dialog;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
@@ -23,6 +24,12 @@ namespace MCTools.Shared
 		{
 			await Task.WhenAll(GetCurrentThemeFromLocalStorage(), GetDebugFromLocalStorage());
 			await InvokeAsync(StateHasChanged);
+		}
+
+		private void OpenSettingsDialog()
+		{
+			DialogOptions options = new DialogOptions() { MaxWidth = MaxWidth.Small, FullWidth = true };
+			Dialog.Show<SettingsDialog>("Settings", options);
 		}
 
 		/// <summary>
@@ -58,6 +65,15 @@ namespace MCTools.Shared
 			{
 				DebugMode = false;
 			}
+			#endif
+		}
+
+		public static bool IsDebugBuild()
+		{
+			#if DEBUG
+			return true;
+			#else
+			return false;
 			#endif
 		}
 #pragma warning restore CS1998

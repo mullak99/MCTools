@@ -1,12 +1,12 @@
 ﻿@page "/"
 
-<MudText Typo="Typo.h3">Minecraft Tools @(Program.IsBeta() ? " (Beta)" : string.Empty)</MudText>
+<MudText Typo="Typo.h3">Minecraft Tools @(Program.IsPreRelease() ? $" ({Program.GetReleaseType(true, true)})" : string.Empty)</MudText>
 <MudText Class="mb-8">This app is a work-in-progress. More tools will be coming soon!</MudText>
 
-@if (Program.IsBeta())
+@if (Program.IsPreRelease())
 {
 	<MudAlert Severity="Severity.Warning">
-		<p>You are using MCTools Beta!</p>
+		<p>You are using MCTools @($"{Program.GetReleaseType(true, true)}")!</p>
 		<p>If you experience any issues, <a href="@Program.GetStableUrl()">visit the stable site</a>.</p>
 	</MudAlert>
 }
@@ -32,4 +32,5 @@ else
 <MudAlert Class="mt-4" Severity="Severity.Success">
 	<h2 class="pb-1">What's new</h2>
 	<li>Added Potion and Tipped Arrow conversion (Java > Bedrock)</li>
+	<li>Added Settings dialog</li>
 </MudAlert>
