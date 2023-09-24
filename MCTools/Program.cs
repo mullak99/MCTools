@@ -68,7 +68,7 @@ namespace MCTools
 			if (version == null)
 				return "UNKNOWN";
 
-			string verString = $"v{version.Major}.{version.Minor}.{version.Revision}";
+			string verString = $"v{version.Major}.{version.Minor}.{version.Build}";
 			if (IsBeta())
 				verString += $"-BETA{BetaTag}";
 
