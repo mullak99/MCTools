@@ -55,3 +55,7 @@ function base64ToBlob(base64Data, contentType) {
     const blob = new Blob(byteArrays, { type: contentType });
     return blob;
 }
+
+window.openInNewTab = (url) => {
+    window.open(url, '_blank');
+}

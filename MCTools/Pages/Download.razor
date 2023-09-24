@@ -2,6 +2,7 @@
 @using MCTools.Controllers
 @using MCTools.Logic
 @using MCTools.Components
+@using MCTools.Enums
 
 @inherits LayoutComponentBase
 @inject ISnackbar Snackbar
@@ -12,7 +13,20 @@
 <MudText Typo="Typo.h3" GutterBottom="true">Vanilla Texture Assets</MudText>
 <MudPaper Class="px-8">
 	<MudGrid Justify="Justify.Center">
-		<VersionSelector ApiController="_apiController" VersionChanged="SelectedVersionChanged" EditionChanged="SelectedEditionChanged" IsProcessing="IsProcessing" DisableBedrock="true" />
+		<VersionSelector ApiController="_apiController" VersionChanged="SelectedVersionChanged" EditionChanged="SelectedEditionChanged" IsProcessing="IsProcessing" />
+		@if (SelectedEdition == MCEdition.Java)
+		{
+			<MudItem xs="12" Class="pa-2 my-1">
+				<MudText Typo="Typo.h6" GutterBottom="true">Options</MudText>
+				<MudGrid Justify="Justify.SpaceAround" Spacing="2" >
+					<MudList>
+						<MudItem Class="my-1">
+							<MudSwitch @bind-Checked="IncludeMcMetas" Label="Include MCMeta Files" Color="Color.Primary" Disabled="IsProcessing" />
+						</MudItem>
+					</MudList>
+				</MudGrid>
+			</MudItem>
+		}
 		@if (MainLayout.DebugMode)
 		{
 			<MudItem xs="12" Class="pa-2 my-1">
@@ -22,6 +36,12 @@
 						<MudItem Class="my-1">
 							<MudSwitch @bind-Checked="OutputSourceUrl" Label="Output Source URL" Color="Color.Primary" Disabled="IsProcessing" />
 						</MudItem>
+						@if (SelectedEdition == MCEdition.Java)
+						{
+							<MudItem Class="my-1">
+								<MudSwitch @bind-Checked="DownloadRawJar" Label="Download Jar" Color="Color.Primary" Disabled="IsProcessing" />
+							</MudItem>
+						}
 					</MudList>
 					<MudList>
 						<MudItem Class="my-1">
@@ -41,13 +61,13 @@
 				<MudProgressLinear Color="Color.Primary" Size="Size.Small" Value="0" Max="100" Class="my-7" />
 			}
 			<MudButton HtmlTag="label"
-					   Variant="Variant.Filled"
-					   Color="Color.Primary"
-					   StartIcon="@Icons.Material.Filled.CloudDownload"
-					   style="width: 100%;"
-					   Disabled="IsProcessing"
-					   OnClick="@DownloadAssets">
-				Download Vanilla Texture Assets
+			           Variant="Variant.Filled"
+			           Color="Color.Primary"
+			           StartIcon="@Icons.Material.Filled.CloudDownload"
+			           style="width: 100%;"
+			           Disabled="IsProcessing"
+			           OnClick="@DownloadAssets">
+				Download
 			</MudButton>
 		</MudItem>
 	</MudGrid>
