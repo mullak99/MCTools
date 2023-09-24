@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MudBlazor;
 using MudBlazor.Services;
 using System;
+using System.Globalization;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -14,8 +15,9 @@ namespace MCTools
 {
 	public class Program
 	{
-		private static bool IsBetaRelease;
-		private const byte BetaTag = 2;
+		private static bool _isPreRelease;
+		private static byte _preReleaseTag = 1;
+		private static string _releaseType;
 
 		private static string StableUrl;
 		private static string BetaUrl;
@@ -43,9 +45,11 @@ namespace MCTools
 
 			builder.Services.AddBlazoredLocalStorage();
 
-			string releaseType = builder.Configuration["Application:ReleaseType"] ?? "Stable";
-			IsBetaRelease = releaseType.ToUpper() == "BETA";
-			Console.WriteLine($"Release Type: {releaseType}");
+			_releaseType = builder.Configuration["Application:ReleaseType"] ?? "Stable";
+			_isPreRelease = _releaseType.ToUpper() != "STABLE";
+			Console.WriteLine($"Release Type: {_releaseType}");
+
+			_ = byte.TryParse(builder.Configuration["Application:PreReleaseTag"], out _preReleaseTag);
 
 			string environment = builder.Configuration["Application:Environment"] ?? "Production";
 			string url = builder.Configuration[$"Endpoint:{environment}"];
@@ -63,8 +67,14 @@ namespace MCTools
 			await builder.Build().RunAsync();
 		}
 
-		public static bool IsBeta()
-			=> IsBetaRelease;
+		public static bool IsPreRelease()
+			=> _isPreRelease;
+
+		public static string GetReleaseType(bool hideStable = false, bool toTitleCase = false)
+		{
+			string relType = toTitleCase ? CultureInfo.CurrentCulture.TextInfo.ToTitleCase(_releaseType) : _releaseType.ToUpper();
+			return IsPreRelease() ? relType : hideStable ? string.Empty : relType;
+		}
 
 		public static string GetVersion()
 		{
@@ -72,9 +82,9 @@ namespace MCTools
 			if (version == null)
 				return "UNKNOWN";
 
-			string verString = $"v{version.Major}.{version.Minor}.{version.Revision}";
-			if (IsBeta())
-				verString += $"-BETA{BetaTag}";
+			string verString = $"v{version.Major}.{version.Minor}.{version.Build}";
+			if (IsPreRelease())
+				verString += $"-{GetReleaseType(true)}{_preReleaseTag}";
 
 			return verString;
 		}

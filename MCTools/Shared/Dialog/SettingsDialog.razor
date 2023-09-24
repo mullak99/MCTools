@@ -1,0 +1,23 @@
+﻿@using Blazored.LocalStorage
+@inherits LayoutComponentBase
+
+@inject ILocalStorageService localStore
+@inject NavigationManager navManager
+
+<MudDialog>
+	<DialogContent>
+		<MudGrid Justify="Justify.Center">
+			<MudList>
+				<MudItem Class="my-1">
+					<MudTooltip Text="Toggle debug/developer features" Placement="Placement.Bottom">
+						<MudSwitch @bind-Checked="DebugMode" Label="Debug Mode" Color="Color.Primary" Disabled="@MainLayout.IsDebugBuild()"/>
+					</MudTooltip>
+				</MudItem>
+			</MudList>
+		</MudGrid>
+	</DialogContent>
+	<DialogActions>
+		<MudButton Color="Color.Error" OnClick="Cancel">Cancel</MudButton>
+		<MudButton Color="Color.Primary" OnClick="Apply">Apply</MudButton>
+	</DialogActions>
+</MudDialog>
