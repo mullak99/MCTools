@@ -21,9 +21,7 @@ namespace MCTools.Logic
 		/// </summary>
 		/// <param name="list">List of strings</param>
 		public async Task CopyTextToClipboard(List<string> list)
-		{
-			await JS.InvokeVoidAsync("clipboardCopy.copyText", string.Join(Environment.NewLine, list));
-		}
+			=> await JS.InvokeVoidAsync("clipboardCopy.copyText", string.Join(Environment.NewLine, list));
 
 		/// <summary>
 		/// Export a text file containing a list of strings
@@ -37,8 +35,9 @@ namespace MCTools.Logic
 		}
 
 		public async Task DownloadZip(string fileName, byte[] contents)
-		{
-			await JS.InvokeVoidAsync("BlazorDownloadFile", fileName, "application/zip", Convert.ToBase64String(contents));
-		}
+			=> await JS.InvokeVoidAsync("BlazorDownloadFile", fileName, "application/zip", Convert.ToBase64String(contents));
+
+		public async Task OpenLinkInNewTab(string url)
+			=> await JS.InvokeVoidAsync("openInNewTab", url);
 	}
 }

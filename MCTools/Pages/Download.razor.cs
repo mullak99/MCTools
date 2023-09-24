@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip;
 using MCTools.Enums;
@@ -28,7 +29,10 @@ namespace MCTools.Pages
 			=> SelectedEdition = edition;
 		#endregion
 
+		private bool IncludeMcMetas { get; set; } = true;
+
 		private bool OutputSourceUrl { get; set; }
+		private bool DownloadRawJar { get; set; }
 		private bool PerfLogging { get; set; }
 		#endregion
 
@@ -51,13 +55,20 @@ namespace MCTools.Pages
 
 					string jarDownload = jarDownloadTask.Result;
 					MCAssets assets = assetsTask.Result;
+
+					if (IncludeMcMetas)
+						assets.Textures.AddRange(assets.Textures.Select(x => x.Replace(".png", ".png.mcmeta")).ToList()); // Support for .mcmeta files
+
 					if (string.IsNullOrWhiteSpace(jarDownload))
 						return;
 
 					if (OutputSourceUrl)
 						Console.WriteLine($"Client JAR: {jarDownload}");
 
-					await DownloadFromUrl(jarDownload, assets);
+					if (DownloadRawJar)
+						await _jsHelper.OpenLinkInNewTab(jarDownload);
+					else
+						await DownloadFromUrl(jarDownload, assets);
 					break;
 				case MCEdition.Bedrock:
 					string zipUrl = SelectedVersion.Url;
@@ -67,7 +78,7 @@ namespace MCTools.Pages
 					if (OutputSourceUrl)
 						Console.WriteLine($"Bedrock Assets: {zipUrl}");
 
-					await DownloadFromUrl(zipUrl, null); // Don't filter Bedrock assets: The size of the original ZIP would make this slow.
+					await _jsHelper.OpenLinkInNewTab(zipUrl); // Don't filter Bedrock assets: The size of the original ZIP would make this slow.
 					break;
 			}
 
