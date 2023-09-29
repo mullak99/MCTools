@@ -9,6 +9,7 @@ namespace MCTools.Shared.Dialog
 		[CascadingParameter] MudDialogInstance MudDialog { get; set; }
 
 		private bool DebugMode { get; set; } = MainLayout.DebugMode;
+		private bool ExpandedVersionSelector { get; set; } = MainLayout.ExpandedVersionSelector;
 
 		private bool _isRefreshNeeded;
 
@@ -20,10 +21,17 @@ namespace MCTools.Shared.Dialog
 				_isRefreshNeeded = true;
 			}
 
+			if (ExpandedVersionSelector != MainLayout.ExpandedVersionSelector)
+			{
+				await localStore.SetItemAsync<bool?>("expandedVersions", ExpandedVersionSelector);
+				_isRefreshNeeded = true;
+			}
 			MudDialog.Close(DialogResult.Ok(true));
 
 			if (_isRefreshNeeded)
 				navManager.NavigateTo(navManager.Uri, true);
+			else
+				StateHasChanged();
 		}
 
 		private void Cancel()

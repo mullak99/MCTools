@@ -1,6 +1,8 @@
 ﻿@using MCTools.Enums
 @using MCTools.Models
 @using MCTools.Controllers
+@using MCTools.SDK.Models
+@using MudBlazor
 @inject ISnackbar Snackbar
 
 <MudItem xs="6">
@@ -12,7 +14,7 @@
 </MudItem>
 <MudItem xs="6">
 	<MudSelect T="MCVersion" Label="Version" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Disabled="DisableVersionSelector"
-			   SelectedValues="new List<MCVersion>() { SelectedVersion }" SelectedValuesChanged="(e) => SelectedVersionChanged(e.First())">
+	           SelectedValues="new List<MCVersion>() { SelectedVersion }" SelectedValuesChanged="(e) => SelectedVersionChanged(e.First())">
 		@foreach (MCVersion ver in MinecraftVersions)
 		{
 			<MudSelectItem Value="ver">@($"{ver.Id}{ver.GetSuffix(LatestVersion)}")</MudSelectItem>
@@ -63,7 +65,7 @@
 				MinecraftVersions = new List<MCVersion>(); // Reset list
 
 				MinecraftVersions = edition == MCEdition.Java
-					? await ApiController.GetJavaVersions()
+					? await ApiController.GetJavaVersions(MainLayout.ExpandedVersionSelector)
 					: await ApiController.GetBedrockVersions();
 
 				SetDefaultVersionSelection();

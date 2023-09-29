@@ -1,12 +1,10 @@
-﻿using System;
-
-namespace MCTools.Models
+﻿namespace MCTools.SDK.Models
 {
-	// TODO: Use M99SDK (M99API)
 	public class MinecraftRelease
 	{
 		public string Version { get; set; }
 		public string Type { get; set; }
 		public DateTime ReleaseTime { get; set; }
+		public string Edition { get; set; }
 	}
 }

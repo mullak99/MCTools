@@ -1,8 +1,5 @@
-﻿using System;
-
-namespace MCTools.Models
+﻿namespace MCTools.SDK.Models
 {
-	// TODO: Use M99SDK (M99API)
 	public class MCVersion
 	{
 		public string Id { get; set; }

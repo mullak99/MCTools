@@ -12,6 +12,8 @@ namespace MCTools.Shared
 		public bool IsDarkMode { get; set; } = true;
 		public bool IsDrawerOpen { get; set; } = true;
 
+		public static bool ExpandedVersionSelector { get; set; } = false;
+
 		#if DEBUG
 		public const bool DebugMode = true;
 		#else
@@ -22,13 +24,13 @@ namespace MCTools.Shared
 
 		protected override async Task OnInitializedAsync()
 		{
-			await Task.WhenAll(GetCurrentThemeFromLocalStorage(), GetDebugFromLocalStorage());
+			await Task.WhenAll(GetCurrentThemeFromLocalStorage(), GetDebugFromLocalStorage(), GetExpandedVersionsFromLocalStorage());
 			await InvokeAsync(StateHasChanged);
 		}
 
 		private void OpenSettingsDialog()
 		{
-			DialogOptions options = new DialogOptions() { MaxWidth = MaxWidth.Small, FullWidth = true };
+			DialogOptions options = new() { MaxWidth = MaxWidth.Small, FullWidth = true };
 			Dialog.Show<SettingsDialog>("Settings", options);
 		}
 
@@ -68,6 +70,18 @@ namespace MCTools.Shared
 			#endif
 		}
 
+		private async Task GetExpandedVersionsFromLocalStorage()
+		{
+			try
+			{
+				ExpandedVersionSelector = await localStore.GetItemAsync<bool?>("expandedVersions") ?? false;
+			}
+			catch (Exception)
+			{
+				ExpandedVersionSelector = false;
+			}
+		}
+
 		public static bool IsDebugBuild()
 		{
 			#if DEBUG
@@ -94,7 +108,7 @@ namespace MCTools.Shared
 			IsDrawerOpen = !IsDrawerOpen;
 		}
 
-		private MudTheme DefaultTheme => new()
+		private static MudTheme DefaultTheme => new()
 		{
 			Palette = new PaletteLight()
 			{
@@ -112,7 +126,7 @@ namespace MCTools.Shared
 			}
 		};
 
-		private MudTheme DarkTheme => new()
+		private static MudTheme DarkTheme => new()
 		{
 			Palette = new PaletteDark()
 			{

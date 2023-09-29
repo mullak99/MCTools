@@ -43,6 +43,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\MCTools.SDK\MCTools.SDK.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<Content Update="C:\Users\mulla\.nuget\packages\bootstrap\5.1.3\contentFiles\any\any\wwwroot\css\bootstrap-grid.css">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>

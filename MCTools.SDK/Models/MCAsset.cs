@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace MCTools.Models
+﻿namespace MCTools.SDK.Models
 {
-	// TODO: Use M99SDK (M99API)
 	public class MCAssets
 	{
 		public string Name { get; set; }

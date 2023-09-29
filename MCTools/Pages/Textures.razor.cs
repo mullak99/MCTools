@@ -1,5 +1,7 @@
 ﻿using MCTools.Enums;
+using MCTools.Logic;
 using MCTools.Models;
+using MCTools.SDK.Models;
 using MCTools.Shared.Dialog;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
@@ -11,7 +13,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using MCTools.Logic;
 
 namespace MCTools.Pages
 {
@@ -239,9 +240,9 @@ namespace MCTools.Pages
 		/// </summary>
 		private void Reset()
 		{
-			MatchingTexturesList = new List<string>();
-			MissingTexturesList = new List<string>();
-			UnusedTexturesList = new List<string>();
+			MatchingTexturesList = new();
+			MissingTexturesList = new();
+			UnusedTexturesList = new();
 			Pack = null;
 			TotalTextures = 0;
 		}
@@ -320,9 +321,9 @@ namespace MCTools.Pages
 		/// </summary>
 		private void OpenBlacklistDialog(MCEdition edition)
 		{
-			DialogOptions options = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+			DialogOptions options = new() { MaxWidth = MaxWidth.Medium, FullWidth = true };
 			#pragma warning disable CS8974 // Converting method group to non-delegate type
-			DialogParameters parameters = new DialogParameters()
+			DialogParameters parameters = new()
 			{
 				{"Edition", edition},
 				{"Blacklist", edition == MCEdition.Java ? BlacklistRegexJava : BlacklistRegexBedrock},
@@ -354,9 +355,9 @@ namespace MCTools.Pages
 		/// </summary>
 		private void OpenResetConfirmationDialog()
 		{
-			DialogOptions options = new DialogOptions() { MaxWidth = MaxWidth.Small, FullWidth = true };
+			DialogOptions options = new() { MaxWidth = MaxWidth.Small, FullWidth = true };
 			#pragma warning disable CS8974 // Converting method group to non-delegate type
-			DialogParameters parameters = new DialogParameters()
+			DialogParameters parameters = new()
 			{
 				{"ConfirmationText", "Are you sure you want to reset both blacklists?"},
 				{"Callback", ResetBlacklistCallback}

@@ -1,15 +1,15 @@
-﻿using System;
+﻿using ICSharpCode.SharpZipLib.Zip;
+using MCTools.Enums;
+using MCTools.SDK.Models;
+using Microsoft.AspNetCore.Components;
+using MudBlazor;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using ICSharpCode.SharpZipLib.Zip;
-using MCTools.Enums;
-using MCTools.Models;
-using Microsoft.AspNetCore.Components;
-using MudBlazor;
 
 namespace MCTools.Pages
 {
@@ -119,7 +119,7 @@ namespace MCTools.Pages
 				}
 
 				// Zip up the extracted files and download them to the browser
-				if (extractedFiles.Count > 0)
+				if (!extractedFiles.IsEmpty)
 				{
 					byte[] zippedBytes;
 					using (MemoryStream ms = new())

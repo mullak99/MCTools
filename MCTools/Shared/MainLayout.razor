@@ -14,13 +14,16 @@
 		<MudText Typo="Typo.h6" Class="px-4">Minecraft Tools @(Program.IsPreRelease() ? $" ({Program.GetReleaseType(true, true)})" : string.Empty)</MudText>
 
 		<MudSpacer />
-		<MudItem Class="px-4">
+		<MudItem Class="px-2">
 			<MudIconButton Icon="@Icons.Custom.Brands.Discord" Color="Color.Inherit" Title="Discord" aria-label="discord" Href="https://discord.mullak99.co.uk" />
 			<MudIconButton Icon="@Icons.Custom.Brands.Twitter" Color="Color.Inherit" Title="Twitter" aria-label="x" Href="https://twitter.com/mullak99" />
-			<MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Title="GitHub" aria-label="github" Href="https://github.com/mullak99/MCTools" />
 		</MudItem>
-			<MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Inherit" Title="Settings" OnClick="@OpenSettingsDialog" />
-			<MudIconButton Icon="@(IsDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" Title="@(IsDarkMode ? "Toggle Light Mode" : "Toggle Dark Mode")" Color="Color.Inherit" OnClick="@ToggleTheme" />
+		<MudItem Class="px-2">
+			<MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Title="GitHub" aria-label="github" Href="https://github.com/mullak99/MCTools" />
+			<MudIconButton Icon="@Icons.Material.Filled.Api" Color="Color.Inherit" Title="Swagger" Href="@($"{Program.ApiAddress}/swagger")" />
+		</MudItem>
+		<MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Inherit" Title="Settings" OnClick="@OpenSettingsDialog" />
+		<MudIconButton Icon="@(IsDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" Title="@(IsDarkMode ? "Toggle Light Mode" : "Toggle Dark Mode")" Color="Color.Inherit" OnClick="@ToggleTheme" />
 	</MudAppBar>
 	<MudDrawer @bind-Open="IsDrawerOpen" ClipMode="DrawerClipMode.Docked">
 		<NavMenu />
