@@ -6,7 +6,14 @@
 
 <MudDialog>
 	<DialogContent>
-		<MudGrid Justify="Justify.Center">
+		<MudGrid Justify="Justify.SpaceEvenly">
+			<MudList>
+				<MudItem Class="my-1">
+					<MudTooltip Text="Show more versions in the version selector" Placement="Placement.Bottom">
+						<MudSwitch @bind-Checked="ExpandedVersionSelector" Label="Show more versions" Color="Color.Primary" />
+					</MudTooltip>
+				</MudItem>
+			</MudList>
 			<MudList>
 				<MudItem Class="my-1">
 					<MudTooltip Text="Toggle debug/developer features" Placement="Placement.Bottom">

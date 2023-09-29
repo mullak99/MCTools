@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
-using MCTools.Models;
+using MCTools.SDK.Models;
 using Newtonsoft.Json;
 
 namespace MCTools.Controllers
@@ -15,9 +15,9 @@ namespace MCTools.Controllers
 			_client = client;
 		}
 
-		public async Task<List<MCVersion>> GetJavaVersions()
+		public async Task<List<MCVersion>> GetJavaVersions(bool bypassVersionLimit = false)
 		{
-			HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, $"{_client.BaseAddress}api/v1.0/assets/versions");
+			HttpRequestMessage req = new(HttpMethod.Get, $"{_client.BaseAddress}api/v1.0/java/versions?bypassVersionLimit={bypassVersionLimit}");
 			HttpResponseMessage res = await _client.SendAsync(req);
 
 			if (res.StatusCode == System.Net.HttpStatusCode.OK)
@@ -25,12 +25,12 @@ namespace MCTools.Controllers
 				string rawJson = await res.Content.ReadAsStringAsync();
 				return JsonConvert.DeserializeObject<List<MCVersion>>(rawJson);
 			}
-			return new List<MCVersion>();
+			return new();
 		}
 
 		public async Task<List<MCVersion>> GetBedrockVersions()
 		{
-			HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, $"{_client.BaseAddress}api/v1.0/assets/bedrock/versions");
+			HttpRequestMessage req = new(HttpMethod.Get, $"{_client.BaseAddress}api/v1.0/bedrock/versions");
 			HttpResponseMessage res = await _client.SendAsync(req);
 
 			if (res.StatusCode == System.Net.HttpStatusCode.OK)
@@ -38,12 +38,12 @@ namespace MCTools.Controllers
 				string rawJson = await res.Content.ReadAsStringAsync();
 				return JsonConvert.DeserializeObject<List<MCVersion>>(rawJson);
 			}
-			return new List<MCVersion>();
+			return new();
 		}
 
 		public async Task<MCAssets> GetJavaAssets(string version)
 		{
-			HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, $"{_client.BaseAddress}api/v1.0/assets/version/{version}");
+			HttpRequestMessage req = new(HttpMethod.Get, $"{_client.BaseAddress}api/v1.0/java/version/{version}");
 			HttpResponseMessage res = await _client.SendAsync(req);
 
 			if (res.StatusCode == System.Net.HttpStatusCode.OK)
@@ -51,12 +51,12 @@ namespace MCTools.Controllers
 				string rawJson = await res.Content.ReadAsStringAsync();
 				return JsonConvert.DeserializeObject<MCAssets>(rawJson);
 			}
-			return new MCAssets();
+			return new();
 		}
 
 		public async Task<MCAssets> GetBedrockAssets(string version)
 		{
-			HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, $"{_client.BaseAddress}api/v1.0/assets/bedrock/version/{version}");
+			HttpRequestMessage req = new(HttpMethod.Get, $"{_client.BaseAddress}api/v1.0/bedrock/version/{version}");
 			HttpResponseMessage res = await _client.SendAsync(req);
 
 			if (res.StatusCode == System.Net.HttpStatusCode.OK)
@@ -64,12 +64,12 @@ namespace MCTools.Controllers
 				string rawJson = await res.Content.ReadAsStringAsync();
 				return JsonConvert.DeserializeObject<MCAssets>(rawJson);
 			}
-			return new MCAssets();
+			return new();
 		}
 
 		public async Task<string> GetJavaJar(string version)
 		{
-			HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, $"{_client.BaseAddress}api/v1.0/assets/version/{version}/jar");
+			HttpRequestMessage req = new(HttpMethod.Get, $"{_client.BaseAddress}api/v1.0/java/version/{version}/jar");
 			HttpResponseMessage res = await _client.SendAsync(req);
 
 			if (res.StatusCode == System.Net.HttpStatusCode.OK)

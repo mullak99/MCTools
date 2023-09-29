@@ -23,6 +23,7 @@ namespace MCTools
 		private static string BetaUrl;
 
 		public static string BaseAddress;
+		public static string ApiAddress;
 
 		public static async Task Main(string[] args)
 		{
@@ -52,13 +53,13 @@ namespace MCTools
 			_ = byte.TryParse(builder.Configuration["Application:PreReleaseTag"], out _preReleaseTag);
 
 			string environment = builder.Configuration["Application:Environment"] ?? "Production";
-			string url = builder.Configuration[$"Endpoint:{environment}"];
-			Console.WriteLine($"API Endpoint: {url}");
+			ApiAddress = builder.Configuration[$"Endpoint:{environment}"];
+			Console.WriteLine($"API Endpoint: {ApiAddress}");
 
 			StableUrl = builder.Configuration["Urls:Stable"];
 			BetaUrl = builder.Configuration["Urls:Beta"];
 
-			builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(url ?? string.Empty) });
+			builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(ApiAddress ?? string.Empty) });
 			builder.Services.AddScoped<ApiController>();
 			builder.Services.AddScoped<JSHelper>();
 

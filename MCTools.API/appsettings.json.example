@@ -1,0 +1,29 @@
+{
+	"ConnectionStrings": {
+		"MongoDb": "mongodb://localhost:27017"
+	},
+	"Logging": {
+		"LogLevel": {
+			"Default": "Information",
+			"Microsoft.AspNetCore": "Warning"
+		}
+	},
+	"Auth0": {
+		"Authority": "<Auth0 Authority>",
+		"Audience": "mctools-api",
+		"ClientId": "<ClientId>",
+		"ClientSecret": "<ClientSecret>"
+	},
+	"Tokens": {
+		"GitHub": "<GitHubToken>"
+	},
+	"Common": {
+		"Name": "MCTools API",
+		"Email": "<Email>",
+		"UserAgent": "mctools-api"
+	},
+	"Settings": {
+		"ScheduleTime": "00:00:00Z"
+	},
+	"AllowedHosts": "*"
+}
