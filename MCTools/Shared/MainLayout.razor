@@ -20,7 +20,7 @@
 		</MudItem>
 		<MudItem Class="px-2">
 			<MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Title="GitHub" aria-label="github" Href="https://github.com/mullak99/MCTools" />
-			<MudIconButton Icon="@Icons.Material.Filled.Api" Color="Color.Inherit" Title="Swagger" Href="@($"{Program.ApiAddress}/swagger")" />
+			<MudIconButton Icon="@Icons.Material.Filled.Api" Color="Color.Inherit" Title="Swagger" Href="@($"{Program.ApiAddress.TrimEnd('/', '\\')}/swagger")" />
 		</MudItem>
 		<MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Inherit" Title="Settings" OnClick="@OpenSettingsDialog" />
 		<MudIconButton Icon="@(IsDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" Title="@(IsDarkMode ? "Toggle Light Mode" : "Toggle Dark Mode")" Color="Color.Inherit" OnClick="@ToggleTheme" />
