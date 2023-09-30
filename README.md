@@ -23,7 +23,7 @@ A web app for a few Minecraft-related tools, specifically for resource packs.
 
 ### Links
 - [MCTools (Stable)](https://mctools.mullak99.co.uk)
-- [MCTools (Beta)](https://mctools.mullak99.co.uk)
+- [MCTools (Beta)](https://mctools-beta.mullak99.co.uk)
 
 ## Features
 
