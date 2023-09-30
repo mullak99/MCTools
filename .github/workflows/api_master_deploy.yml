@@ -1,0 +1,80 @@
+name: MCTools API (Stable)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ master ]
+    paths:
+      - 'MCTools.API/**'
+      - 'MCTools.SDK/**'
+  pull_request:
+    branches: [ master ]
+    paths:
+      - 'MCTools.API/**'
+      - 'MCTools.SDK/**'
+
+env:
+  CSPROJ: MCTools.API/MCTools.API.csproj
+  PUBLISH_PATH: bin/Publish
+  RELEASE_TYPE: Release
+  SERVER_TARGET: /var/www/mctools.api
+  SERVICE_NAME: mctools.api
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET 6.0
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Setup appsettings.json
+      run: cp MCTools.API/appsettings.json.example MCTools.API/appsettings.json
+    - name: Build
+      run: dotnet build -c ${{ env.RELEASE_TYPE }} --no-restore
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+    - name: Variable Substitution
+      uses: microsoft/variable-substitution@v1
+      with:
+        files: 'MCTools.API/appsettings.json'
+      env:
+        ConnectionStrings.MongoDb: ${{ secrets.MONGODB_BETA }}
+        Auth0.Authority: ${{ secrets.AUTH0_AUTH }}
+        Auth0.ClientId: ${{ secrets.AUTH0_ID }}
+        Auth0.ClientSecret: ${{ secrets.AUTH0_SECRET }}
+        Tokens.GitHub: ${{ secrets.GH_TOKEN }}
+        Common.Email: ${{ secrets.EMAIL }}
+    - name: Publish
+      run: dotnet publish ${{ env.CSPROJ }} -c ${{ env.RELEASE_TYPE }} -o ${{ env.PUBLISH_PATH }}
+    - name: Stop Service
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.SSHKEY }}
+        port: ${{ secrets.PORT }}
+        script: sudo systemctl stop ${{ env.SERVICE_NAME }}
+    - name: Deploy
+      uses: appleboy/scp-action@v0.1.4
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.SSHKEY }}
+        port: ${{ secrets.PORT }}
+        source: "${{ env.PUBLISH_PATH }}/*"
+        target: ${{ env.SERVER_TARGET }}
+        strip_components: 2
+        rm: true
+    - name: Start Service
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.SSHKEY }}
+        port: ${{ secrets.PORT }}
+        script: sudo systemctl start ${{ env.SERVICE_NAME }}
