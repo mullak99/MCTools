@@ -14,7 +14,7 @@ namespace MCTools.API.Logic
 {
 	public class ToolsLogic : IToolsLogic
 	{
-		private const int ASSET_VERSION = 2;
+		private const int ASSET_VERSION = 3;
 		private const string BEDROCK_ZIP_REGEX = "Mojang-bedrock-samples-[a-zA-Z0-9]+\\/resource_pack";
 
 		private readonly IVersionAssetsRepository _vaRepository;
@@ -350,20 +350,27 @@ namespace MCTools.API.Logic
 			}
 		}
 
-		private List<string> GetFileListFromJar(string jarPath)
+		private (List<string> textures, List<string> mcMetas) GetFileListFromJar(string jarPath)
 		{
-			List<string> files = new();
+			List<string> tex = new();
+			List<string> meta = new();
 			using ZipArchive zip = ZipFile.OpenRead(jarPath);
 			foreach (var file in zip.Entries)
 			{
+				if (file.FullName.StartsWith("data"))
+					continue;
+
 				if (file.FullName.EndsWith("png"))
-					files.Add(file.FullName);
+					tex.Add(file.FullName);
+
+				if (file.FullName.EndsWith("mcmeta"))
+					meta.Add(file.FullName);
 			}
 			zip.Dispose();
-			return files;
+			return (tex, meta);
 		}
 
-		private List<string> GetFileListFromBedrockZip(string bedrockZip)
+		private (List<string> textures, List<string> mcMetas) GetFileListFromBedrockZip(string bedrockZip)
 		{
 			List<string> files = new();
 			using ZipArchive zip = ZipFile.OpenRead(bedrockZip);
@@ -374,7 +381,7 @@ namespace MCTools.API.Logic
 					files.Add(fileName);
 			}
 			zip.Dispose();
-			return files;
+			return (files, new List<string>());
 		}
 
 		private async Task<MCAssets> GenerateAssets(AssetMCVersion version, MinecraftEdition minecraftEdition)
@@ -389,9 +396,9 @@ namespace MCTools.API.Logic
 
 			if (minecraftEdition == MinecraftEdition.Java ? await DownloadJar(version, file) : await DownloadFile(version.Url, file))
 			{
-				List<string> textures = minecraftEdition == MinecraftEdition.Java ? GetFileListFromJar(file) : GetFileListFromBedrockZip(file);
+				(List<string> Textures, List<string> McMetas) files = minecraftEdition == MinecraftEdition.Java ? GetFileListFromJar(file) : GetFileListFromBedrockZip(file);
 
-				if (textures is { Count: > 0 })
+				if (files.Textures is { Count: > 0 } || files.McMetas is { Count: > 0 })
 				{
 					mcAssets = new()
 					{
@@ -405,7 +412,9 @@ namespace MCTools.API.Logic
 							Edition = minecraftEdition == MinecraftEdition.Java ? "java" : "bedrock",
 							ReleaseTime = version.ReleaseTime
 						},
-						Textures = textures
+						Textures = files.Textures,
+						McMetas = files.McMetas,
+						OverlaySupport = version.ReleaseTime >= DateTime.Parse("2023-08-01T10:03:13+00:00") // Enable Overlays for >= 23w31a / 1.20.2
 					};
 				}
 			}

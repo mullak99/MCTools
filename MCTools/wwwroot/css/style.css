@@ -1,0 +1,34 @@
+﻿.item-tab-panel {
+	width: 255px;
+}
+
+.item-tab-root-list {
+	width: 100%;
+	margin: 0;
+	padding: 0;
+}
+
+.item-tab-panel-item {
+	position: relative;
+	max-height: 260px;
+	width: 100%;
+	overflow-y: scroll;
+	padding: 0 0 0 0;
+}
+
+.item-table-toolbar {
+	bottom: 0;
+	width: 100%;
+	border-top: 1px solid var(--mud-palette-lines-default);
+	margin: 0;
+	padding: 0;
+}
+
+.blacklist-button {
+	width: 280px;
+	height: 36px;
+}
+
+.action-button {
+	width: 128px;
+}

@@ -76,5 +76,18 @@ namespace MCTools.Controllers
 				return await res.Content.ReadAsStringAsync();
 			return string.Empty;
 		}
+
+		public async Task<bool> GetOverlaySupport(string version)
+		{
+			HttpRequestMessage req = new(HttpMethod.Get, $"{_client.BaseAddress}api/v1.0/java/version/{version}/supports-overlays");
+			HttpResponseMessage res = await _client.SendAsync(req);
+
+			if (res.StatusCode == System.Net.HttpStatusCode.OK)
+			{
+				if (bool.TryParse(await res.Content.ReadAsStringAsync(), out bool result))
+					return result;
+			}
+			return false;
+		}
 	}
 }

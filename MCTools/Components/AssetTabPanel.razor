@@ -1,0 +1,52 @@
+﻿<MudTabPanel Text="@TabName" Class="item-tab-panel" BadgeData="@AssetList.Count" BadgeColor="@BadgeColor">
+	<MudList Dense="true" DisablePadding="true" Class="item-tab-root-list">
+		@if (AssetList.Count > 0)
+		{
+			<MudItem Class="item-tab-panel-item">
+				<MudList Dense="true" DisablePadding="true">
+					<Virtualize TItem="string" Items="AssetList" ItemSize="@VIRTUALIZER_ITEM_SIZE" OverscanCount="@VIRTUALIZER_OVERSCAN">
+						<MudListItem Text="@context" />
+					</Virtualize>
+				</MudList>
+			</MudItem>
+			@if (!HideToolbar)
+			{
+				<MudToolBar Dense="true" Class="item-table-toolbar">
+					<MudText Class="pl-2">@AssetList.Count</MudText>
+					<MudSpacer />
+					<MudItem>
+						@if (ClipboardCallback != null)
+						{
+							<MudTooltip Text="Copy" Placement="Placement.Top">
+								<MudIconButton Icon="@Icons.Material.Filled.ContentCopy" OnClick="() => ClipboardCallback.Invoke(AssetList)"></MudIconButton>
+							</MudTooltip>
+						}
+						@if (ExportCallback.HasDelegate)
+						{
+							<MudTooltip Text="Export" Placement="Placement.Top">
+								<MudIconButton Icon="@Icons.Material.Filled.Download" OnClick="ExportCallback"></MudIconButton>
+							</MudTooltip>
+						}
+					</MudItem>
+				</MudToolBar>
+			}
+		}
+		else
+		{
+			<MudText Align="Align.Center" Class="mt-2">@EmptyListText</MudText>
+		}
+	</MudList>
+</MudTabPanel>
+
+@code {
+	[Parameter] public string TabName { get; set; } = "Assets";
+	[Parameter] public string EmptyListText { get; set; } = "No assets";
+	[Parameter] public List<string> AssetList { get; set; }
+	[Parameter] public Action<List<string>> ClipboardCallback { get; set; }
+	[Parameter] public EventCallback ExportCallback { get; set; }
+	[Parameter] public Color BadgeColor { get; set; } = Color.Success;
+	[Parameter] public bool HideToolbar { get; set; }
+
+	private const float VIRTUALIZER_ITEM_SIZE = 36.02f;
+	private const int VIRTUALIZER_OVERSCAN = 64;
+}

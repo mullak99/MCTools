@@ -23,11 +23,6 @@ namespace MCTools.Pages
 		#region Constants
 		private const float VIRTUALIZER_ITEM_SIZE = 36.02f;
 		private const int VIRTUALIZER_OVERSCAN = 64;
-
-		private const string TABLE_TAB_PANEL_STYLE = "width:200px;";
-		private const string TABLE_CONTENT_STYLE = "max-height: 300px; width: 100%; overflow-y: scroll;";
-		private const string TABLE_COUNT_STYLE = "position: absolute; top: 4px; right: 12px; z-index: 10;";
-		private const string TABLE_OPTIONS_STYLE = "position: absolute; bottom: 4px; right: 4px; z-index: 10;";
 		#endregion
 
 		#region API Values
@@ -38,9 +33,13 @@ namespace MCTools.Pages
 		private string UploadText => "Upload Resource Pack" + (Pack != null ? $": {Pack.Name}" : "");
 		private MCVersion SelectedVersion;
 		private MCEdition SelectedEdition;
+		private bool IsOverlaySupported;
 		private bool IsProcessing;
 
 		private bool CanCompare => Pack is { Size: > 0 } && SelectedVersion != null && SelectedEdition > 0;
+		private bool CanShowMcMetasSections => !ExcludeMcMetas && DidCompareMcMetas && SelectedEdition == MCEdition.Java;
+
+		private bool DidCompareMcMetas;
 
 		private bool ExcludeRealms { get; set; } = true;
 		private bool ExcludeFonts { get; set; } = true;
@@ -49,16 +48,21 @@ namespace MCTools.Pages
 		private bool ExcludeNonVanillaNamespaces { get; set; } = true;
 		private bool ExcludeEmissives { get; set; } = true;
 		private bool ExcludeTitleGui { get; set; } = true;
+		private bool ExcludeMcMetas { get; set; }
 
 		private bool ExcludeBedrockUI { get; set; }
 
 		private bool PerfLogging { get; set; }
+		private bool ResourcePackDebug { get; set; }
 
 		private List<string> BlacklistRegexJava = new();
 		private List<string> BlacklistRegexBedrock = new();
 
-		private void SelectedVersionChanged(MCVersion version)
-			=> SelectedVersion = version;
+		private async Task SelectedVersionChanged(MCVersion version)
+		{
+			SelectedVersion = version;
+			IsOverlaySupported = await GetOverlaySupport();
+		}
 
 		private void SelectedEditionChanged(MCEdition edition)
 			=> SelectedEdition = edition;
@@ -95,7 +99,12 @@ namespace MCTools.Pages
 		private List<string> MissingTexturesList = new();
 		private List<string> UnusedTexturesList = new();
 
+		private List<string> MatchingMcMetasList = new();
+		private List<string> MissingMcMetasList = new();
+		private List<string> UnusedMcMetasList = new();
+
 		private int TotalTextures;
+		private int TotalMcMetas;
 		#endregion
 		#endregion
 
@@ -230,7 +239,7 @@ namespace MCTools.Pages
 				Snackbar.Add("An error occurred when loading assets! Check the console for errors.", Severity.Error);
 				throw;
 			}
-			await CompareTextures(Assets.Textures, tempBlackList);
+			await Compare(Assets.Textures, Assets.McMetas, tempBlackList);
 			IsProcessing = false;
 			StateHasChanged();
 		}
@@ -243,10 +252,42 @@ namespace MCTools.Pages
 			MatchingTexturesList = new();
 			MissingTexturesList = new();
 			UnusedTexturesList = new();
+
+			MatchingMcMetasList = new();
+			MissingMcMetasList = new();
+			UnusedMcMetasList = new();
+
+			DidCompareMcMetas = false;
+
 			Pack = null;
 			TotalTextures = 0;
+			TotalMcMetas = 0;
 		}
 		#endregion
+
+		/// <summary>
+		/// Compare uploaded pack against Minecraft's assets
+		/// </summary>
+		/// <param name="refTexFiles">List of Minecraft official texture assets</param>
+		/// <param name="refMcMetaFiles">List of Minecraft official mcmeta assets</param>
+		/// <param name="blacklist">Regex statements for assets to ignore</param>
+		/// <returns></returns>
+		private async Task Compare(List<string> refTexFiles, List<string> refMcMetaFiles, List<string> blacklist)
+		{
+			List<Task> tasks = new()
+			{
+				CompareTextures(refTexFiles, blacklist)
+			};
+
+			if (!ExcludeMcMetas)
+			{
+				DidCompareMcMetas = true;
+				tasks.Add(CompareMcMetas(refMcMetaFiles, blacklist));
+			}
+			else DidCompareMcMetas = false;
+
+			await Task.WhenAll(tasks);
+		}
 
 		/// <summary>
 		/// Compare uploaded packs textures against Minecraft's texture list
@@ -313,6 +354,74 @@ namespace MCTools.Pages
 			if (PerfLogging)
 				Console.WriteLine($"Compared textures in {tSt.ElapsedMilliseconds}ms");
 		}
+
+		/// <summary>
+		/// Compare uploaded packs mcmetas against Minecraft's mcmetas list
+		/// </summary>
+		/// <param name="refFiles">List of Minecraft official mcmetas assets</param>
+		/// <param name="blacklist">Regex statements for mcmetas to ignore</param>
+		private async Task CompareMcMetas(List<string> refFiles, List<string> blacklist)
+		{
+			// Clear texture lists
+			MatchingMcMetasList.Clear();
+			MissingMcMetasList.Clear();
+			UnusedMcMetasList.Clear();
+			TotalMcMetas = 0;
+
+			Stopwatch st = Stopwatch.StartNew();
+			await Pack.Process(Validation.GetMaxFileSizeBytes());
+			st.Stop();
+
+			if (PerfLogging)
+				Console.WriteLine($"Got all pack MCMetas in {st.ElapsedMilliseconds}ms");
+
+			List<string> packFiles = Pack.GetMcMetas();
+
+			// Run through all of the reference (MC) MCMetas
+			Task refTask = Task.Run(() =>
+			{
+				Stopwatch rSt = Stopwatch.StartNew();
+				refFiles.ForEach(x =>
+				{
+					if (!blacklist.Any(rule => Regex.IsMatch(x, rule)))
+					{
+						TotalMcMetas++;
+						if (packFiles.Contains(x))
+							MatchingMcMetasList.Add(x); // Pack contains this mcmeta
+						else
+							MissingMcMetasList.Add(x); // Pack doesn't contain this mcmeta
+					}
+				});
+				rSt.Stop();
+
+				if (PerfLogging)
+					Console.WriteLine($"Ran through all reference MCMetas in {rSt.ElapsedMilliseconds}ms");
+			});
+
+			// Run through all of the pack MCMetas
+			Task packTask = Task.Run(() =>
+			{
+				Stopwatch pSt = Stopwatch.StartNew();
+				packFiles.ForEach(x =>
+				{
+					if (!blacklist.Any(rule => Regex.IsMatch(x, rule)) && !refFiles.Contains(x))
+						UnusedMcMetasList.Add(x); // MC doesn't contain this mcmeta
+				});
+				pSt.Stop();
+
+				if (PerfLogging)
+					Console.WriteLine($"Ran through all pack MCMetas in {pSt.ElapsedMilliseconds}ms");
+			});
+
+			Stopwatch tSt = Stopwatch.StartNew();
+			await Task.WhenAll(refTask, packTask); // Run async to improve speed
+			tSt.Stop();
+			if (PerfLogging)
+				Console.WriteLine($"Compared MCMetas in {tSt.ElapsedMilliseconds}ms");
+		}
+
+		private async Task<bool> GetOverlaySupport()
+			=> await _apiController.GetOverlaySupport(SelectedVersion.Id);
 		#endregion
 
 		#region Blacklist
@@ -411,6 +520,7 @@ namespace MCTools.Pages
 		#endregion
 
 		#region Export
+		#region Textures
 		/// <summary>
 		/// Export a text file containing the matching textures
 		/// </summary>
@@ -428,6 +538,27 @@ namespace MCTools.Pages
 		/// </summary>
 		private async Task ExportUnusedTextures()
 			=> await Export(UnusedTexturesList, $"UnusedTextures_{Pack.Name}.txt");
+		#endregion
+
+		#region MCMetas
+		/// <summary>
+		/// Export a text file containing the matching mcmetas
+		/// </summary>
+		private async Task ExportMatchingMcMetas()
+			=> await Export(MatchingMcMetasList, $"MatchingMCMetas_{Pack.Name}.txt");
+
+		/// <summary>
+		/// Export a text file containing the missing mcmetas
+		/// </summary>
+		private async Task ExportMissingMcMetas()
+			=> await Export(MissingMcMetasList, $"MissingMCMetas_{Pack.Name}.txt");
+
+		/// <summary>
+		/// Export a text file containing the unused mcmetas
+		/// </summary>
+		private async Task ExportUnusedMcMetas()
+			=> await Export(UnusedMcMetasList, $"UnusedMCMetas_{Pack.Name}.txt");
+		#endregion
 
 		/// <summary>
 		/// Copy String List to clipboard

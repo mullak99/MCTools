@@ -9,27 +9,22 @@
 <MudSnackbarProvider />
 
 <MudLayout>
-	<MudAppBar Elevation="0">
+	<MudAppBar Elevation="0" Dense="true" Fixed="true">
 		<MudIconButton Icon="@(IsDrawerOpen ? Icons.Material.Filled.MenuOpen : Icons.Material.Filled.Menu)" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => ToggleDrawer())" />
 		<MudText Typo="Typo.h6" Class="px-4">Minecraft Tools @(Program.IsPreRelease() ? $" ({Program.GetReleaseType(true, true)})" : string.Empty)</MudText>
 
 		<MudSpacer />
-		<MudItem Class="px-2">
-			<MudIconButton Icon="@Icons.Custom.Brands.Discord" Color="Color.Inherit" Title="Discord" aria-label="discord" Href="https://discord.mullak99.co.uk" />
-			<MudIconButton Icon="@Icons.Custom.Brands.Twitter" Color="Color.Inherit" Title="Twitter" aria-label="x" Href="https://twitter.com/mullak99" />
-		</MudItem>
-		<MudItem Class="px-2">
-			<MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Title="GitHub" aria-label="github" Href="https://github.com/mullak99/MCTools" />
-			<MudIconButton Icon="@Icons.Material.Filled.Api" Color="Color.Inherit" Title="Swagger" Href="@($"{Program.ApiAddress.TrimEnd('/', '\\')}/swagger")" />
-		</MudItem>
-		<MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Inherit" Title="Settings" OnClick="@OpenSettingsDialog" />
+		<MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Title="GitHub" aria-label="github" Href="https://github.com/mullak99/MCTools" />
+		<MudIconButton Icon="@Icons.Material.Filled.Api" Color="Color.Inherit" Title="Swagger" Href="@($"{Program.ApiAddress.TrimEnd('/', '\\')}/swagger")" />
+
+		<MudIconButton Class="ml-8" Icon="@Icons.Material.Filled.Settings" Color="Color.Inherit" Title="Settings" OnClick="@OpenSettingsDialog" />
 		<MudIconButton Icon="@(IsDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" Title="@(IsDarkMode ? "Toggle Light Mode" : "Toggle Dark Mode")" Color="Color.Inherit" OnClick="@ToggleTheme" />
 	</MudAppBar>
 	<MudDrawer @bind-Open="IsDrawerOpen" ClipMode="DrawerClipMode.Docked">
 		<NavMenu />
 	</MudDrawer>
 	<MudMainContent>
-		<MudContainer MaxWidth="MaxWidth.Large" Class="justify-center py-2 px-4 mt-6">
+		<MudContainer MaxWidth="MaxWidth.Large" Class="justify-center py-2 px-4 mt-4">
 			@Body
 		</MudContainer>
 	</MudMainContent>

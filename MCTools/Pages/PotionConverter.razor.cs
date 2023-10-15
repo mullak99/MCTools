@@ -39,10 +39,15 @@ namespace MCTools.Pages
 		private MCVersion SelectedVersion;
 		private MCEdition SelectedEdition;
 		private bool IsProcessing;
+		private bool IsOverlaySupported;
+
 		private ResourcePack Pack { get; set; }
 
-		private void SelectedVersionChanged(MCVersion version)
-			=> SelectedVersion = version;
+		private async Task SelectedVersionChanged(MCVersion version)
+		{
+			SelectedVersion = version;
+			IsOverlaySupported = await GetOverlaySupport();
+		}
 
 		private void SelectedEditionChanged(MCEdition edition)
 			=> SelectedEdition = edition;
@@ -216,7 +221,6 @@ namespace MCTools.Pages
 			zipOutputStream.CloseEntry();  // Close the current entry
 		}
 
-
 		private async Task CreatePotions(Potion potion, Image potionImg, Image splashImg, Image lingeringImg, Image tippedArrowBaseImg, Image<Rgba32> potionOverlayImage, Image<Rgba32> tippedArrowOverlayImage, ZipOutputStream zipOutputStream)
 		{
 			if (potion.PotionName != null)
@@ -286,6 +290,9 @@ namespace MCTools.Pages
 			await result.SaveAsPngAsync(ms);
 			await AddEntryToZipFileAsync(zipOutputStream, finalFileName, ms);
 		}
+
+		private async Task<bool> GetOverlaySupport()
+			=> await _apiController.GetOverlaySupport(SelectedVersion.Id);
 		#endregion
 		#endregion
 	}

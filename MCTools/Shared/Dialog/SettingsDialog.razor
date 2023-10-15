@@ -1,4 +1,5 @@
 ﻿@using Blazored.LocalStorage
+@using MCTools.Components
 @inherits LayoutComponentBase
 
 @inject ILocalStorageService localStore
@@ -8,18 +9,16 @@
 	<DialogContent>
 		<MudGrid Justify="Justify.SpaceEvenly">
 			<MudList>
-				<MudItem Class="my-1">
-					<MudTooltip Text="Show more versions in the version selector" Placement="Placement.Bottom">
-						<MudSwitch @bind-Checked="ExpandedVersionSelector" Label="Show more versions" Color="Color.Primary" />
-					</MudTooltip>
-				</MudItem>
+				<ToggleSwitch @bind-Checked="ExpandedVersionSelector"
+				              Label="Show more versions"
+				              TooltipText="Show more versions in the version selector" />
 			</MudList>
 			<MudList>
-				<MudItem Class="my-1">
-					<MudTooltip Text="Toggle debug/developer features" Placement="Placement.Bottom">
-						<MudSwitch @bind-Checked="DebugMode" Label="Debug Mode" Color="Color.Primary" Disabled="@MainLayout.IsDebugBuild()"/>
-					</MudTooltip>
-				</MudItem>
+				<ToggleSwitch @bind-Checked="DebugMode"
+				              Label="Debug Mode"
+				              TooltipText="Toggle debug/developer features"
+				              IsDisabled="@MainLayout.IsDebugBuild()" />
+
 			</MudList>
 		</MudGrid>
 	</DialogContent>

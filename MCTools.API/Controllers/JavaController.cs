@@ -49,7 +49,7 @@ namespace MCTools.API.Controllers
 		{
 			try
 			{
-				var assets = await _toolsLogic.GetMinecraftJavaAssets(mcVersion);
+				var assets = await _toolsLogic.GetMinecraftJavaAssets(mcVersion, true);
 
 				if (assets.IsSuccess)
 					return Ok(assets.Data);
@@ -73,6 +73,26 @@ namespace MCTools.API.Controllers
 
 				if (assets.IsSuccess)
 					return Ok(assets.Data);
+				return BadRequest(assets.Message);
+			}
+			catch (Exception ex)
+			{
+				return StatusCode(500, ex.Message);
+			}
+		}
+
+		[HttpGet("version/{mcVersion}/supports-overlays")]
+		[SwaggerResponse(200, Type = typeof(MCAssets), Description = "Whether a specified Java version supports overlays")]
+		[SwaggerResponse(400, "Invalid version")]
+		[ResponseCache(Duration = GET_CACHE_DURATION, VaryByQueryKeys = new[] { "mcVersion" }, Location = ResponseCacheLocation.Any, NoStore = false)]
+		public async Task<IActionResult> GetOverlaySupport([FromRoute] string mcVersion)
+		{
+			try
+			{
+				var assets = await _toolsLogic.GetMinecraftJavaAssets(mcVersion, true);
+
+				if (assets.IsSuccess)
+					return Ok(assets.Data?.OverlaySupport ?? false);
 				return BadRequest(assets.Message);
 			}
 			catch (Exception ex)

@@ -15,50 +15,45 @@
 		<MudItem xs="12">
 			<InputFile id="fileInput" OnChange="UploadFile" hidden accept="@Validation.GetSupportedPackFormats(SelectedEdition)" />
 			<MudButton HtmlTag="label"
-			           Variant="Variant.Filled"
-			           Color="Color.Primary"
-			           StartIcon="@Icons.Material.Filled.CloudUpload"
-			           for="fileInput" style="width: 100%;" >
+					   Variant="Variant.Filled"
+					   Color="Color.Primary"
+					   StartIcon="@Icons.Material.Filled.CloudUpload"
+					   for="fileInput" style="width: 100%;" >
 				@UploadText
 			</MudButton>
 		</MudItem>
 		<VersionSelector ApiController="_apiController" VersionChanged="SelectedVersionChanged" EditionChanged="SelectedEditionChanged" IsProcessing="IsProcessing" DisableBedrock="true" DisableVersions="true" />
 		<MudText Typo="Typo.caption" Align="Align.Center" GutterBottom="true" Class="mt-1">Note: Select the edition you are converting from.</MudText>
-		<OverlayToggles Pack="Pack" IsProcessing="IsProcessing" />
+		<OverlayToggles Pack="Pack" OverlaySupport="IsOverlaySupported" IsProcessing="IsProcessing" />
 		@if (MainLayout.DebugMode)
 		{
 			<MudItem xs="12" Class="pa-2 my-1">
 				<MudText Typo="Typo.h6" GutterBottom="true">Debug</MudText>
 				<MudGrid Justify="Justify.SpaceAround" Spacing="2">
 					<MudList>
-						<MudItem Class="my-1">
-							<MudSwitch @bind-Checked="DebugLogging" Label="Debug Logging" Color="Color.Primary" Disabled="IsProcessing" />
-						</MudItem>
+						<ToggleSwitch @bind-Checked="DebugLogging"
+									  Label="Debug Logging"
+									  TooltipText="Output process to the console"
+									  IsProcessing="IsProcessing" />
 					</MudList>
 					<MudList>
-						<MudItem Class="my-1">
-							<MudSwitch @bind-Checked="PerfLogging" Label="Performance Logging" Color="Color.Primary" Disabled="IsProcessing"/>
-						</MudItem>
+						<ToggleSwitch @bind-Checked="PerfLogging"
+									  Label="Performance Logging"
+									  TooltipText="Log performance to the console"
+									  IsProcessing="IsProcessing" />
 					</MudList>
 				</MudGrid>
 			</MudItem>
 		}
 		<MudItem xs="12">
-			@if (IsProcessing)
-			{
-				<MudProgressLinear Color="Color.Primary" Size="Size.Small" Indeterminate="true" Class="my-7"/>
-			}
-			else
-			{
-				<MudProgressLinear Color="Color.Primary" Size="Size.Small" Value="0" Max="100" Class="my-7"/>
-			}
+			<MudProgressLinear Color="Color.Primary" Size="Size.Small" Value="0" Max="100" Indeterminate="IsProcessing" Class="my-7" />
 			<MudButton HtmlTag="label"
-			           Variant="Variant.Filled"
-			           Color="Color.Primary"
-			           StartIcon="@Icons.Material.Filled.Start"
-			           style="width: 100%;"
-			           Disabled="@(IsProcessing || Pack == null)"
-			           OnClick="@ConvertAssets">
+					   Variant="Variant.Filled"
+					   Color="Color.Primary"
+					   StartIcon="@Icons.Material.Filled.Start"
+					   style="width: 100%;"
+					   Disabled="@(IsProcessing || Pack == null)"
+					   OnClick="@ConvertAssets">
 				Convert Potion Textures
 			</MudButton>
 		</MudItem>

@@ -1,0 +1,38 @@
+﻿@{
+	RenderFragment switchFragment = __builder =>
+	{
+		<MudSwitch Checked="Checked" CheckedChanged="CheckedChanged" Label="@Label" Color="@SwitchColor" Disabled="_isDisabled" />
+	};
+}
+
+<MudItem Class="@ItemClass" xs="@xs">
+	@if (string.IsNullOrWhiteSpace(TooltipText))
+	{
+		@switchFragment
+	}
+	else
+	{
+		<MudTooltip Text="@TooltipText" Placement="@TooltipPlacement">
+			@switchFragment
+		</MudTooltip>
+	}
+</MudItem>
+
+@code {
+	[Parameter] public string Label { get; set; }
+	[Parameter] public string TooltipText { get; set; }
+
+	[Parameter] public bool IsDisabled { get; set; }
+	[Parameter] public bool IsProcessing { get; set; }
+	[Parameter] public bool Checked { get; set; }
+	[Parameter] public EventCallback<bool> CheckedChanged { get; set; }
+
+	[Parameter] public Color SwitchColor { get; set; } = Color.Primary;
+	[Parameter] public Placement TooltipPlacement { get; set; } = Placement.Bottom;
+
+	[Parameter] public string ItemClass { get; set; } = "my-1";
+	[Parameter] public int xs { get; set; } = 0;
+
+	private bool _isDisabled
+		=> IsDisabled || IsProcessing;
+}

@@ -16,6 +16,9 @@ namespace MCTools.Models
 		public long Size { get; set; }
 		public Assets BaseAssets { get; set; }
 		public List<Assets> Overlays { get; set; }
+		public bool IsProcessed { get; set; }
+
+		private static string[] _imageFileTypes = { "png", "tga" };
 
 		private readonly IBrowserFile _packFile;
 		private readonly MCEdition _selectedEdition;
@@ -30,6 +33,7 @@ namespace MCTools.Models
 
 		public async Task Init(int maxBytes)
 		{
+			IsProcessed = false;
 			await using MemoryStream ms = new(maxBytes);
 			await _packFile.OpenReadStream(maxBytes).CopyToAsync(ms);
 			using ZipArchive zip = new(ms);
@@ -37,7 +41,8 @@ namespace MCTools.Models
 			BaseAssets = new Assets()
 			{
 				Name = "Assets",
-				Textures = new List<string>()
+				Textures = new List<string>(),
+				McMetas = new List<string>()
 			};
 			Overlays = new List<Assets>();
 
@@ -63,7 +68,8 @@ namespace MCTools.Models
 							Overlays.Add(new Assets()
 							{
 								Name = folderName,
-								Textures = new List<string>()
+								Textures = new List<string>(),
+								McMetas = new List<string>()
 							});
 						}
 					}
@@ -102,12 +108,28 @@ namespace MCTools.Models
 				if (fileName != null)
 				{
 					string folderName = GetDirectoryName(file.FullName);
+					string ext = Path.GetExtension(fileName).ToLower().Replace(".", string.Empty);
 					if (folderName == "assets" || string.IsNullOrWhiteSpace(folderName))
-						BaseAssets?.Textures.Add(fileName);
+					{
+						if (_imageFileTypes.Contains(ext))
+							BaseAssets?.Textures.Add(fileName);
+						else if (ext == "mcmeta" && fileName != "pack.mcmeta")
+							BaseAssets?.McMetas.Add(fileName);
+					}
 					else
-						Overlays.FirstOrDefault(x => x.Name == folderName)?.Textures.Add(fileName.Replace($"{folderName}/", ""));
+					{
+						Assets overlay = Overlays.FirstOrDefault(x => x.Name == folderName);
+						if (overlay == null)
+							continue;
+
+						if (_imageFileTypes.Contains(ext))
+							overlay.Textures.Add(fileName.Replace($"{folderName}/", string.Empty));
+						else if (ext == "mcmeta")
+							overlay.McMetas.Add(fileName.Replace($"{folderName}/", string.Empty));
+					}
 				}
 			}
+			IsProcessed = true;
 		}
 
 		public List<string> GetTextures()
@@ -128,12 +150,21 @@ namespace MCTools.Models
 			return overlayPath != null ? Path.Combine(overlayPath, path) : null;
 		}
 
+		public List<string> GetMcMetas()
+		{
+			List<string> mcMetas = new();
+			mcMetas.AddRange(BaseAssets.McMetas);
+			foreach (Assets overlay in Overlays.Where(x => x.Enabled))
+				mcMetas.AddRange(overlay.McMetas);
+			return mcMetas.Distinct().ToList();
+		}
+
 		public IBrowserFile GetFile()
 			=> _packFile;
 
 		private string GetFileName(string fileName, MCEdition selectedEdition)
 		{
-			if (fileName.EndsWith("png") || (selectedEdition == MCEdition.Bedrock && fileName.EndsWith("tga")))
+			if (fileName.EndsWith("png") || (selectedEdition == MCEdition.Java && fileName.EndsWith("mcmeta")) || (selectedEdition == MCEdition.Bedrock && fileName.EndsWith("tga")))
 				return fileName;
 			return null;
 		}
@@ -148,7 +179,8 @@ namespace MCTools.Models
 	public class Assets
 	{
 		public string Name { get; set; }
-		public List<string> Textures { get; set; }
+		public List<string> Textures { get; set; } = new();
+		public List<string> McMetas { get; set; } = new();
 		public bool Enabled { get; set; } = true;
 	}
 }

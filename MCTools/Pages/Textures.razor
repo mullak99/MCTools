@@ -4,7 +4,6 @@
 @using Blazored.LocalStorage
 @using MCTools.Controllers
 @using MCTools.Logic
-@using MCTools.Models
 
 @inherits LayoutComponentBase
 @inject ISnackbar Snackbar
@@ -33,95 +32,103 @@
 				@if (SelectedEdition == MCEdition.Java)
 				{
 					<MudList>
-						<MudItem Class="my-1">
-							<MudTooltip Text="Exclude Minecraft Realms textures from the comparison" Placement="Placement.Bottom">
-								<MudSwitch @bind-Checked="ExcludeRealms" Label="Exclude Realms" Color="Color.Primary" Disabled="IsProcessing" />
-							</MudTooltip>
-						</MudItem>
-						<MudItem Class="my-1">
-							<MudTooltip Text="Exclude Fonts from the comparison" Placement="Placement.Bottom">
-								<MudSwitch @bind-Checked="ExcludeFonts" Label="Exclude Fonts" Color="Color.Primary" Disabled="IsProcessing" />
-							</MudTooltip>
-						</MudItem>
-						<MudItem Class="my-1">
-							<MudTooltip Text="Exclude all custom/mod namespaces from the comparison (e.g. assets/m99-ctm)" Placement="Placement.Bottom">
-								<MudSwitch @bind-Checked="ExcludeNonVanillaNamespaces" Label="Exclude Non-Vanilla Namespaces" Color="Color.Primary" Disabled="IsProcessing"/>
-							</MudTooltip>
-						</MudItem>
-						<MudItem Class="my-1">
-							<MudTooltip Text="Exclude all title-related textures from the comparison (../textures/gui/title)" Placement="Placement.Bottom">
-								<MudSwitch @bind-Checked="ExcludeTitleGui" Label="Exclude Title GUI" Color="Color.Primary" Disabled="IsProcessing"/>
-							</MudTooltip>
-						</MudItem>
+						<ToggleSwitch @bind-Checked="ExcludeRealms"
+									  Label="Exclude Realms"
+									  TooltipText="Exclude Minecraft Realms textures from the comparison"
+									  IsProcessing="IsProcessing" />
+
+						<ToggleSwitch @bind-Checked="ExcludeFonts"
+									  Label="Exclude Fonts"
+									  TooltipText="Exclude Fonts from the comparison"
+									  IsProcessing="IsProcessing" />
+
+						<ToggleSwitch @bind-Checked="ExcludeNonVanillaNamespaces"
+									  Label="Exclude Non-Vanilla Namespaces"
+									  TooltipText="Exclude all custom/mod namespaces from the comparison (e.g. assets/m99-ctm)"
+									  IsProcessing="IsProcessing" />
+
+						<ToggleSwitch @bind-Checked="ExcludeTitleGui"
+									  Label="Exclude Title GUI"
+									  TooltipText="Exclude all title-related textures from the comparison (../textures/gui/title)"
+									  IsProcessing="IsProcessing" />
 					</MudList>
 					<MudList>
-						<MudItem Class="my-1">
-							<MudTooltip Text="Exclude Misc (textures/misc) from the comparison" Placement="Placement.Bottom">
-								<MudSwitch @bind-Checked="ExcludeMisc" Label="Exclude Misc" Color="Color.Primary" Disabled="IsProcessing"/>
-							</MudTooltip>
-						</MudItem>
-						<MudItem Class="my-1">
-							<MudTooltip Text="Exclude Optifine CTM from the comparison" Placement="Placement.Bottom">
-								<MudSwitch @bind-Checked="ExcludeOptifine" Label="Exclude Optifine" Color="Color.Primary" Disabled="IsProcessing" />
-							</MudTooltip>
-						</MudItem>
-						<MudItem Class="my-1">
-							<MudTooltip Text="Exclude emmisives (e.g. <whatever>_e.png) from the comparison" Placement="Placement.Bottom">
-								<MudSwitch @bind-Checked="ExcludeEmissives" Label="Exclude Emissives" Color="Color.Primary" Disabled="IsProcessing"/>
-							</MudTooltip>
-						</MudItem>
+						<ToggleSwitch @bind-Checked="ExcludeMisc"
+									  Label="Exclude Misc"
+									  TooltipText="Exclude Misc (textures/misc) from the comparison"
+									  IsProcessing="IsProcessing" />
+
+						<ToggleSwitch @bind-Checked="ExcludeOptifine"
+									  Label="Exclude Optifine"
+									  TooltipText="Exclude Optifine CTM from the comparison"
+									  IsProcessing="IsProcessing" />
+
+						<ToggleSwitch @bind-Checked="ExcludeEmissives"
+									  Label="Exclude Emissives"
+									  TooltipText="Exclude emmisives (e.g. <whatever>_e.png) from the comparison"
+									  IsProcessing="IsProcessing" />
+
+						<ToggleSwitch @bind-Checked="ExcludeMcMetas"
+									  Label="Exclude MCMetas"
+									  TooltipText="Exclude MCMetas from the comparison"
+									  IsProcessing="IsProcessing" />
 					</MudList>
 				}
 				else
 				{
 					<MudList>
-						<MudItem Class="my-1">
-							<MudTooltip Text="Exclude Minecraft Realms textures from the comparison" Placement="Placement.Bottom">
-								<MudSwitch @bind-Checked="ExcludeRealms" Label="Exclude Realms" Color="Color.Primary" Disabled="IsProcessing" />
-							</MudTooltip>
-						</MudItem>
-						<MudItem Class="my-1">
-							<MudTooltip Text="Exclude Fonts from the comparison" Placement="Placement.Bottom">
-								<MudSwitch @bind-Checked="ExcludeFonts" Label="Exclude Fonts" Color="Color.Primary" Disabled="IsProcessing" />
-							</MudTooltip>
-						</MudItem>
+						<ToggleSwitch @bind-Checked="ExcludeRealms"
+									  Label="Exclude Realms"
+									  TooltipText="Exclude Minecraft Realms textures from the comparison"
+									  IsProcessing="IsProcessing" />
+
+						<ToggleSwitch @bind-Checked="ExcludeFonts"
+									  Label="Exclude Fonts"
+									  TooltipText="Exclude Fonts from the comparison"
+									  IsProcessing="IsProcessing" />
 					</MudList>
 					<MudList>
-						<MudItem Class="my-1">
-							<MudTooltip Text="Exclude Misc (textures/misc) from the comparison" Placement="Placement.Bottom">
-								<MudSwitch @bind-Checked="ExcludeMisc" Label="Exclude Misc" Color="Color.Primary" Disabled="IsProcessing" />
-							</MudTooltip>
-						</MudItem>
-						<MudItem Class="my-1">
-							<MudTooltip Text="Exclude UI textures from the comparison" Placement="Placement.Bottom">
-								<MudSwitch @bind-Checked="ExcludeBedrockUI" Label="Exclude UI" Color="Color.Primary" Disabled="IsProcessing" />
-							</MudTooltip>
-						</MudItem>
+						<ToggleSwitch @bind-Checked="ExcludeMisc"
+									  Label="Exclude Misc"
+									  TooltipText="Exclude Misc (textures/misc) from the comparison"
+									  IsProcessing="IsProcessing" />
+
+						<ToggleSwitch @bind-Checked="ExcludeBedrockUI"
+									  Label="Exclude UI"
+									  TooltipText="Exclude UI textures from the comparison"
+									  IsProcessing="IsProcessing" />
 					</MudList>
 				}
 				<MudList>
 					<MudItem Class="my-1">
-						<MudButton OnClick="() => OpenBlacklistDialog(MCEdition.Java)" Style="width:280px; height:36px;" Variant="Variant.Filled" Color="Color.Info" Disabled="IsProcessing">Configure Java Blacklist</MudButton>
+						<MudButton OnClick="() => OpenBlacklistDialog(MCEdition.Java)" Class="blacklist-button" Variant="Variant.Filled" Color="Color.Info" Disabled="IsProcessing">Configure Java Blacklist</MudButton>
 					</MudItem>
 					<MudItem Class="my-1">
-						<MudButton OnClick="() => OpenBlacklistDialog(MCEdition.Bedrock)" Style="width:280px; height:36px;" Variant="Variant.Filled" Color="Color.Tertiary" Disabled="IsProcessing">Configure Bedrock Blacklist</MudButton>
+						<MudButton OnClick="() => OpenBlacklistDialog(MCEdition.Bedrock)" Class="blacklist-button" Variant="Variant.Filled" Color="Color.Tertiary" Disabled="IsProcessing">Configure Bedrock Blacklist</MudButton>
 					</MudItem>
 					<MudItem Class="my-1">
-						<MudButton OnClick="OpenResetConfirmationDialog" Style="width:280px; height:36px;" Variant="Variant.Filled" Color="Color.Warning" Disabled="IsProcessing">Reset Both Blacklists</MudButton>
+						<MudButton OnClick="OpenResetConfirmationDialog" Class="blacklist-button" Variant="Variant.Filled" Color="Color.Warning" Disabled="IsProcessing">Reset Both Blacklists</MudButton>
 					</MudItem>
 				</MudList>
 			</MudGrid>
 		</MudItem>
-		<OverlayToggles Pack="Pack" IsProcessing="IsProcessing" />
+		<OverlayToggles Pack="Pack" OverlaySupport="IsOverlaySupported" IsProcessing="IsProcessing" />
 		@if (MainLayout.DebugMode)
 		{
 			<MudItem xs="12" Class="pa-2 my-1">
 				<MudText Typo="Typo.h6" GutterBottom="true">Debug</MudText>
 				<MudGrid Justify="Justify.SpaceAround" Spacing="2" >
 					<MudList>
-						<MudItem Class="my-1">
-							<MudSwitch @bind-Checked="PerfLogging" Label="Performance Logging" Color="Color.Primary" Disabled="IsProcessing" />
-						</MudItem>
+						<ToggleSwitch @bind-Checked="PerfLogging"
+									  Label="Performance Logging"
+									  TooltipText="Log performance to the console"
+									  IsProcessing="IsProcessing" />
+					</MudList>
+					<MudList>
+						<ToggleSwitch @bind-Checked="ResourcePackDebug"
+									  Label="Show Pack Content"
+									  TooltipText="Display content of the pack when processed"
+									  IsProcessing="IsProcessing" />
 					</MudList>
 				</MudGrid>
 			</MudItem>
@@ -129,112 +136,90 @@
 		<MudItem xs="12" Class="py-1">
 			<MudGrid Justify="Justify.Center" Spacing="4">
 				<MudItem Class="d-flex align-center">
-					<MudButton Size="Size.Large" Style="width:128px;" Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit"
+					<MudButton Size="Size.Large" Class="action-button" Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit"
 							   OnClick="@Compare" Disabled="@(!CanCompare || IsProcessing)">Compare</MudButton>
 				</MudItem>
 				<MudItem Class="d-flex align-center">
-					<MudButton Size="Size.Large" Style="width:128px;" Variant="Variant.Filled" Color="Color.Error" ButtonType="ButtonType.Reset"
+					<MudButton Size="Size.Large" Class="action-button" Variant="Variant.Filled" Color="Color.Error" ButtonType="ButtonType.Reset"
 							   OnClick="@Reset" Disabled="@(Pack == null || IsProcessing)">Reset</MudButton>
 				</MudItem>
 			</MudGrid>
-			@if (IsProcessing)
-			{
-				<MudProgressLinear Color="Color.Primary" Size="Size.Small" Indeterminate="true" Class="my-7" />
-			}
-			else
-			{
-				<MudProgressLinear Color="Color.Primary" Size="Size.Small" Value="0" Max="100" Class="my-7" />
-			}
+			<MudProgressLinear Color="Color.Primary" Size="Size.Small" Value="0" Max="100" Indeterminate="IsProcessing" Class="my-7" />
 		</MudItem>
 		<MudItem xs="12" Class="pt-1 pb-4">
-			<MudTabs Outlined="true" Position="Position.Left" Rounded="true" Border="true" ApplyEffectsToContainer="true" PanelClass="pl-2 pt-1 pb-1">
-				<MudTabPanel Text="Matching Textures" Style="@TABLE_TAB_PANEL_STYLE">
-					<MudItem Style="@TABLE_CONTENT_STYLE">
-						@if (MatchingTexturesList.Count > 0)
-						{
-							<MudItem Style="@TABLE_COUNT_STYLE">
-								<MudText>@MatchingTexturesList.Count</MudText>
-							</MudItem>
-							<MudItem Style="@TABLE_OPTIONS_STYLE">
-								<MudTooltip Text="Copy" Placement="Placement.Top">
-									<MudIconButton Icon="@Icons.Material.Filled.ContentCopy" OnClick="async () => await CopyTextToClipboard(MatchingTexturesList)"></MudIconButton>
-								</MudTooltip>
-								<MudTooltip Text="Export" Placement="Placement.Top">
-									<MudIconButton Icon="@Icons.Material.Filled.Download" OnClick="ExportMatchingTextures"></MudIconButton>
-								</MudTooltip>
-							</MudItem>
-							<MudList Dense="true">
-								<Virtualize TItem="string" Items="MatchingTexturesList" ItemSize="@VIRTUALIZER_ITEM_SIZE" OverscanCount="@VIRTUALIZER_OVERSCAN">
-									<MudListItem Text="@context"/>
-								</Virtualize>
-							</MudList>
-						}
-						else
-						{
-							<MudText Align="Align.Center" Class="mt-2">No matching textures</MudText>
-						}
-					</MudItem>
-				</MudTabPanel>
-				<MudTabPanel Text="Missing Textures" Style="@TABLE_TAB_PANEL_STYLE">
-					<MudItem Style="@TABLE_CONTENT_STYLE">
-						@if (MissingTexturesList.Count > 0)
-						{
-							<MudItem Style="@TABLE_COUNT_STYLE">
-								<MudText>@MissingTexturesList.Count</MudText>
-							</MudItem>
-							<MudItem Style="@TABLE_OPTIONS_STYLE">
-								<MudTooltip Text="Copy" Placement="Placement.Top">
-									<MudIconButton Icon="@Icons.Material.Filled.ContentCopy" OnClick="async () => await CopyTextToClipboard(MissingTexturesList)"></MudIconButton>
-								</MudTooltip>
-								<MudTooltip Text="Export" Placement="Placement.Top">
-									<MudIconButton Icon="@Icons.Material.Filled.Download" OnClick="ExportMissingTextures"></MudIconButton>
-								</MudTooltip>
-							</MudItem>
-							<MudList Dense="true">
-								<Virtualize TItem="string" Items="MissingTexturesList" ItemSize="@VIRTUALIZER_ITEM_SIZE" OverscanCount="@VIRTUALIZER_OVERSCAN">
-									<MudListItem Text="@context"/>
-								</Virtualize>
-							</MudList>
-						}
-						else
-						{
-							<MudText Align="Align.Center" Class="mt-2">No missing textures</MudText>
-						}
-					</MudItem>
-				</MudTabPanel>
-				<MudTabPanel Text="Unused Textures" Style="@TABLE_TAB_PANEL_STYLE">
-					<MudItem Style="@TABLE_CONTENT_STYLE">
-						@if (UnusedTexturesList.Count > 0)
-						{
-							<MudItem Style="@TABLE_COUNT_STYLE">
-								<MudText>@UnusedTexturesList.Count</MudText>
-							</MudItem>
-							<MudItem Style="@TABLE_OPTIONS_STYLE">
-								<MudTooltip Text="Copy" Placement="Placement.Top">
-									<MudIconButton Icon="@Icons.Material.Filled.ContentCopy" OnClick="async () => await CopyTextToClipboard(UnusedTexturesList)"></MudIconButton>
-								</MudTooltip>
-								<MudTooltip Text="Export" Placement="Placement.Top">
-									<MudIconButton Icon="@Icons.Material.Filled.Download" OnClick="ExportUnusedTextures"></MudIconButton>
-								</MudTooltip>
-							</MudItem>
-							<MudList Dense="true">
-								<Virtualize TItem="string" Items="UnusedTexturesList" ItemSize="@VIRTUALIZER_ITEM_SIZE" OverscanCount="@VIRTUALIZER_OVERSCAN">
-									<MudListItem Text="@context"/>
-								</Virtualize>
-							</MudList>
-						}
-						else
-						{
-							<MudText Align="Align.Center" Class="mt-2">No unused textures</MudText>
-						}
-					</MudItem>
-				</MudTabPanel>
+			<MudTabs Outlined="true" Position="Position.Left" Rounded="true" Border="true" ApplyEffectsToContainer="true">
+				<AssetTabPanel TabName="Matching Textures"
+							   EmptyListText="No matching textures"
+							   AssetList="@MatchingTexturesList"
+							   ClipboardCallback="(async x => await CopyTextToClipboard(x))"
+							   ExportCallback="ExportMatchingTextures"
+							   BadgeColor="Color.Success" />
+
+				<AssetTabPanel TabName="Missing Textures"
+							   EmptyListText="No missing textures"
+							   AssetList="@MissingTexturesList"
+							   ClipboardCallback="(async x => await CopyTextToClipboard(x))"
+							   ExportCallback="ExportMissingTextures"
+							   BadgeColor="Color.Error" />
+
+				<AssetTabPanel TabName="Unused Textures"
+							   EmptyListText="No unused textures"
+							   AssetList="@UnusedTexturesList"
+							   ClipboardCallback="(async x => await CopyTextToClipboard(x))"
+							   ExportCallback="ExportUnusedTextures"
+							   BadgeColor="Color.Warning" />
+
+				@if (!ExcludeMcMetas)
+				{
+					<AssetTabPanel TabName="Matching McMetas"
+								   EmptyListText="No matching MCMetas"
+								   AssetList="@MatchingMcMetasList"
+								   ClipboardCallback="(async x => await CopyTextToClipboard(x))"
+								   ExportCallback="ExportMatchingMcMetas"
+								   BadgeColor="Color.Success" />
+
+					<AssetTabPanel TabName="Missing McMetas"
+								   EmptyListText="No missing MCMetas"
+								   AssetList="@MissingMcMetasList"
+								   ClipboardCallback="(async x => await CopyTextToClipboard(x))"
+								   ExportCallback="ExportMissingMcMetas"
+								   BadgeColor="Color.Error" />
+
+					<AssetTabPanel TabName="Unused McMetas"
+								   EmptyListText="No unused MCMetas"
+								   AssetList="@UnusedMcMetasList"
+								   ClipboardCallback="(async x => await CopyTextToClipboard(x))"
+								   ExportCallback="ExportUnusedMcMetas"
+								   BadgeColor="Color.Warning" />
+				}
 			</MudTabs>
-			@if (TotalTextures > 0)
+			<MudItem Class="pb-2">
+				<MudGrid Justify="Justify.SpaceBetween">
+					@if (TotalTextures > 0)
+					{
+						<AssetStats AssetType="Textures" MatchingList="MatchingTexturesList" MissingList="MissingTexturesList" TotalAssets="TotalTextures" />
+					}
+					@if (CanShowMcMetasSections)
+					{
+						<AssetStats AssetType="MCMetas" MatchingList="MatchingMcMetasList" MissingList="MissingMcMetasList" TotalAssets="TotalMcMetas" />
+					}
+				</MudGrid>
+			</MudItem>
+			@if (MainLayout.DebugMode && ResourcePackDebug && Pack is { IsProcessed: true })
 			{
-				<MudItem Class="pa-4">
-					<MudText>Matching: @MatchingTexturesList.Count / @TotalTextures (@(Math.Round(((double)MatchingTexturesList.Count / TotalTextures) * 100, 2))%)</MudText>
-					<MudText>Missing: @MissingTexturesList.Count / @TotalTextures (@(Math.Round(((double)MissingTexturesList.Count / TotalTextures) * 100, 2))%)</MudText>
+				<MudItem xs="12" Class="pt-1 pb-4">
+					<MudText Typo="Typo.h6" GutterBottom="true">Pack Content</MudText>
+					<MudTabs Outlined="true" Position="Position.Left" Rounded="true" Border="true" ApplyEffectsToContainer="true">
+						<AssetTabPanel TabName="Textures"
+									   EmptyListText="No textures"
+									   AssetList="@Pack.GetTextures()"
+									   ClipboardCallback="(async x => await CopyTextToClipboard(x))" />
+
+						<AssetTabPanel TabName="MCMetas"
+									   EmptyListText="No MCMetas"
+									   AssetList="@Pack.GetMcMetas()"
+									   ClipboardCallback="(async x => await CopyTextToClipboard(x))" />
+					</MudTabs>
 				</MudItem>
 			}
 		</MudItem>

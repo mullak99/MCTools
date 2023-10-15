@@ -20,9 +20,10 @@
 				<MudText Typo="Typo.h6" GutterBottom="true">Options</MudText>
 				<MudGrid Justify="Justify.SpaceAround" Spacing="2" >
 					<MudList>
-						<MudItem Class="my-1">
-							<MudSwitch @bind-Checked="IncludeMcMetas" Label="Include MCMeta Files" Color="Color.Primary" Disabled="IsProcessing" />
-						</MudItem>
+						<ToggleSwitch @bind-Checked="IncludeMcMetas"
+									  Label="Include MCMeta Files"
+									  TooltipText="Include MCMeta files in the assets"
+									  IsProcessing="IsProcessing" />
 					</MudList>
 				</MudGrid>
 			</MudItem>
@@ -33,40 +34,36 @@
 				<MudText Typo="Typo.h6" GutterBottom="true">Debug</MudText>
 				<MudGrid Justify="Justify.SpaceAround" Spacing="2" >
 					<MudList>
-						<MudItem Class="my-1">
-							<MudSwitch @bind-Checked="OutputSourceUrl" Label="Output Source URL" Color="Color.Primary" Disabled="IsProcessing" />
-						</MudItem>
+						<ToggleSwitch @bind-Checked="OutputSourceUrl"
+									  Label="Output Source URL"
+									  TooltipText="Output Source URL to the console"
+									  IsProcessing="IsProcessing" />
 						@if (SelectedEdition == MCEdition.Java)
 						{
-							<MudItem Class="my-1">
-								<MudSwitch @bind-Checked="DownloadRawJar" Label="Download Jar" Color="Color.Primary" Disabled="IsProcessing" />
-							</MudItem>
+							<ToggleSwitch @bind-Checked="DownloadRawJar"
+										  Label="Download JAR"
+										  TooltipText="Download client.jar instead of the computed assets"
+										  IsProcessing="IsProcessing" />
 						}
 					</MudList>
 					<MudList>
-						<MudItem Class="my-1">
-							<MudSwitch @bind-Checked="PerfLogging" Label="Performance Logging" Color="Color.Primary" Disabled="IsProcessing" />
-						</MudItem>
+						<ToggleSwitch @bind-Checked="PerfLogging"
+									  Label="Performance Logging"
+									  TooltipText="Log performance to the console"
+									  IsProcessing="IsProcessing" />
 					</MudList>
 				</MudGrid>
 			</MudItem>
 		}
 		<MudItem xs="12">
-			@if (IsProcessing)
-			{
-				<MudProgressLinear Color="Color.Primary" Size="Size.Small" Indeterminate="true" Class="my-7" />
-			}
-			else
-			{
-				<MudProgressLinear Color="Color.Primary" Size="Size.Small" Value="0" Max="100" Class="my-7" />
-			}
+			<MudProgressLinear Color="Color.Primary" Size="Size.Small" Value="0" Max="100" Indeterminate="IsProcessing" Class="my-7" />
 			<MudButton HtmlTag="label"
-			           Variant="Variant.Filled"
-			           Color="Color.Primary"
-			           StartIcon="@Icons.Material.Filled.CloudDownload"
-			           style="width: 100%;"
-			           Disabled="IsProcessing"
-			           OnClick="@DownloadAssets">
+					   Variant="Variant.Filled"
+					   Color="Color.Primary"
+					   StartIcon="@Icons.Material.Filled.CloudDownload"
+					   style="width: 100%;"
+					   Disabled="IsProcessing"
+					   OnClick="@DownloadAssets">
 				Download
 			</MudButton>
 		</MudItem>

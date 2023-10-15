@@ -7,5 +7,7 @@
 		public DateTime CreatedDate { get; set; }
 		public MinecraftRelease Minecraft { get; set; }
 		public List<string> Textures { get; set; }
+		public List<string> McMetas { get; set; }
+		public bool OverlaySupport { get; set; } = true;
 	}
 }

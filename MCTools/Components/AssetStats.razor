@@ -1,0 +1,11 @@
+﻿<MudItem Class="pa-4">
+	<MudText>Matching @(AssetType): @MatchingList.Count / @TotalAssets (@(Math.Round(((double)MatchingList.Count / TotalAssets) * 100, 2))%)</MudText>
+	<MudText>Missing @(AssetType):: @MissingList.Count / @TotalAssets (@(Math.Round(((double)MissingList.Count / TotalAssets) * 100, 2))%)</MudText>
+</MudItem>
+
+@code {
+	[Parameter] public string AssetType { get; set; } = "Assets";
+	[Parameter] public List<string> MatchingList { get; set; }
+	[Parameter] public List<string> MissingList { get; set; }
+	[Parameter] public int TotalAssets { get; set; }
+}
