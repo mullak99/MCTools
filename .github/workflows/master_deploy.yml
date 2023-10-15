@@ -35,6 +35,9 @@ jobs:
       run: dotnet build ${{ env.CSPROJ }} -c ${{ env.RELEASE_TYPE }} --no-restore
     - name: Test
       run: dotnet test ${{ env.CSPROJ }} --no-build --verbosity normal
+    - name: Get Git Tag
+      id: short-sha
+      run: echo "::set-output name=sha::$(echo ${GITHUB_SHA:0:7})"
     - name: Variable Substitution
       uses: microsoft/variable-substitution@v1
       with:
@@ -42,6 +45,7 @@ jobs:
       env:
         Application.Environment: ${{ env.ENVIRONMENT }}
         Application.ReleaseType: ${{ env.RELEASETYPE }}
+        Application.GitTag: ${{ steps.short-sha.outputs.sha }}
     - name: Publish
       run: dotnet publish ${{ env.CSPROJ }} -c ${{ env.RELEASE_TYPE }} -o ${{ env.PUBLISH_PATH }}
     - name: Deploy
