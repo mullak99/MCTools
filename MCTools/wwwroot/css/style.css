@@ -32,3 +32,9 @@
 .action-button {
 	width: 128px;
 }
+
+.settings-version {
+	position: absolute;
+	bottom: 6px;
+	left: 2px;
+}

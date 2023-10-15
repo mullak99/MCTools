@@ -18,6 +18,7 @@ namespace MCTools
 		private static bool _isPreRelease;
 		private static byte _preReleaseTag = 1;
 		private static string _releaseType;
+		private static string _gitTag = "dev";
 
 		private static string StableUrl;
 		private static string BetaUrl;
@@ -48,12 +49,21 @@ namespace MCTools
 
 			_releaseType = builder.Configuration["Application:ReleaseType"] ?? "Stable";
 			_isPreRelease = _releaseType.ToUpper() != "STABLE";
+			_gitTag = builder.Configuration["Application:GitTag"] ?? "dev";
 			Console.WriteLine($"Release Type: {_releaseType}");
 
 			_ = byte.TryParse(builder.Configuration["Application:PreReleaseTag"], out _preReleaseTag);
 
 			string environment = builder.Configuration["Application:Environment"] ?? "Production";
-			ApiAddress = builder.Configuration[$"Endpoint:{environment}"];
+
+			string apiType = environment switch
+			{
+				"Production" => _isPreRelease ? "Beta" : "Stable",
+				"Development" => "Development",
+				_ => "Stable"
+			};
+
+			ApiAddress = builder.Configuration[$"Endpoint:{apiType}"];
 			Console.WriteLine($"API Endpoint: {ApiAddress}");
 
 			StableUrl = builder.Configuration["Urls:Stable"];
@@ -77,7 +87,7 @@ namespace MCTools
 			return IsPreRelease() ? relType : hideStable ? string.Empty : relType;
 		}
 
-		public static string GetVersion()
+		public static string GetVersion(bool includeGitTag = false)
 		{
 			Version version = Assembly.GetEntryAssembly()?.GetName().Version;
 			if (version == null)
@@ -86,6 +96,8 @@ namespace MCTools
 			string verString = $"v{version.Major}.{version.Minor}.{version.Build}";
 			if (IsPreRelease())
 				verString += $"-{GetReleaseType(true)}{_preReleaseTag}";
+			if (includeGitTag)
+				verString += $" ({_gitTag})";
 
 			return verString;
 		}

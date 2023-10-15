@@ -25,5 +25,6 @@
 	<DialogActions>
 		<MudButton Color="Color.Error" OnClick="Cancel">Cancel</MudButton>
 		<MudButton Color="Color.Primary" OnClick="Apply">Apply</MudButton>
+		<MudText Typo="Typo.caption" Class="settings-version">@($"MCTools {Program.GetVersion(true)}")</MudText>
 	</DialogActions>
 </MudDialog>
