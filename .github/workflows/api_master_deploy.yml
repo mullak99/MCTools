@@ -1,14 +1,14 @@
-name: MCTools API (Beta)
+name: MCTools API (Stable)
 
 on:
   workflow_dispatch:
   push:
-    branches: [ beta ]
+    branches: [ master ]
     paths:
       - 'MCTools.API/**'
       - 'MCTools.SDK/**'
   pull_request:
-    branches: [ beta ]
+    branches: [ master ]
     paths:
       - 'MCTools.API/**'
       - 'MCTools.SDK/**'
@@ -17,8 +17,8 @@ env:
   CSPROJ: MCTools.API/MCTools.API.csproj
   PUBLISH_PATH: bin/Publish
   RELEASE_TYPE: Release
-  SERVER_TARGET: /var/www/mctools.api-beta
-  SERVICE_NAME: mctools.api-beta
+  SERVER_TARGET: /var/www/mctools.api
+  SERVICE_NAME: mctools.api
 
 jobs:
   build:

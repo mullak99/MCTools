@@ -32,11 +32,11 @@ jobs:
       with:
         dotnet-version: 6.0.x
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore ${{ env.CSPROJ }}
     - name: Build
-      run: dotnet build -c ${{ env.RELEASE_TYPE }} --no-restore
+      run: dotnet build ${{ env.CSPROJ }} -c ${{ env.RELEASE_TYPE }} --no-restore
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet test ${{ env.CSPROJ }} --no-build --verbosity normal
     - name: Variable Substitution
       uses: microsoft/variable-substitution@v1
       with:
