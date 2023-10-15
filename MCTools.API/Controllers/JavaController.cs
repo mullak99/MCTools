@@ -14,17 +14,20 @@ namespace MCTools.API.Controllers
 	public class JavaController : ControllerBase
 	{
 		private readonly IToolsLogic _toolsLogic;
-		private const int GET_CACHE_DURATION = 1800; // 30 minutes
+		private readonly ILogger<JavaController> _logger;
+		private const int GET_CACHE_DURATION_ALL = 1800; // 30 minutes
+		private const int GET_CACHE_DURATION_ASSET = 7200; // 2 hours
 
-		public JavaController(IToolsLogic toolsLogic)
+		public JavaController(IToolsLogic toolsLogic, ILogger<JavaController> logger)
 		{
 			_toolsLogic = toolsLogic;
+			_logger = logger;
 		}
 
 		[HttpGet("versions")]
 		[SwaggerResponse(200, Type = typeof(IEnumerable<AssetMCVersion>), Description = "A list of all supported Java versions")]
 		[SwaggerResponse(400, "No versions could be found")]
-		[ResponseCache(Duration = GET_CACHE_DURATION, Location = ResponseCacheLocation.Any, VaryByQueryKeys = new []{ "bypassVersionLimit" }, NoStore = false)]
+		[ResponseCache(Duration = GET_CACHE_DURATION_ALL, Location = ResponseCacheLocation.Any, VaryByQueryKeys = new []{ "bypassVersionLimit" }, NoStore = false)]
 		public async Task<IActionResult> GetAllVersions([FromQuery] bool bypassVersionLimit = false)
 		{
 			try
@@ -37,6 +40,7 @@ namespace MCTools.API.Controllers
 			}
 			catch (Exception ex)
 			{
+				_logger.LogError(ex, "An error occurred while getting all Java versions");
 				return StatusCode(500, ex.Message);
 			}
 		}
@@ -44,7 +48,7 @@ namespace MCTools.API.Controllers
 		[HttpGet("version/{mcVersion}")]
 		[SwaggerResponse(200, Type = typeof(MCAssets), Description = "Assets for a specified Java version")]
 		[SwaggerResponse(400, "No assets could be found")]
-		[ResponseCache(Duration = GET_CACHE_DURATION, VaryByQueryKeys = new[] { "mcVersion" }, Location = ResponseCacheLocation.Any, NoStore = false)]
+		[ResponseCache(Duration = GET_CACHE_DURATION_ASSET, VaryByQueryKeys = new[] { "mcVersion" }, Location = ResponseCacheLocation.Any, NoStore = false)]
 		public async Task<IActionResult> GetVersionAssets([FromRoute] string mcVersion)
 		{
 			try
@@ -57,6 +61,7 @@ namespace MCTools.API.Controllers
 			}
 			catch (Exception ex)
 			{
+				_logger.LogError(ex, $"An error occurred while getting Java assets for version {mcVersion}");
 				return StatusCode(500, ex.Message);
 			}
 		}
@@ -64,7 +69,7 @@ namespace MCTools.API.Controllers
 		[HttpGet("version/{mcVersion}/jar")]
 		[SwaggerResponse(200, Type = typeof(MCAssets), Description = "Jar for a specified Java version")]
 		[SwaggerResponse(400, "Invalid version")]
-		[ResponseCache(Duration = GET_CACHE_DURATION, VaryByQueryKeys = new[] { "mcVersion" }, Location = ResponseCacheLocation.Any, NoStore = false)]
+		[ResponseCache(Duration = GET_CACHE_DURATION_ASSET, VaryByQueryKeys = new[] { "mcVersion" }, Location = ResponseCacheLocation.Any, NoStore = false)]
 		public async Task<IActionResult> GetMinecraftJarUrl([FromRoute] string mcVersion)
 		{
 			try
@@ -77,6 +82,7 @@ namespace MCTools.API.Controllers
 			}
 			catch (Exception ex)
 			{
+				_logger.LogError(ex, $"An error occurred while getting Java jar for version {mcVersion}");
 				return StatusCode(500, ex.Message);
 			}
 		}
@@ -84,7 +90,7 @@ namespace MCTools.API.Controllers
 		[HttpGet("version/{mcVersion}/supports-overlays")]
 		[SwaggerResponse(200, Type = typeof(MCAssets), Description = "Whether a specified Java version supports overlays")]
 		[SwaggerResponse(400, "Invalid version")]
-		[ResponseCache(Duration = GET_CACHE_DURATION, VaryByQueryKeys = new[] { "mcVersion" }, Location = ResponseCacheLocation.Any, NoStore = false)]
+		[ResponseCache(Duration = GET_CACHE_DURATION_ASSET, VaryByQueryKeys = new[] { "mcVersion" }, Location = ResponseCacheLocation.Any, NoStore = false)]
 		public async Task<IActionResult> GetOverlaySupport([FromRoute] string mcVersion)
 		{
 			try
@@ -97,6 +103,7 @@ namespace MCTools.API.Controllers
 			}
 			catch (Exception ex)
 			{
+				_logger.LogError(ex, $"An error occurred while getting Java overlay support for version {mcVersion}");
 				return StatusCode(500, ex.Message);
 			}
 		}
@@ -112,6 +119,7 @@ namespace MCTools.API.Controllers
 			}
 			catch (Exception ex)
 			{
+				_logger.LogError(ex, "An error occurred while pre-generating Java assets");
 				return StatusCode(500, ex.Message);
 			}
 		}

@@ -8,6 +8,7 @@
 			"Microsoft.AspNetCore": "Warning"
 		}
 	},
+	"LogToFileLevel": "Warning",
 	"Auth0": {
 		"Authority": "<Auth0 Authority>",
 		"Audience": "mctools-api",
@@ -25,5 +26,37 @@
 	"Settings": {
 		"ScheduleTime": "00:00:00Z"
 	},
-	"AllowedHosts": "*"
+	"AllowedHosts": "*",
+	"IpRateLimiting": {
+		"EnableEndpointRateLimiting": true,
+		"StackBlockedRequests": true,
+		"RealIpHeader": "X-Real-IP",
+		"ClientIdHeader": "X-ClientId",
+		"HttpStatusCode": 429,
+		"QuotaExceededResponse": {
+			"ContentType": "application/json",
+			"Content": "{\"message\":\"Too many requests.\"}"
+		},
+		"GeneralRules": [
+			{
+				"Endpoint": "*",
+				"Period": "1m",
+				"Limit": 50
+			}
+		]
+	},
+	"IpRateLimitPolicies": {
+		"IpRules": [
+			{
+				"Ip": "192.168.0.0/24",
+				"Rules": [
+					{
+						"Endpoint": "*",
+						"Period": "1m",
+						"Limit": 50
+					}
+				]
+			}
+		]
+	}
 }

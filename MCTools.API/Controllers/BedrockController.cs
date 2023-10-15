@@ -14,17 +14,20 @@ namespace MCTools.API.Controllers
 	public class BedrockController : ControllerBase
 	{
 		private readonly IToolsLogic _toolsLogic;
-		private const int GET_CACHE_DURATION = 1800; // 30 minutes
+		private readonly ILogger<BedrockController> _logger;
+		private const int GET_CACHE_DURATION_ALL = 1800; // 30 minutes
+		private const int GET_CACHE_DURATION_ASSET = 7200; // 2 hours
 
-		public BedrockController(IToolsLogic toolsLogic)
+		public BedrockController(IToolsLogic toolsLogic, ILogger<BedrockController> logger)
 		{
 			_toolsLogic = toolsLogic;
+			_logger = logger;
 		}
 
 		[HttpGet("versions")]
 		[SwaggerResponse(200, Type = typeof(IEnumerable<AssetMCVersion>), Description = "A list of all supported Bedrock versions")]
 		[SwaggerResponse(400, "No versions could be found")]
-		[ResponseCache(Duration = GET_CACHE_DURATION, Location = ResponseCacheLocation.Any, NoStore = false)]
+		[ResponseCache(Duration = GET_CACHE_DURATION_ALL, Location = ResponseCacheLocation.Any, NoStore = false)]
 		public async Task<IActionResult> GetAllVersions()
 		{
 			try
@@ -37,6 +40,7 @@ namespace MCTools.API.Controllers
 			}
 			catch (Exception ex)
 			{
+				_logger.LogError(ex, "An error occurred while getting all Bedrock versions");
 				return StatusCode(500, ex.Message);
 			}
 		}
@@ -44,7 +48,7 @@ namespace MCTools.API.Controllers
 		[HttpGet("version/{mcVersion}")]
 		[SwaggerResponse(200, Type = typeof(MCAssets), Description = "Assets for a specified Bedrock version")]
 		[SwaggerResponse(400, "No assets could be found")]
-		[ResponseCache(Duration = GET_CACHE_DURATION, VaryByQueryKeys = new[] { "mcVersion" }, Location = ResponseCacheLocation.Any, NoStore = false)]
+		[ResponseCache(Duration = GET_CACHE_DURATION_ASSET, VaryByQueryKeys = new[] { "mcVersion" }, Location = ResponseCacheLocation.Any, NoStore = false)]
 		public async Task<IActionResult> GetVersionAssets([FromRoute] string mcVersion)
 		{
 			try
@@ -57,6 +61,7 @@ namespace MCTools.API.Controllers
 			}
 			catch (Exception ex)
 			{
+				_logger.LogError(ex, $"An error occurred while getting Bedrock assets for version {mcVersion}");
 				return StatusCode(500, ex.Message);
 			}
 		}
@@ -72,6 +77,7 @@ namespace MCTools.API.Controllers
 			}
 			catch (Exception ex)
 			{
+				_logger.LogError(ex, "An error occurred while pre-generating Bedrock assets");
 				return StatusCode(500, ex.Message);
 			}
 		}

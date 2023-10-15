@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Hosting;
-
 namespace MCTools.API
 {
 	public class Program

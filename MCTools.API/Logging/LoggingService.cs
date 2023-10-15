@@ -3,13 +3,18 @@
 	public class LoggingService : ILogger
 	{
 		private readonly LogLevel _minLogLevel;
+		private readonly LogLevel _fileLogLevel;
+
+		private readonly string _logDirPath = Path.Combine(AppContext.BaseDirectory, "logs");
 
 		private string CategoryName { get; }
 
-		public LoggingService(LogLevel minLogLevel, string categoryName)
+		public LoggingService(LogLevel minLogLevel, LogLevel fileLogLevel, string categoryName)
 		{
 			_minLogLevel = minLogLevel;
+			_fileLogLevel = fileLogLevel;
 			CategoryName = categoryName;
+			Directory.CreateDirectory(_logDirPath);
 		}
 
 		public IDisposable? BeginScope<TState>(TState state)
@@ -26,14 +31,24 @@
 				return;
 
 			SetConsoleColor(logLevel);
-			Console.WriteLine($"{DateTime.Now,-19} [{LogLevelToString(logLevel),8}] [{CategoryName}]: {formatter(state, exception!)}");
+			string log = $"{DateTime.Now,-19} [{LogLevelToString(logLevel),8}] [{CategoryName}]: {formatter(state, exception!)}";
+			Console.WriteLine(log);
 			Console.ResetColor();
+
+			if (logLevel >= _fileLogLevel)
+				LogToFile(log);
 		}
 
 		public async Task LogAsync<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception, string> formatter)
 		{
 			Log(logLevel, eventId, state, exception, formatter);
 			await Task.CompletedTask;
+		}
+
+		private void LogToFile(string log)
+		{
+			string path = Path.Combine(_logDirPath, $"{DateTime.Now:yyyy-MM-dd}.log");
+			File.WriteAllText(path, $"{log}\n");
 		}
 
 		private static string LogLevelToString(LogLevel logLevel)

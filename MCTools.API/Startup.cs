@@ -1,4 +1,5 @@
-﻿using Auth0.AuthenticationApi;
+﻿using AspNetCoreRateLimit;
+using Auth0.AuthenticationApi;
 using MCTools.API.Abstractions;
 using MCTools.API.Cache;
 using MCTools.API.Extentions;
@@ -7,7 +8,6 @@ using MCTools.API.Logic;
 using MCTools.API.Models;
 using MCTools.API.Repository;
 using MCTools.API.Services;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Http;
 using Microsoft.OpenApi.Models;
@@ -44,6 +44,9 @@ namespace MCTools.API
 				});
 			});
 			services.AddHealthChecks();
+			services.Configure<IpRateLimitOptions>(Configuration.GetSection("IpRateLimiting"));
+			services.Configure<IpRateLimitPolicies>(Configuration.GetSection("IpRateLimitPolicies"));
+			services.AddMemoryCache();
 			services.AddResponseCaching();
 			services.AddRouting(options => options.LowercaseUrls = true);
 			services.AddControllers().AddNewtonsoftJson(options =>
@@ -102,6 +105,12 @@ namespace MCTools.API
 			};
 
 			GlobalSettings = new(Configuration);
+
+			services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
+			services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
+			services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+			services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrategy>();
+
 
 			services.AddSingleton<IGitOptions>(gitOptions);
 			services.AddSingleton<IGitHubClient>(githubClient);
@@ -169,6 +178,7 @@ namespace MCTools.API
 
 			app.UseHttpsRedirection();
 			app.UseResponseCaching();
+			app.UseIpRateLimiting();
 			app.UseRouting();
 			app.UseCors();
 			app.UseAuthentication();

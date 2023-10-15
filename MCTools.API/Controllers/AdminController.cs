@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
-using System.Security.Claims;
 
 namespace MCTools.API.Controllers
 {
@@ -14,10 +13,12 @@ namespace MCTools.API.Controllers
 	public class AdminController : ControllerBase
 	{
 		private readonly IToolsLogic _toolsLogic;
+		private readonly ILogger<AdminController> _logger;
 
-		public AdminController(IToolsLogic toolsLogic)
+		public AdminController(IToolsLogic toolsLogic, ILogger<AdminController> logger)
 		{
 			_toolsLogic = toolsLogic;
+			_logger = logger;
 		}
 
 		[HttpDelete("purge")]
@@ -32,6 +33,41 @@ namespace MCTools.API.Controllers
 			}
 			catch (Exception ex)
 			{
+				_logger.LogError(ex, "An error occurred while purging assets");
+				return StatusCode(500, ex.Message);
+			}
+		}
+
+		[HttpDelete("purge/all")]
+		[SwaggerResponse(200, Description = "Queued asset purging")]
+		[Authorize("write:purge-assets")]
+		public IActionResult PurgeAllAssets()
+		{
+			try
+			{
+				_ = Task.Run(() => _toolsLogic.PurgeAllAssets());
+				return Ok();
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "An error occurred while purging all assets");
+				return StatusCode(500, ex.Message);
+			}
+		}
+
+		[HttpDelete("purge/cache")]
+		[SwaggerResponse(200, Description = "Queued cache purging")]
+		[Authorize("write:purge-assets")]
+		public IActionResult PurgeCache()
+		{
+			try
+			{
+				_ = Task.Run(() => _toolsLogic.PurgeCache());
+				return Ok();
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "An error occurred while purging cache");
 				return StatusCode(500, ex.Message);
 			}
 		}

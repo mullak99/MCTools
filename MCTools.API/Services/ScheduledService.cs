@@ -89,16 +89,19 @@ namespace MCTools.API.Services
 			using IServiceScope scope = _scopeFactory.CreateScope();
 			IToolsLogic toolsLogic = scope.ServiceProvider.GetRequiredService<IToolsLogic>();
 
+			_logger.LogDebug("Purging old assets...");
+			long versionsPurged = await toolsLogic.PurgeAssets();
+			if (versionsPurged > 0)
+				_logger.LogInformation($"Purged {versionsPurged} old versions!");
+
 			List<Task> tasks = new()
 			{
-				toolsLogic.PurgeAssets(),
 				toolsLogic.PregenerateJavaAssets(bypassHighestVersionLimit: true),
 				toolsLogic.PregenerateBedrockAssets()
 			};
 
-			_logger.LogDebug("Pregenerating assets and purging old assets!");
+			_logger.LogDebug("Pregenerating new assets...");
 			await Task.WhenAll(tasks);
 		}
 	}
-
 }

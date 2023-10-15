@@ -73,6 +73,61 @@ namespace MCTools.API.Repository
 				return false;
 			}
 		}
+
+		public async Task<long> DeleteAllVersionAssets()
+		{
+			try
+			{
+				var versions = await _collection.Find(_ => true).ToListAsync();
+				var result = await _collection.DeleteManyAsync(_ => true);
+
+				if (result.DeletedCount > 0)
+				{
+					foreach (var version in versions)
+						_cache.Remove(version.Name, version.Edition, version.Version);
+				}
+
+				return result.DeletedCount;
+			}
+			catch (Exception)
+			{
+				return 0;
+			}
+		}
+
+		public async Task<long> DeleteOldVersionAssets(int currentVersion)
+		{
+			try
+			{
+				var versions = await _collection.Find(x => x.Version < currentVersion).ToListAsync();
+				var result = await _collection.DeleteManyAsync(x => x.Version < currentVersion);
+
+				if (result.DeletedCount > 0)
+				{
+					foreach (var version in versions)
+						_cache.Remove(version.Name, version.Edition, version.Version);
+				}
+
+				return result.DeletedCount;
+			}
+			catch (Exception)
+			{
+				return 0;
+			}
+		}
+
+		public bool DeleteCache()
+		{
+			try
+			{
+				_cache.RemoveAll();
+				return true;
+			}
+			catch (Exception)
+			{
+				return false;
+			}
+		}
 		#endregion
 	}
 
@@ -80,12 +135,15 @@ namespace MCTools.API.Repository
 	{
 		// Create
 		Task AddVersionAssets(MinecraftVersionAssets assets);
-		Task<List<MinecraftVersionAssets>> GetAllVersionAssets();
 
 		// Read
 		Task<MinecraftVersionAssets?> GetVersionAssets(string name, string edition, int assetVersion);
+		Task<List<MinecraftVersionAssets>> GetAllVersionAssets();
 
 		// Delete
 		Task<bool> DeleteVersionAssets(string name, string edition, int assetVersion);
+		Task<long> DeleteAllVersionAssets();
+		Task<long> DeleteOldVersionAssets(int currentVersion);
+		bool DeleteCache();
 	}
 }

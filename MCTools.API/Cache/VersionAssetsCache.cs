@@ -7,7 +7,7 @@ namespace MCTools.API.Cache
 {
 	public class VersionAssetsCache : IVersionAssetsCache
 	{
-		private readonly MemoryCache _cache;
+		private MemoryCache _cache;
 
 		public VersionAssetsCache()
 		{
@@ -19,6 +19,9 @@ namespace MCTools.API.Cache
 
 		public void Remove(string name, string edition, int assetVersion)
 			=> _cache.Remove(ConvertToId(name, edition, assetVersion));
+
+		public void RemoveAll()
+			=> _cache = new MemoryCache(new MemoryCacheOptions());
 
 		public bool TryGetValue(string name, string edition, int assetVersion, out MinecraftVersionAssets assets)
 			=> _cache.TryGetValue(ConvertToId(name, edition, assetVersion), out assets);
@@ -39,6 +42,7 @@ namespace MCTools.API.Cache
 	{
 		void Set(string name, string edition, int assetVersion, MinecraftVersionAssets assets);
 		void Remove(string name, string edition, int assetVersion);
+		void RemoveAll();
 		bool TryGetValue(string name, string edition, int assetVersion, out MinecraftVersionAssets assets);
 	}
 }

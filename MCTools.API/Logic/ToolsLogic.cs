@@ -72,7 +72,7 @@ namespace MCTools.API.Logic
 			};
 		}
 
-		public async Task PurgeAssets()
+		public async Task<long> PurgeAssets()
 		{
 			List<MinecraftVersionAssets> allAssets = await _vaRepository.GetAllVersionAssets();
 
@@ -87,7 +87,18 @@ namespace MCTools.API.Logic
 
 			List<Task> removeTasks = unsupportedAssets.Select(asset => _vaRepository.DeleteVersionAssets(asset.Name, asset.Edition, asset.Version)).Cast<Task>().ToList();
 			await removeTasks.WhenAllThrottledAsync(25);
+
+			return removeTasks.Count;
 		}
+
+		public async Task<long> PurgeOldVersionAssets()
+			=> await _vaRepository.DeleteOldVersionAssets(ASSET_VERSION);
+
+		public async Task<long> PurgeAllAssets()
+			=> await _vaRepository.DeleteAllVersionAssets();
+
+		public bool PurgeCache()
+			=> _vaRepository.DeleteCache();
 
 		public async Task<bool> PregenerateJavaAssets(List<AssetMCVersion>? versions = null, bool bypassHighestVersionLimit = false)
 		{
@@ -439,6 +450,9 @@ namespace MCTools.API.Logic
 		Task<bool> PregenerateJavaAssets(List<AssetMCVersion>? versions = null, bool bypassHighestVersionLimit = false);
 		Task<bool> PregenerateBedrockAssets(List<AssetMCVersion>? versions = null);
 		Task<ResponseModel<string>> GetMinecraftJavaJar(string version);
-		Task PurgeAssets();
+		Task<long> PurgeAssets();
+		Task<long> PurgeOldVersionAssets();
+		Task<long> PurgeAllAssets();
+		bool PurgeCache();
 	}
 }

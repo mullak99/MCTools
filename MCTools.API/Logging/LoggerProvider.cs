@@ -13,7 +13,11 @@
 		{
 			string logLevelStr = _configuration.GetSection("Logging:LogLevel:Default").Value;
 			LogLevel logLevel = Enum.Parse<LogLevel>(logLevelStr);
-			return new LoggingService(logLevel, categoryName);
+
+			string fileLogLevelStr = _configuration.GetSection("LogToFileLevel").Value;
+			LogLevel fileLogLevel = Enum.Parse<LogLevel>(fileLogLevelStr);
+
+			return new LoggingService(logLevel, fileLogLevel, categoryName);
 		}
 
 		public void Dispose()
