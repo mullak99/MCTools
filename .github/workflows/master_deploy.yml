@@ -19,7 +19,6 @@ env:
   RELEASE_TYPE: Release
   ENVIRONMENT: Production
   RELEASETYPE: Stable
-  APIBASE: https://mctools-api.mullak99.co.uk/
   SERVER_TARGET: /var/www/mctools
 
 jobs:
@@ -38,6 +37,9 @@ jobs:
       run: dotnet build ${{ env.CSPROJ }} -c ${{ env.RELEASE_TYPE }} --no-restore
     - name: Test
       run: dotnet test ${{ env.CSPROJ }} --no-build --verbosity normal
+    - name: Get Git Tag
+      id: short-sha
+      run: echo "::set-output name=sha::$(echo ${GITHUB_SHA:0:7})"
     - name: Variable Substitution
       uses: microsoft/variable-substitution@v1
       with:
@@ -45,7 +47,7 @@ jobs:
       env:
         Application.Environment: ${{ env.ENVIRONMENT }}
         Application.ReleaseType: ${{ env.RELEASETYPE }}
-        Endpoint.Production: ${{ env.APIBASE }}
+        Application.GitTag: ${{ steps.short-sha.outputs.sha }}
     - name: Publish
       run: dotnet publish ${{ env.CSPROJ }} -c ${{ env.RELEASE_TYPE }} -o ${{ env.PUBLISH_PATH }}
     - name: Deploy
