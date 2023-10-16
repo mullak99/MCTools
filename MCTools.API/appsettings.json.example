@@ -26,7 +26,8 @@
 	},
 	"Settings": {
 		"ScheduleTime": "00:00:00Z",
-		"TelemetryIgnoreDev": true
+		"TelemetryIgnoreDev": true,
+		"DbNameSuffix": ""
 	},
 	"AllowedHosts": "*",
 	"IpRateLimiting": {

@@ -19,6 +19,7 @@ env:
   RELEASE_TYPE: Release
   SERVER_TARGET: /var/www/mctools.api-beta
   SERVICE_NAME: mctools.api-beta
+  DB_SUFFIX: beta
 
 jobs:
   build:
@@ -49,6 +50,7 @@ jobs:
         Auth0.ClientSecret: ${{ secrets.AUTH0_SECRET }}
         Tokens.GitHub: ${{ secrets.GH_TOKEN }}
         Common.Email: ${{ secrets.EMAIL }}
+        Settings.DbNameSuffix: ${{ env.DB_SUFFIX }}
     - name: Publish
       run: dotnet publish ${{ env.CSPROJ }} -c ${{ env.RELEASE_TYPE }} -o ${{ env.PUBLISH_PATH }}
     - name: Stop Service
