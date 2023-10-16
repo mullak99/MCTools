@@ -48,6 +48,8 @@ jobs:
         Application.Environment: ${{ env.ENVIRONMENT }}
         Application.ReleaseType: ${{ env.RELEASETYPE }}
         Application.GitTag: ${{ steps.short-sha.outputs.sha }}
+    - name: Publish
+      run: dotnet publish ${{ env.CSPROJ }} -c ${{ env.RELEASE_TYPE }} -o ${{ env.PUBLISH_PATH }}
     - name: Remove Existing App
       uses: appleboy/ssh-action@master
       with:
@@ -57,9 +59,7 @@ jobs:
         port: ${{ secrets.PORT }}
         script: |
           sudo rm -rf ${{ env.SERVER_TARGET }}
-          mkdir ${{ env.SERVER_TARGET }}
-    - name: Publish
-      run: dotnet publish ${{ env.CSPROJ }} -c ${{ env.RELEASE_TYPE }} -o ${{ env.PUBLISH_PATH }}
+          mkdir ${{ env.SERVER_TARGET }}  
     - name: Deploy
       uses: appleboy/scp-action@v0.1.4
       with:
