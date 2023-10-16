@@ -61,6 +61,7 @@ jobs:
         script: |
           sudo systemctl stop ${{ env.SERVICE_NAME }}
           sudo rm -rf ${{ env.SERVER_TARGET }}
+          mkdir ${{ env.SERVER_TARGET }}
     - name: Deploy
       uses: appleboy/scp-action@v0.1.4
       with:
