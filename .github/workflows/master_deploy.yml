@@ -68,8 +68,8 @@ jobs:
         source: "${{ env.PUBLISH_PATH }}/*"
         target: ${{ env.SERVER_TARGET }}
         strip_components: 2
-        - name: Change ownership
-    - uses: appleboy/ssh-action@master
+    - name: Change ownership
+      uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USERNAME }}
