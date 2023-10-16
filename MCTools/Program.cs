@@ -74,6 +74,7 @@ namespace MCTools
 			BetaUrl = builder.Configuration["Urls:Beta"];
 
 			builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(ApiAddress ?? string.Empty) });
+			builder.Services.AddScoped<HealthController>();
 			builder.Services.AddScoped<ApiController>();
 			builder.Services.AddScoped<TelemetryController>();
 			builder.Services.AddScoped<JSHelper>();

@@ -6,19 +6,18 @@
 @inherits LayoutComponentBase
 @inject ISnackbar Snackbar
 @inject ApiController _apiController
-@inject HttpClient _httpClient
 @inject JSHelper _jsHelper
 
-<MudText Typo="Typo.h3" GutterBottom="true">Convert Potion Textures</MudText>
+<MudText Typo="Typo.h3" GutterBottom="true">Potion Converter</MudText>
 <MudPaper Class="px-8">
 	<MudGrid Justify="Justify.Center">
 		<MudItem xs="12">
 			<InputFile id="fileInput" OnChange="UploadFile" hidden accept="@Validation.GetSupportedPackFormats(SelectedEdition)" />
 			<MudButton HtmlTag="label"
-					   Variant="Variant.Filled"
-					   Color="Color.Primary"
-					   StartIcon="@Icons.Material.Filled.CloudUpload"
-					   for="fileInput" style="width: 100%;" >
+			           Variant="Variant.Filled"
+			           Color="Color.Primary"
+			           StartIcon="@Icons.Material.Filled.CloudUpload"
+			           for="fileInput" style="width: 100%;" >
 				@UploadText
 			</MudButton>
 		</MudItem>
@@ -32,15 +31,15 @@
 				<MudGrid Justify="Justify.SpaceAround" Spacing="2">
 					<MudList>
 						<ToggleSwitch @bind-Checked="DebugLogging"
-									  Label="Debug Logging"
-									  TooltipText="Output process to the console"
-									  IsProcessing="IsProcessing" />
+						              Label="Debug Logging"
+						              TooltipText="Output process to the console"
+						              IsProcessing="IsProcessing" />
 					</MudList>
 					<MudList>
 						<ToggleSwitch @bind-Checked="PerfLogging"
-									  Label="Performance Logging"
-									  TooltipText="Log performance to the console"
-									  IsProcessing="IsProcessing" />
+						              Label="Performance Logging"
+						              TooltipText="Log performance to the console"
+						              IsProcessing="IsProcessing" />
 					</MudList>
 				</MudGrid>
 			</MudItem>
@@ -48,14 +47,24 @@
 		<MudItem xs="12">
 			<MudProgressLinear Color="Color.Primary" Size="Size.Small" Value="0" Max="100" Indeterminate="IsProcessing" Class="my-7" />
 			<MudButton HtmlTag="label"
-					   Variant="Variant.Filled"
-					   Color="Color.Primary"
-					   StartIcon="@Icons.Material.Filled.Start"
-					   style="width: 100%;"
-					   Disabled="@(IsProcessing || Pack == null)"
-					   OnClick="@ConvertAssets">
-				Convert Potion Textures
+			           Variant="Variant.Filled"
+			           Color="Color.Primary"
+			           StartIcon="@Icons.Material.Filled.Start"
+			           style="width: 100%;"
+			           Disabled="@(IsProcessing || Pack == null)"
+			           OnClick="@ConvertAssets">
+				@ConversionString
 			</MudButton>
 		</MudItem>
 	</MudGrid>
 </MudPaper>
+<MudExpansionPanels Class="pt-4">
+	<MudExpansionPanel Text="Information">
+		<MudText>
+			The potion converter tool can be used to convert Java-edition potion textures to Bedrock-edition potion textures. This will work the other way too in the future.
+		</MudText>
+		<MudText Class="mt-2">
+			Upload a resource pack, select the edition and version of the game the resource pack is for, and click convert.
+		</MudText>
+	</MudExpansionPanel>
+</MudExpansionPanels>

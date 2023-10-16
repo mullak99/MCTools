@@ -39,5 +39,8 @@ namespace MCTools.Logic
 
 		public async Task OpenLinkInNewTab(string url)
 			=> await JS.InvokeVoidAsync("openInNewTab", url);
+
+		public async Task SetTitleAsync(string title)
+			=> await JS.InvokeVoidAsync("setTitle", title);
 	}
 }

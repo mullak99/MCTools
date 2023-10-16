@@ -11,23 +11,21 @@
 			</MudItem>
 			@if (!HideToolbar)
 			{
-				<MudToolBar Dense="true" Class="item-table-toolbar">
+				<MudToolBar Dense="true" Class="item-table-toolbar" WrapContent="true">
 					<MudText Class="pl-2">@AssetList.Count</MudText>
 					<MudSpacer />
-					<MudItem>
-						@if (ClipboardCallback != null)
-						{
-							<MudTooltip Text="Copy" Placement="Placement.Top">
-								<MudIconButton Icon="@Icons.Material.Filled.ContentCopy" OnClick="() => ClipboardCallback.Invoke(AssetList)"></MudIconButton>
-							</MudTooltip>
-						}
-						@if (ExportCallback.HasDelegate)
-						{
-							<MudTooltip Text="Export" Placement="Placement.Top">
-								<MudIconButton Icon="@Icons.Material.Filled.Download" OnClick="ExportCallback"></MudIconButton>
-							</MudTooltip>
-						}
-					</MudItem>
+					@if (ClipboardCallback != null)
+					{
+						<MudTooltip Text="Copy" Placement="Placement.Top">
+							<MudIconButton Icon="@Icons.Material.Filled.ContentCopy" OnClick="() => ClipboardCallback.Invoke(AssetList)" />
+						</MudTooltip>
+					}
+					@if (ExportCallback.HasDelegate)
+					{
+						<MudTooltip Text="Export" Placement="Placement.Top">
+							<MudIconButton Icon="@Icons.Material.Filled.Download" OnClick="ExportCallback" />
+						</MudTooltip>
+					}
 				</MudToolBar>
 			}
 		}

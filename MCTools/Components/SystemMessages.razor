@@ -1,0 +1,29 @@
+﻿@using MCTools.SDK.Enums.Telemetry
+@using MCTools.SDK.Models.Telemetry
+
+@if (Messages is { Count: > 0 })
+{
+	<MudExpansionPanels Class="mt-4">
+		<MudExpansionPanel Text="System Messages" IsInitiallyExpanded="true">
+			@foreach (var message in Messages)
+			{
+				Severity severity = message.Severity switch
+				{
+					ApiMessageSeverity.Normal => Severity.Normal,
+					ApiMessageSeverity.Info => Severity.Info,
+					ApiMessageSeverity.Success => Severity.Success,
+					ApiMessageSeverity.Warning => Severity.Warning,
+					ApiMessageSeverity.Error => Severity.Error,
+					_ => Severity.Normal
+					};
+				<MudAlert id="@message.Id.ToString()" Class="mt-4" Severity="@severity">
+					@message.Message
+				</MudAlert>
+			}
+		</MudExpansionPanel>
+	</MudExpansionPanels>
+}
+
+@code {
+	[Parameter] public List<ApiMessage> Messages { get; set; } = new();
+}

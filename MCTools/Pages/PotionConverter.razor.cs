@@ -86,7 +86,12 @@ namespace MCTools.Pages
 			Console.WriteLine("Converting potions can take a few seconds. While it may appear to be stuck, it isn't. More optimisations are needed.");
 			Snackbar.Add("This process can take a few seconds. See console for more details.", Severity.Warning);
 
-			await Pack.Process(Validation.GetMaxFileSizeBytes());
+			bool success = await Pack.Process(Validation.GetMaxFileSizeBytes());
+			if (!success)
+			{
+				Snackbar.Add("Unable to process resource pack!", Severity.Error);
+				return;
+			}
 
 			Stopwatch fileCheckSw = Stopwatch.StartNew();
 			List<string> reqPaths = new();
@@ -293,6 +298,9 @@ namespace MCTools.Pages
 
 		private async Task<bool> GetOverlaySupport()
 			=> SelectedEdition == MCEdition.Java && await _apiController.GetOverlaySupport(SelectedVersion.Id);
+
+		private string ConversionString
+			=> $"Convert ({(SelectedEdition == MCEdition.Java ? "Java > Bedrock" : "Bedrock > Java")})";
 		#endregion
 		#endregion
 	}

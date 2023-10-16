@@ -20,11 +20,6 @@ namespace MCTools.Pages
 	{
 		#region Variables
 
-		#region Constants
-		private const float VIRTUALIZER_ITEM_SIZE = 36.02f;
-		private const int VIRTUALIZER_OVERSCAN = 64;
-		#endregion
-
 		#region API Values
 		private MCAssets Assets { get; set; }
 		#endregion
@@ -87,7 +82,21 @@ namespace MCTools.Pages
 				@"_MACOSX",
 				@"texts\/",
 				@"textures\/persona_thumbnails",
-				@"textures\/colormap"
+				@"textures\/colormap",
+				@"textures\/trims\/color_palettes",
+				@"textures\/environment\/clouds.png",
+				@"textures\/environment\/end_portal_colors.png",
+				@"textures\/entity\/horse\/armor\/horse_armor_none.png",
+				@"textures\/entity\/horse\/horse_markings_none.png",
+				@"textures\/entity\/horse2\/armor\/horse_armor_none.png",
+				@"textures\/entity\/horse2\/horse_markings_none.png",
+				@"textures\/entity\/iron_golem\/cracked_none.png",
+				@"textures\/entity\/llama\/decor\/decor_none.png",
+				@"textures\/entity\/llama\/spit.png",
+				@"textures\/entity\/lead_rope.png",
+				@"textures\/entity\/loyalty_rope.png",
+				@"textures\/entity\/cape_invisible.png",
+				@"textures\/entity\/zombie_villager2\/professions\/unskilled.tga"
 			};
 		#endregion
 		#endregion
@@ -274,6 +283,19 @@ namespace MCTools.Pages
 		/// <returns></returns>
 		private async Task Compare(List<string> refTexFiles, List<string> refMcMetaFiles, List<string> blacklist)
 		{
+			Stopwatch st = Stopwatch.StartNew();
+			bool success = await Pack.Process(Validation.GetMaxFileSizeBytes());
+			st.Stop();
+
+			if (!success)
+			{
+				Snackbar.Add("Unable to process resource pack!", Severity.Error);
+				return;
+			}
+
+			if (PerfLogging)
+				Console.WriteLine($"Processed pack in {st.ElapsedMilliseconds}ms");
+
 			List<Task> tasks = new()
 			{
 				CompareTextures(refTexFiles, blacklist)
@@ -302,13 +324,6 @@ namespace MCTools.Pages
 			MissingTexturesList.Clear();
 			UnusedTexturesList.Clear();
 			TotalTextures = 0;
-
-			Stopwatch st = Stopwatch.StartNew();
-			await Pack.Process(Validation.GetMaxFileSizeBytes());
-			st.Stop();
-
-			if (PerfLogging)
-				Console.WriteLine($"Got all pack textures in {st.ElapsedMilliseconds}ms");
 
 			List<string> packFiles = Pack.GetTextures();
 
@@ -367,13 +382,6 @@ namespace MCTools.Pages
 			MissingMcMetasList.Clear();
 			UnusedMcMetasList.Clear();
 			TotalMcMetas = 0;
-
-			Stopwatch st = Stopwatch.StartNew();
-			await Pack.Process(Validation.GetMaxFileSizeBytes());
-			st.Stop();
-
-			if (PerfLogging)
-				Console.WriteLine($"Got all pack MCMetas in {st.ElapsedMilliseconds}ms");
 
 			List<string> packFiles = Pack.GetMcMetas();
 

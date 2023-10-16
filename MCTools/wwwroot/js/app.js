@@ -59,3 +59,7 @@ function base64ToBlob(base64Data, contentType) {
 window.openInNewTab = (url) => {
     window.open(url, '_blank');
 }
+
+window.setTitle = (title) => {
+    document.title = title;
+}

@@ -1,0 +1,27 @@
+﻿@using MCTools.Enums
+
+<MudItem Class="mt-1">
+	@switch (Status)
+	{
+		case ApiStatus.Online:
+			<MudTooltip Placement="Placement.Top" Text="The API is online. Everything should work as intended!">
+				<MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Title="Online" />
+			</MudTooltip>
+			break;
+		case ApiStatus.Offline:
+			<MudTooltip Placement="Placement.Top" Text="The API is offline. Most of the web app functions will fail!">
+				<MudIcon Icon="@Icons.Material.Filled.Cancel" Color="Color.Error" Title="Offline" />
+			</MudTooltip>
+			break;
+		case ApiStatus.Unknown:
+		default:
+			<MudTooltip Placement="Placement.Top" Text="The API status is unknown. This should change in a few seconds.">
+				<MudIcon Icon="@Icons.Material.Filled.Help" Color="Color.Info" Title="Unknown" />
+			</MudTooltip>
+			break;
+	}
+</MudItem>
+
+@code {
+	[Parameter] public ApiStatus Status { get; set; } = ApiStatus.Unknown;
+}
