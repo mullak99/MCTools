@@ -71,7 +71,6 @@ jobs:
         source: "${{ env.PUBLISH_PATH }}/*"
         target: ${{ env.SERVER_TARGET }}
         strip_components: 2
-        rm: true
     - name: Start Service
       uses: appleboy/ssh-action@master
       with:
