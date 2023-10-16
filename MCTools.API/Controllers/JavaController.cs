@@ -9,7 +9,6 @@ namespace MCTools.API.Controllers
 	[ApiController]
 	[ApiVersion("1.0")]
 	[Route("api/v{apiVersion:apiVersion}/[controller]")]
-	[SwaggerResponse(401, "You are not authorized to access this")]
 	[SwaggerResponse(500, "An unexpected error occurred")]
 	public class JavaController : ControllerBase
 	{
@@ -109,8 +108,9 @@ namespace MCTools.API.Controllers
 		}
 
 		[HttpGet("pregenerate")]
-		[SwaggerResponse(200, Description = "Assets for all supported Java versions have been pre-generated")]
 		[Authorize("write:pregenerate-assets")]
+		[SwaggerResponse(200, Description = "Assets for all supported Java versions have been pre-generated")]
+		[SwaggerResponse(401, "You are not authorized to access this")]
 		public async Task<IActionResult> PregenerateAssets([FromQuery] bool bypassVersionLimit = false)
 		{
 			try

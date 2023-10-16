@@ -5,7 +5,8 @@
 	"Logging": {
 		"LogLevel": {
 			"Default": "Information",
-			"Microsoft.AspNetCore": "Warning"
+			"Microsoft.AspNetCore": "Warning",
+			"System.Net.Http.HttpClient.Default.ClientHandler": "Warning"
 		}
 	},
 	"LogToFileLevel": "Warning",
@@ -24,7 +25,8 @@
 		"UserAgent": "mctools-api"
 	},
 	"Settings": {
-		"ScheduleTime": "00:00:00Z"
+		"ScheduleTime": "00:00:00Z",
+		"TelemetryIgnoreDev": true
 	},
 	"AllowedHosts": "*",
 	"IpRateLimiting": {

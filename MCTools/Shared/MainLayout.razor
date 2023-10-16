@@ -1,8 +1,10 @@
 ﻿@using Blazored.LocalStorage
+@using MCTools.Controllers
 @inherits LayoutComponentBase
 
 @inject ILocalStorageService localStore
 @inject IDialogService Dialog
+@inject TelemetryController telemetryController
 
 <MudThemeProvider Theme="CurrentTheme" />
 <MudDialogProvider />
@@ -20,7 +22,7 @@
 		<MudIconButton Class="ml-8" Icon="@Icons.Material.Filled.Settings" Color="Color.Inherit" Title="Settings" OnClick="@OpenSettingsDialog" />
 		<MudIconButton Icon="@(IsDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" Title="@(IsDarkMode ? "Toggle Light Mode" : "Toggle Dark Mode")" Color="Color.Inherit" OnClick="@ToggleTheme" />
 	</MudAppBar>
-	<MudDrawer @bind-Open="IsDrawerOpen" ClipMode="DrawerClipMode.Docked">
+	<MudDrawer @bind-Open="IsDrawerOpen" ClipMode="DrawerClipMode.Docked" Variant="DrawerVariant.Responsive">
 		<NavMenu />
 	</MudDrawer>
 	<MudMainContent>
@@ -28,4 +30,12 @@
 			@Body
 		</MudContainer>
 	</MudMainContent>
+	<MudAppBar Bottom="true" Fixed="true" Dense="true" Elevation="1">
+		<MudText Typo="Typo.caption">
+			MCTools @Program.GetVersion()
+				(@Program.GetGitTag())
+		</MudText>
+		<MudSpacer/>
+		<MudIconButton Icon="@Icons.Material.Filled.PrivacyTip" Color="Color.Inherit" Title="Privacy Policy" Edge="Edge.End" Href="/privacy"/>
+	</MudAppBar>
 </MudLayout>

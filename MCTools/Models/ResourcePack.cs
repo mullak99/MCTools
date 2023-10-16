@@ -109,7 +109,7 @@ namespace MCTools.Models
 				{
 					string folderName = GetDirectoryName(file.FullName);
 					string ext = Path.GetExtension(fileName).ToLower().Replace(".", string.Empty);
-					if (folderName == "assets" || string.IsNullOrWhiteSpace(folderName))
+					if ((_selectedEdition == MCEdition.Java && folderName == "assets") || (_selectedEdition == MCEdition.Bedrock && folderName == "textures") || string.IsNullOrWhiteSpace(folderName))
 					{
 						if (_imageFileTypes.Contains(ext))
 							BaseAssets?.Textures.Add(fileName);

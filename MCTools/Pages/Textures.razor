@@ -169,7 +169,7 @@
 							   ExportCallback="ExportUnusedTextures"
 							   BadgeColor="Color.Warning" />
 
-				@if (!ExcludeMcMetas)
+				@if (!ExcludeMcMetas && SelectedEdition == MCEdition.Java)
 				{
 					<AssetTabPanel TabName="Matching McMetas"
 								   EmptyListText="No matching MCMetas"

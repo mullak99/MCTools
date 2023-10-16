@@ -87,7 +87,9 @@ namespace MCTools.API.Services
 			{
 				"admin-action",
 				"write:pregenerate-assets",
-				"write:purge-assets"
+				"write:purge-assets",
+				"read:telemetry",
+				"delete:telemetry"
 			};
 		}
 	}

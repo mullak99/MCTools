@@ -10,13 +10,15 @@ using System.Globalization;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
+using MCTools.SDK.Enums.Telemetry;
+using MCTools.SDK.Models.Telemetry;
 
 namespace MCTools
 {
 	public class Program
 	{
 		private static bool _isPreRelease;
-		private static byte _preReleaseTag = 1;
+		private static byte _preReleaseTag = 1; // Placeholder. Appsettings will override this.
 		private static string _releaseType;
 		private static string _gitTag = "dev";
 
@@ -25,6 +27,8 @@ namespace MCTools
 
 		public static string BaseAddress;
 		public static string ApiAddress;
+
+		private static AppInfo _appInfo;
 
 		public static async Task Main(string[] args)
 		{
@@ -71,12 +75,30 @@ namespace MCTools
 
 			builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(ApiAddress ?? string.Empty) });
 			builder.Services.AddScoped<ApiController>();
+			builder.Services.AddScoped<TelemetryController>();
 			builder.Services.AddScoped<JSHelper>();
 
 			BaseAddress = builder.HostEnvironment.BaseAddress;
 
+			_appInfo = new AppInfo
+			{
+				AppId = "MCTools",
+				ReleaseType = apiType switch
+				{
+					"Stable" => AppReleaseType.Stable,
+					"Beta" => AppReleaseType.Beta,
+					"Development" => AppReleaseType.Dev,
+					_ => AppReleaseType.Unknown
+				},
+				Version = GetVersion(),
+				Build = _gitTag
+			};
+
 			await builder.Build().RunAsync();
 		}
+
+		public static AppInfo GetAppInfo()
+			=> _appInfo;
 
 		public static bool IsPreRelease()
 			=> _isPreRelease;
@@ -97,15 +119,21 @@ namespace MCTools
 			if (IsPreRelease())
 				verString += $"-{GetReleaseType(true)}{_preReleaseTag}";
 			if (includeGitTag)
-				verString += $" ({_gitTag})";
+				verString += $" ({GetGitTag()})";
 
 			return verString;
 		}
+
+		public static string GetGitTag()
+			=> _gitTag;
 
 		public static string GetStableUrl()
 			=> StableUrl;
 
 		public static string GetBetaUrl()
 			=> BetaUrl;
+
+		public static string GetUrl()
+			=> IsPreRelease() ? GetBetaUrl() : GetStableUrl();
 	}
 }

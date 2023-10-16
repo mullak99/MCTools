@@ -8,9 +8,13 @@ using MCTools.API.Logic;
 using MCTools.API.Models;
 using MCTools.API.Repository;
 using MCTools.API.Services;
+using MCTools.SDK.Enums.Telemetry;
+using MCTools.SDK.Models.Telemetry;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Http;
+using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
+using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using Octokit;
@@ -106,6 +110,12 @@ namespace MCTools.API
 
 			GlobalSettings = new(Configuration);
 
+			BsonClassMap.RegisterClassMap<AppInfo>(cm =>
+			{
+				cm.AutoMap();
+				cm.SetIgnoreExtraElements(true);
+			});
+
 			services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
 			services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
 			services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
@@ -121,9 +131,11 @@ namespace MCTools.API
 
 			// Repos
 			services.AddScoped<IVersionAssetsRepository, VersionAssetsRepository>();
+			services.AddScoped<ITelemetryRepository, TelemetryRepository>();
 
 			// Logic
 			services.AddScoped<IToolsLogic, ToolsLogic>();
+			services.AddScoped<ITelemetryLogic, TelemetryLogic>();
 
 			// Autorun
 			services.AddHostedService<ScheduledService>();
@@ -160,6 +172,16 @@ namespace MCTools.API
 					}
 				});
 				c.OperationFilter<SecurityRequirementsOperationFilter>();
+				c.UseAllOfToExtendReferenceSchemas();
+
+				c.MapType<AppReleaseType>(() => new OpenApiSchema
+				{
+					Type = "string",
+					Enum = Enum.GetValues(typeof(AppReleaseType))
+						.Cast<AppReleaseType>()
+						.Select(e => new OpenApiString(e.ToString()))
+						.ToList<IOpenApiAny>()
+				});
 			});
 		}
 

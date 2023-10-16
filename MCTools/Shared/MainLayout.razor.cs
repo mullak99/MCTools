@@ -12,7 +12,7 @@ namespace MCTools.Shared
 		public bool IsDarkMode { get; set; } = true;
 		public bool IsDrawerOpen { get; set; } = true;
 
-		public static bool ExpandedVersionSelector { get; set; } = false;
+		public static bool ExpandedVersionSelector { get; set; }
 
 		#if DEBUG
 		public const bool DebugMode = true;
@@ -26,6 +26,11 @@ namespace MCTools.Shared
 		{
 			await Task.WhenAll(GetCurrentThemeFromLocalStorage(), GetDebugFromLocalStorage(), GetExpandedVersionsFromLocalStorage());
 			await InvokeAsync(StateHasChanged);
+
+			_ = Task.Run(async () =>
+			{
+				await telemetryController.AddAppLaunch();
+			});
 		}
 
 		private void OpenSettingsDialog()

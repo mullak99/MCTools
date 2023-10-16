@@ -421,7 +421,7 @@ namespace MCTools.Pages
 		}
 
 		private async Task<bool> GetOverlaySupport()
-			=> await _apiController.GetOverlaySupport(SelectedVersion.Id);
+			=> SelectedEdition == MCEdition.Java && await _apiController.GetOverlaySupport(SelectedVersion.Id);
 		#endregion
 
 		#region Blacklist

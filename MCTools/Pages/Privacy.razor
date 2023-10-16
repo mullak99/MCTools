@@ -1,0 +1,51 @@
+﻿@page "/privacy"
+
+<MudText Typo="Typo.h3">Privacy Policy</MudText>
+<MudText Class="mb-8">Last edited: 15th October 2023</MudText>
+<MudText Class="mb-8">This Privacy Policy describes how your personal information is collected, used and shared when you visit <a href="@Program.GetUrl()">@Program.GetUrl()</a>.</MudText>
+
+<MudExpansionPanels MultiExpansion="true">
+	<MudExpansionPanel Text="What data is collected?" IsInitiallyExpanded="true">
+		<MudText>
+			When you open the web app, the following data about the web app is collected:
+			<li>App name</li>
+			<li>App version</li>
+			<li>App release type (Stable, Beta, etc.)</li>
+			<li>The date and time (UTC)</li>
+		</MudText>
+		<MudText Class="pt-2">
+			No data collected is personally identifiable.
+		</MudText>
+	</MudExpansionPanel>
+	<MudExpansionPanel Text="Why is this data collected?" IsInitiallyExpanded="true">
+		<MudText>
+			<li>Enhancing: Help understand how people are using the web app to see how it should be developed further.</li>
+			<li>Optimisation: Find any performance-related issues. Both for web app performance and API performance.</li>
+			<li>Bug Rectification: Find and report and errors encountered to help track and resolve bugs.</li>
+		</MudText>
+	</MudExpansionPanel>
+	<MudExpansionPanel Text="Is this data shared?" IsInitiallyExpanded="true">
+		<MudText>
+			No. This data is never shared.
+		</MudText>
+	</MudExpansionPanel>
+	<MudExpansionPanel Text="Third-party services" IsInitiallyExpanded="true">
+		<MudText>
+			Cloudflare is used by both the Web App (what you are using now), and the API behind it.
+			Please refer to their privacy policy for more information: <a href="https://www.cloudflare.com/en-gb/gdpr/introduction">https://www.cloudflare.com/en-gb/gdpr/introduction</a>.
+		</MudText>
+	</MudExpansionPanel>
+	<MudExpansionPanel Text="Cookies" IsInitiallyExpanded="true">
+		<MudText>
+			Something similar to cookies called "localstorage" is used to save some user settings. This includes:
+			<li>Selected theme</li>
+			<li>Debug/Developer mode</li>
+			<li>Extended versions</li>
+		</MudText>
+	</MudExpansionPanel>
+	<MudExpansionPanel Text="Contact" IsInitiallyExpanded="true">
+		<MudText>
+			If you have any questions about this Privacy Policy, contact me by e-mail at <a href="mailto:mullak99@mullak99.co.uk">mullak99@mullak99.co.uk</a>.
+		</MudText>
+	</MudExpansionPanel>
+</MudExpansionPanels>
