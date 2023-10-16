@@ -58,7 +58,9 @@ jobs:
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.SSHKEY }}
         port: ${{ secrets.PORT }}
-        script: sudo systemctl stop ${{ env.SERVICE_NAME }}
+        script: |
+          sudo systemctl stop ${{ env.SERVICE_NAME }}
+          sudo rm -rf ${{ SERVER_TARGET }}
     - name: Deploy
       uses: appleboy/scp-action@v0.1.4
       with:
@@ -77,4 +79,7 @@ jobs:
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.SSHKEY }}
         port: ${{ secrets.PORT }}
-        script: sudo systemctl start ${{ env.SERVICE_NAME }}
+        script: | 
+          sudo chmod +x ${{ SERVER_TARGET }}/MCTools.API.dll
+          sudo chown -R www-data:www-data ${{ SERVER_TARGET }}
+          sudo systemctl start ${{ env.SERVICE_NAME }}
