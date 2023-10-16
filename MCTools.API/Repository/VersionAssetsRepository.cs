@@ -9,9 +9,12 @@ namespace MCTools.API.Repository
 		private readonly IMongoCollection<MinecraftVersionAssets> _collection;
 		private readonly IVersionAssetsCache _cache;
 
-		public VersionAssetsRepository(IMongoDatabase database, IVersionAssetsCache cache)
+		public VersionAssetsRepository(IMongoDatabase database, IVersionAssetsCache cache, GlobalSettings globalSettings)
 		{
-			_collection = database.GetCollection<MinecraftVersionAssets>("MinecraftVersionAssets");
+			string dbName = "MinecraftVersionAssets";
+			if (!string.IsNullOrWhiteSpace(globalSettings.DbNameSuffix))
+				dbName += $"-{globalSettings.DbNameSuffix}";
+			_collection = database.GetCollection<MinecraftVersionAssets>(dbName);
 			_cache = cache;
 		}
 

@@ -8,9 +8,12 @@ namespace MCTools.API.Repository
 	{
 		private readonly IMongoCollection<AppInfo> _appInfo;
 
-		public TelemetryRepository(IMongoDatabase database)
+		public TelemetryRepository(IMongoDatabase database, GlobalSettings globalSettings)
 		{
-			_appInfo = database.GetCollection<AppInfo>("Telemetry.AppLaunchInfo");
+			string dbName = "Telemetry.AppLaunchInfo";
+			if (!string.IsNullOrWhiteSpace(globalSettings.DbNameSuffix))
+				dbName += $"-{globalSettings.DbNameSuffix}";
+			_appInfo = database.GetCollection<AppInfo>(dbName);
 		}
 
 		#region AppInfo

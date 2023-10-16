@@ -4,6 +4,7 @@
 	{
 		public TimeOnly ScheduleTime { get; set; }
 		public bool TelemetryIgnoreDev { get; set; } = true;
+		public string DbNameSuffix { get; set; } = string.Empty;
 
 		public GlobalSettings(IConfiguration configuration)
 		{
@@ -12,6 +13,9 @@
 
 			if (bool.TryParse(configuration["Settings:TelemetryIgnoreDev"], out bool parsedTeleIgnoreDev))
 				TelemetryIgnoreDev = parsedTeleIgnoreDev;
+
+			if (!string.IsNullOrWhiteSpace(configuration["Settings:DbNameSuffix"]))
+				DbNameSuffix = configuration["Settings:DbNameSuffix"];
 		}
 	}
 }
