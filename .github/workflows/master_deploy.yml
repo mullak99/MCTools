@@ -55,7 +55,7 @@ jobs:
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.SSHKEY }}
         port: ${{ secrets.PORT }}
-        script: sudo rm -rf ${{ SERVER_TARGET }}
+        script: sudo rm -rf ${{ env.SERVER_TARGET }}
     - name: Publish
       run: dotnet publish ${{ env.CSPROJ }} -c ${{ env.RELEASE_TYPE }} -o ${{ env.PUBLISH_PATH }}
     - name: Deploy
@@ -76,4 +76,4 @@ jobs:
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.SSHKEY }}
         port: ${{ secrets.PORT }}
-        script: sudo chown -R www-data:www-data ${{ SERVER_TARGET }}
+        script: sudo chown -R www-data:www-data ${{ env.SERVER_TARGET }}
