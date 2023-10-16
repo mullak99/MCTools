@@ -46,6 +46,14 @@ jobs:
         Application.Environment: ${{ env.ENVIRONMENT }}
         Application.ReleaseType: ${{ env.RELEASETYPE }}
         Application.GitTag: ${{ steps.short-sha.outputs.sha }}
+    - name: Remove Existing App
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.SSHKEY }}
+        port: ${{ secrets.PORT }}
+        script: sudo rm -rf ${{ SERVER_TARGET }}
     - name: Publish
       run: dotnet publish ${{ env.CSPROJ }} -c ${{ env.RELEASE_TYPE }} -o ${{ env.PUBLISH_PATH }}
     - name: Deploy
@@ -59,3 +67,11 @@ jobs:
         target: ${{ env.SERVER_TARGET }}
         strip_components: 2
         rm: true
+    - name: Change ownership
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.SSHKEY }}
+        port: ${{ secrets.PORT }}
+        script: sudo chown -R www-data:www-data ${{ SERVER_TARGET }}
