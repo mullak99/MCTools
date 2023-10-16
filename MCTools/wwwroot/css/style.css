@@ -1,5 +1,5 @@
 ﻿.item-tab-panel {
-	width: 255px;
+	width: 250px;
 }
 
 .item-tab-root-list {
@@ -37,4 +37,10 @@
 	position: absolute;
 	bottom: 6px;
 	left: 2px;
+}
+
+.toolbar-version {
+	border-right: 1px solid var(--mud-palette-lines-default);
+	margin: 0 2.5rem 0 0;
+	padding: 0 2.5rem 0 0;
 }

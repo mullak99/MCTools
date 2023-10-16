@@ -10,7 +10,7 @@
 @inject HttpClient _httpClient
 @inject JSHelper _jsHelper
 
-<MudText Typo="Typo.h3" GutterBottom="true">Vanilla Texture Assets</MudText>
+<MudText Typo="Typo.h3" GutterBottom="true">Vanilla Assets</MudText>
 <MudPaper Class="px-8">
 	<MudGrid Justify="Justify.Center">
 		<VersionSelector ApiController="_apiController" VersionChanged="SelectedVersionChanged" EditionChanged="SelectedEditionChanged" IsProcessing="IsProcessing" />
@@ -69,3 +69,14 @@
 		</MudItem>
 	</MudGrid>
 </MudPaper>
+<MudExpansionPanels Class="pt-4">
+	<MudExpansionPanel Text="Information">
+		<MudText>
+			The vanilla assets tool can be used to download a copy of Vanilla Minecraft's assets.
+			Java assets will be limited to just textures and optionally mcmetas. Bedrock assets will be everything from the Bedrock samples.
+		</MudText>
+		<MudText Class="mt-2">
+			Select an edition and version of the game and click download.
+		</MudText>
+	</MudExpansionPanel>
+</MudExpansionPanels>

@@ -87,7 +87,7 @@ namespace MCTools.Controllers
 				if (bool.TryParse(await res.Content.ReadAsStringAsync(), out bool result))
 					return result;
 			}
-			return false;
+			return true;
 		}
 	}
 }

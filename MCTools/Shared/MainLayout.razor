@@ -1,10 +1,15 @@
 ﻿@using Blazored.LocalStorage
 @using MCTools.Controllers
+@using MCTools.Components
+@using MCTools.Logic
 @inherits LayoutComponentBase
 
 @inject ILocalStorageService localStore
 @inject IDialogService Dialog
+@inject HealthController healthController
 @inject TelemetryController telemetryController
+@inject ISnackbar Snackbar
+@inject JSHelper _jsHelper
 
 <MudThemeProvider Theme="CurrentTheme" />
 <MudDialogProvider />
@@ -13,29 +18,38 @@
 <MudLayout>
 	<MudAppBar Elevation="0" Dense="true" Fixed="true">
 		<MudIconButton Icon="@(IsDrawerOpen ? Icons.Material.Filled.MenuOpen : Icons.Material.Filled.Menu)" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => ToggleDrawer())" />
-		<MudText Typo="Typo.h6" Class="px-4">Minecraft Tools @(Program.IsPreRelease() ? $" ({Program.GetReleaseType(true, true)})" : string.Empty)</MudText>
-
+		<MudText Typo="Typo.h6" Class="pl-4 pr-1">Minecraft Tools</MudText>
+		@if (Program.IsPreRelease())
+		{
+			<MudIcon Icon="@Icons.Material.Filled.Science" Title="@Program.GetReleaseType(true, true)" />
+		}
 		<MudSpacer />
-		<MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Title="GitHub" aria-label="github" Href="https://github.com/mullak99/MCTools" />
-		<MudIconButton Icon="@Icons.Material.Filled.Api" Color="Color.Inherit" Title="Swagger" Href="@($"{Program.ApiAddress.TrimEnd('/', '\\')}/swagger")" />
+		<MudToolBar WrapContent="true" Dense="true" DisableGutters="true">
+			<MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Title="GitHub" aria-label="github" Href="https://github.com/mullak99/MCTools" />
+			<MudIconButton Icon="@Icons.Material.Filled.Api" Color="Color.Inherit" Title="Swagger" Href="@($"{Program.ApiAddress.TrimEnd('/', '\\')}/swagger")" />
 
-		<MudIconButton Class="ml-8" Icon="@Icons.Material.Filled.Settings" Color="Color.Inherit" Title="Settings" OnClick="@OpenSettingsDialog" />
-		<MudIconButton Icon="@(IsDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" Title="@(IsDarkMode ? "Toggle Light Mode" : "Toggle Dark Mode")" Color="Color.Inherit" OnClick="@ToggleTheme" />
+			<MudIconButton Class="ml-8" Icon="@Icons.Material.Filled.Settings" Color="Color.Inherit" Title="Settings" OnClick="@OpenSettingsDialog" />
+			<MudIconButton Icon="@(IsDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" Title="@(IsDarkMode ? "Toggle Light Mode" : "Toggle Dark Mode")" Color="Color.Inherit" OnClick="@ToggleTheme" />
+		</MudToolBar>
 	</MudAppBar>
 	<MudDrawer @bind-Open="IsDrawerOpen" ClipMode="DrawerClipMode.Docked" Variant="DrawerVariant.Responsive">
 		<NavMenu />
 	</MudDrawer>
 	<MudMainContent>
-		<MudContainer MaxWidth="MaxWidth.Large" Class="justify-center py-2 px-4 mt-4">
+		<MudContainer MaxWidth="MaxWidth.Large" Class="justify-center py-2 px-4 mt-4 mb-16">
 			@Body
 		</MudContainer>
 	</MudMainContent>
 	<MudAppBar Bottom="true" Fixed="true" Dense="true" Elevation="1">
-		<MudText Typo="Typo.caption">
+		<MudText Typo="Typo.caption" Class="toolbar-version">
 			MCTools @Program.GetVersion()
-				(@Program.GetGitTag())
+			(@Program.GetGitTag())
 		</MudText>
+		<ApiStatusIcon Status="@ApiStatus" />
 		<MudSpacer/>
-		<MudIconButton Icon="@Icons.Material.Filled.PrivacyTip" Color="Color.Inherit" Title="Privacy Policy" Edge="Edge.End" Href="/privacy"/>
+		<MudToolBar WrapContent="true" Dense="true" DisableGutters="true">
+			<MudIconButton Icon="@Icons.Material.Filled.BugReport" Color="Color.Inherit" Title="Report a bug" Href="https://github.com/mullak99/MCTools/issues" />
+			<MudIconButton Icon="@Icons.Material.Filled.PrivacyTip" Color="Color.Inherit" Title="Privacy Policy" Href="/privacy" />
+		</MudToolBar>
 	</MudAppBar>
 </MudLayout>

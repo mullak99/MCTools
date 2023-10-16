@@ -93,43 +93,55 @@ namespace MCTools.Models
 			}
 		}
 
-		public async Task Process(int maxBytes)
+		public async Task<bool> Process(int maxBytes)
 		{
-			if (BaseAssets == null)
-				await Init(maxBytes);
-
-			await using MemoryStream ms = new(maxBytes);
-			await _packFile.OpenReadStream(maxBytes).CopyToAsync(ms);
-			using ZipArchive zip = new(ms);
-
-			foreach (ZipArchiveEntry file in zip.Entries)
+			try
 			{
-				string fileName = GetFileName(file.FullName, _selectedEdition);
-				if (fileName != null)
-				{
-					string folderName = GetDirectoryName(file.FullName);
-					string ext = Path.GetExtension(fileName).ToLower().Replace(".", string.Empty);
-					if ((_selectedEdition == MCEdition.Java && folderName == "assets") || (_selectedEdition == MCEdition.Bedrock && folderName == "textures") || string.IsNullOrWhiteSpace(folderName))
-					{
-						if (_imageFileTypes.Contains(ext))
-							BaseAssets?.Textures.Add(fileName);
-						else if (ext == "mcmeta" && fileName != "pack.mcmeta")
-							BaseAssets?.McMetas.Add(fileName);
-					}
-					else
-					{
-						Assets overlay = Overlays.FirstOrDefault(x => x.Name == folderName);
-						if (overlay == null)
-							continue;
+				if (BaseAssets == null)
+					await Init(maxBytes);
 
-						if (_imageFileTypes.Contains(ext))
-							overlay.Textures.Add(fileName.Replace($"{folderName}/", string.Empty));
-						else if (ext == "mcmeta")
-							overlay.McMetas.Add(fileName.Replace($"{folderName}/", string.Empty));
+				await using MemoryStream ms = new(maxBytes);
+				await _packFile.OpenReadStream(maxBytes).CopyToAsync(ms);
+				using ZipArchive zip = new(ms);
+
+				foreach (ZipArchiveEntry file in zip.Entries)
+				{
+					string fileName = GetFileName(file.FullName, _selectedEdition);
+					if (fileName != null)
+					{
+						string folderName = GetDirectoryName(file.FullName);
+						string ext = Path.GetExtension(fileName).ToLower().Replace(".", string.Empty);
+						if ((_selectedEdition == MCEdition.Java && folderName == "assets") || (_selectedEdition == MCEdition.Bedrock && folderName == "textures") || string.IsNullOrWhiteSpace(folderName))
+						{
+							if (_imageFileTypes.Contains(ext))
+								BaseAssets?.Textures.Add(fileName);
+							else if (ext == "mcmeta" && fileName != "pack.mcmeta")
+								BaseAssets?.McMetas.Add(fileName);
+						}
+						else
+						{
+							Assets overlay = Overlays.FirstOrDefault(x => x.Name == folderName);
+							if (overlay == null)
+								continue;
+
+							if (_imageFileTypes.Contains(ext))
+								overlay.Textures.Add(fileName.Replace($"{folderName}/", string.Empty));
+							else if (ext == "mcmeta")
+								overlay.McMetas.Add(fileName.Replace($"{folderName}/", string.Empty));
+						}
 					}
 				}
+				return true;
 			}
-			IsProcessed = true;
+			catch (Exception e)
+			{
+				Console.WriteLine($"Unable to load resourcepack! {e.Message}");
+				return false;
+			}
+			finally
+			{
+				IsProcessed = true;
+			}
 		}
 
 		public List<string> GetTextures()
