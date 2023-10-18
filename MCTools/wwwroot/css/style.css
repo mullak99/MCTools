@@ -10,6 +10,7 @@
 
 .item-tab-panel-item {
 	position: relative;
+	min-height: 145px;
 	max-height: 260px;
 	width: 100%;
 	overflow-y: scroll;
@@ -30,7 +31,7 @@
 }
 
 .action-button {
-	width: 128px;
+	width: 150px;
 }
 
 .settings-version {

@@ -51,7 +51,7 @@ namespace MCTools.API.Logic
 
 		public async Task<ResponseModel<string>> GetMinecraftJavaJar(string version)
 		{
-			List<AssetMCVersion> supportedVersions = await GetJavaMCVersions();
+			List<AssetMCVersion> supportedVersions = await GetJavaMCVersions(true);
 			AssetMCVersion? mcVer = supportedVersions.FirstOrDefault(x => x.Id == version && x.Edition == "java");
 
 			string jUrl = string.Empty;
