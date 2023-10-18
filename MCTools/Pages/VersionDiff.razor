@@ -1,0 +1,135 @@
+﻿@page "/version-diff"
+@using MCTools.Controllers
+@using MCTools.Logic
+@using MCTools.Components
+@using MCTools.Enums
+
+@inherits LayoutComponentBase
+@inject ISnackbar Snackbar
+@inject ApiController _apiController
+@inject HttpClient _httpClient
+@inject JSHelper _jsHelper
+
+<MudText Typo="Typo.h3" GutterBottom="true">Version Difference</MudText>
+<MudPaper Class="px-8">
+	<MudGrid Justify="Justify.Center">
+		<VersionComparison ApiController="_apiController" VersionChanged="x => SelectedVersionChanged(x.From, x.To)" EditionChanged="SelectedEditionChanged" IsProcessing="IsProcessing" />
+		@if (SelectedEdition == MCEdition.Java)
+		{
+			<MudItem xs="12" Class="pa-2 my-1">
+				<MudText Typo="Typo.h6" GutterBottom="true">Options</MudText>
+				<MudGrid Justify="Justify.SpaceAround" Spacing="2" >
+					<MudList>
+						<ToggleSwitch @bind-Checked="IncludeMcMetas"
+									  Label="Include MCMeta Files"
+									  TooltipText="Include MCMeta files in the assets"
+									  IsProcessing="IsProcessing" />
+					</MudList>
+				</MudGrid>
+			</MudItem>
+		}
+		@if (MainLayout.DebugMode)
+		{
+			<MudItem xs="12" Class="pa-2 my-1">
+				<MudText Typo="Typo.h6" GutterBottom="true">Debug</MudText>
+				<MudGrid Justify="Justify.SpaceAround" Spacing="2" >
+					<MudList>
+						<ToggleSwitch @bind-Checked="OutputSourceUrl"
+									  Label="Output Source URLs"
+									  TooltipText="Output Source URLs to the console"
+									  IsProcessing="IsProcessing" />
+						@if (SelectedEdition == MCEdition.Java)
+						{
+							<ToggleSwitch @bind-Checked="DownloadRawJar"
+										  Label="Download JARs"
+										  TooltipText="Download client.jars instead of the computed assets"
+										  IsProcessing="IsProcessing" />
+						}
+					</MudList>
+					<MudList>
+						<ToggleSwitch @bind-Checked="PerfLogging"
+									  Label="Performance Logging"
+									  TooltipText="Log performance to the console"
+									  IsProcessing="IsProcessing" />
+
+						<ToggleSwitch @bind-Checked="DebugLogging"
+									  Label="Status Logging"
+									  TooltipText="Log status to the console"
+									  IsProcessing="IsProcessing" />
+					</MudList>
+				</MudGrid>
+			</MudItem>
+		}
+		<MudItem xs="12">
+			<MudProgressLinear Color="Color.Primary"
+							   Size="@(string.IsNullOrWhiteSpace(ProgressText) ? Size.Small : Size.Large)"
+							   Value="@(ProgressValue ?? 0)"
+							   Indeterminate="@(ProgressValue == null && IsProcessing)"
+							   Max="100"
+							   Class="my-7"
+							   Rounded="true">
+				@if (!string.IsNullOrWhiteSpace(ProgressText))
+				{
+					<MudText Typo="Typo.caption" Color="Color.Surface">
+						@ProgressText
+					</MudText>
+				}
+			</MudProgressLinear>
+
+			<MudGrid Justify="Justify.Center" Spacing="4">
+				<MudItem Class="d-flex align-center">
+					<MudButton StartIcon="@Icons.Material.Filled.Compare" Size="Size.Large" Class="action-button" Variant="Variant.Filled" Color="Color.Primary"
+							   ButtonType="ButtonType.Submit" OnClick="@CompareAssets" Disabled="_compareEnabled">Compare</MudButton>
+				</MudItem>
+				<MudItem Class="d-flex align-center">
+					<MudButton StartIcon="@Icons.Material.Filled.RestartAlt" Size="Size.Large" Class="action-button" Variant="Variant.Filled" Color="Color.Error"
+							   ButtonType="ButtonType.Reset" OnClick="@Reset" Disabled="@IsProcessing">Reset</MudButton>
+				</MudItem>
+			</MudGrid>
+		</MudItem>
+		<MudItem xs="12" Class="pt-1 pb-4">
+			<MudTabs Outlined="true" Position="Position.Left" Rounded="true" Border="true" ApplyEffectsToContainer="true">
+				<AssetTabPanel TabName="Added"
+							   EmptyListText="No added assets"
+							   AssetList="@AddedAssets"
+							   BadgeColor="Color.Success"
+							   ExportCallback="DownloadAddedAssets"
+							   JSHelper="_jsHelper" />
+
+				<AssetTabPanel TabName="Removed"
+							   EmptyListText="No removed assets"
+							   AssetList="@RemovedAssets"
+							   BadgeColor="Color.Error"
+							   ExportCallback="DownloadRemovedAssets"
+							   JSHelper="_jsHelper" />
+
+				<AssetTabPanel TabName="Changed"
+							   EmptyListText="No changed textures"
+							   AssetList="@DifferentAssets"
+							   BadgeColor="Color.Warning"
+							   ExportCallback="DownloadDifferentAssets"
+							   CustomButtonText="Export Difference"
+							   CustomButtonIcon="@Icons.Material.Filled.Difference"
+							   CustomButtonCallback="DownloadDifferentAssetsShowDiff"
+							   JSHelper="_jsHelper" />
+
+				<AssetTabPanel TabName="Unchanged"
+							   EmptyListText="No unchanged textures"
+							   AssetList="@SameAssets"
+							   BadgeColor="Color.Info"
+							   ExportCallback="DownloadSameAssets"
+							   JSHelper="_jsHelper" />
+			</MudTabs>
+		</MudItem>
+	</MudGrid>
+</MudPaper>
+<MudExpansionPanels Class="pt-4">
+	<MudExpansionPanel Text="Information">
+		<MudText>
+			The version difference tool can be used to compare two versions of Vanilla Minecraft's assets.
+		</MudText>
+		<MudText Class="mt-2">
+			Select an edition and versions of the game to compare and click compare.
+		</MudText>
+	</MudExpansionPanel>
+</MudExpansionPanels>

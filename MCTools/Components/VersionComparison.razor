@@ -1,0 +1,124 @@
+﻿@using MCTools.Enums
+@using MCTools.Controllers
+@using MCTools.SDK.Models
+@inject ISnackbar Snackbar
+
+<MudItem xs="4">
+	<MudSelect T="MCEdition" Label="Edition" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Disabled="DisableControls"
+			   SelectedValues="new List<MCEdition>() { SelectedEdition }" SelectedValuesChanged="(e) => SelectedEditionChanged(e.First())">
+		<MudSelectItem Value="MCEdition.Java" Disabled="@DisableJava">Java</MudSelectItem>
+		<MudSelectItem Value="MCEdition.Bedrock" Disabled="@DisableBedrock">Bedrock</MudSelectItem>
+	</MudSelect>
+</MudItem>
+<MudItem xs="4">
+	<MudSelect T="MCVersion" Label="Version (From)" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Disabled="DisableVersionSelector"
+			   SelectedValues="new List<MCVersion>() { SelectedVersionOne }" SelectedValuesChanged="(e) => SelectedVersionChanged(e.First(), 0)">
+		@foreach (MCVersion ver in MinecraftVersions)
+		{
+			<MudSelectItem Value="ver" Disabled="ver == SelectedVersionTwo">@($"{ver.Id}{ver.GetSuffix(LatestVersion)}")</MudSelectItem>
+		}
+	</MudSelect>
+</MudItem>
+<MudItem xs="4">
+	<MudSelect T="MCVersion" Label="Version (To)" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Disabled="DisableVersionSelector"
+			   SelectedValues="new List<MCVersion>() { SelectedVersionTwo }" SelectedValuesChanged="(e) => SelectedVersionChanged(e.First(), 1)">
+		@foreach (MCVersion ver in MinecraftVersions)
+		{
+			<MudSelectItem Value="ver" Disabled="ver == SelectedVersionOne">@($"{ver.Id}{ver.GetSuffix(LatestVersion)}")</MudSelectItem>
+		}
+	</MudSelect>
+</MudItem>
+
+@code {
+	[Parameter] public ApiController ApiController { get; set; }
+	[Parameter] public EventCallback<(MCVersion From, MCVersion To)> VersionChanged { get; set; }
+	[Parameter] public EventCallback<MCEdition> EditionChanged { get; set; }
+	[Parameter] public bool IsProcessing { get; set; }
+	[Parameter] public bool DisableJava { get; set; }
+	[Parameter] public bool DisableBedrock { get; set; } = true;
+	[Parameter] public bool DisableVersions { get; set; }
+
+	private MCVersion SelectedVersionOne { get; set; }
+	private MCVersion SelectedVersionTwo { get; set; }
+	private MCEdition SelectedEdition { get; set; } = MCEdition.Java;
+	private List<MCVersion> MinecraftVersions { get; set; } = new();
+	private MCVersion LatestVersion { get; set; }
+
+	private bool IsLoading;
+
+	private bool DisableControls => IsLoading || IsProcessing;
+	private bool DisableVersionSelector => DisableControls || DisableVersions;
+
+	protected override async Task OnInitializedAsync()
+		=> await SelectedEditionChanged(SelectedEdition);
+
+	public void SetDefaultVersionSelection()
+	{
+		if (MinecraftVersions is { Count: > 0 })
+		{
+			LatestVersion = MinecraftVersions.First(x => x.Type == "release");
+			var latestSnapshot = MinecraftVersions.FirstOrDefault(x => x.Type == "snapshot");
+			if (latestSnapshot != null)
+			{
+				SelectedVersionOne = LatestVersion;
+				SelectedVersionTwo = latestSnapshot;
+			}
+			else
+			{
+				SelectedVersionOne = MinecraftVersions.Where(x => x.Type == "release").ToArray()[2];
+				SelectedVersionTwo = LatestVersion;
+			}
+		}
+		else Snackbar.Add("Unable to fetch versions! Is the API down?", Severity.Error);
+	}
+
+	public async Task SelectedEditionChanged(MCEdition edition)
+	{
+		if (edition != SelectedEdition || MinecraftVersions.Count == 0)
+		{
+			try
+			{
+				IsLoading = true;
+				SelectedEdition = edition;
+				MinecraftVersions = new List<MCVersion>(); // Reset list
+
+				MinecraftVersions = edition == MCEdition.Java
+					? await ApiController.GetJavaVersions(MainLayout.ExpandedVersionSelector)
+					: await ApiController.GetBedrockVersions();
+
+				SetDefaultVersionSelection();
+			}
+			catch (Exception)
+			{
+				Snackbar.Add("An error occurred when loading versions! Check the console for errors.", Severity.Error);
+				throw;
+			}
+			IsLoading = false;
+
+			if (EditionChanged.HasDelegate)
+				await EditionChanged.InvokeAsync(edition);
+		}
+	}
+
+	private async Task SelectedVersionChanged(MCVersion version, int index)
+	{
+		switch (index)
+		{
+			case 0:
+				SelectedVersionOne = version;
+				break;
+			case 1:
+				SelectedVersionTwo = version;
+				break;
+		}
+
+		if (SelectedVersionOne == SelectedVersionTwo)
+		{
+			Snackbar.Add("Versions cannot be the same!", Severity.Warning);
+			return;
+		}
+
+		if (VersionChanged.HasDelegate)
+			await VersionChanged.InvokeAsync((SelectedVersionOne, SelectedVersionTwo));
+	}
+}

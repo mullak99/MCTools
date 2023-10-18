@@ -533,19 +533,19 @@ namespace MCTools.Pages
 		/// Export a text file containing the matching textures
 		/// </summary>
 		private async Task ExportMatchingTextures()
-			=> await Export(MatchingTexturesList, $"MatchingTextures_{Pack.Name}.txt");
+			=> await InputOutputUtils.Export(_JsHelper, MatchingTexturesList, $"MatchingTextures_{Pack.Name}.txt");
 
 		/// <summary>
 		/// Export a text file containing the missing textures
 		/// </summary>
 		private async Task ExportMissingTextures()
-			=> await Export(MissingTexturesList, $"MissingTextures_{Pack.Name}.txt");
+			=> await InputOutputUtils.Export(_JsHelper, MissingTexturesList, $"MissingTextures_{Pack.Name}.txt");
 
 		/// <summary>
 		/// Export a text file containing the unused textures
 		/// </summary>
 		private async Task ExportUnusedTextures()
-			=> await Export(UnusedTexturesList, $"UnusedTextures_{Pack.Name}.txt");
+			=> await InputOutputUtils.Export(_JsHelper, UnusedTexturesList, $"UnusedTextures_{Pack.Name}.txt");
 		#endregion
 
 		#region MCMetas
@@ -553,35 +553,20 @@ namespace MCTools.Pages
 		/// Export a text file containing the matching mcmetas
 		/// </summary>
 		private async Task ExportMatchingMcMetas()
-			=> await Export(MatchingMcMetasList, $"MatchingMCMetas_{Pack.Name}.txt");
+			=> await InputOutputUtils.Export(_JsHelper, MatchingMcMetasList, $"MatchingMCMetas_{Pack.Name}.txt");
 
 		/// <summary>
 		/// Export a text file containing the missing mcmetas
 		/// </summary>
 		private async Task ExportMissingMcMetas()
-			=> await Export(MissingMcMetasList, $"MissingMCMetas_{Pack.Name}.txt");
+			=> await InputOutputUtils.Export(_JsHelper, MissingMcMetasList, $"MissingMCMetas_{Pack.Name}.txt");
 
 		/// <summary>
 		/// Export a text file containing the unused mcmetas
 		/// </summary>
 		private async Task ExportUnusedMcMetas()
-			=> await Export(UnusedMcMetasList, $"UnusedMCMetas_{Pack.Name}.txt");
+			=> await InputOutputUtils.Export(_JsHelper, UnusedMcMetasList, $"UnusedMCMetas_{Pack.Name}.txt");
 		#endregion
-
-		/// <summary>
-		/// Copy String List to clipboard
-		/// </summary>
-		/// <param name="list">List of strings</param>
-		private async Task CopyTextToClipboard(List<string> list)
-			=> await _JsHelper.CopyTextToClipboard(list);
-
-		/// <summary>
-		/// Export a text file containing a list of strings
-		/// </summary>
-		/// <param name="listToExport">List of string to export (each on a new line)</param>
-		/// <param name="fileName">Exported files filename</param>
-		private async Task Export(List<string> listToExport, string fileName)
-			=> await _JsHelper.ExportListToFile(listToExport, fileName);
 		#endregion
 	}
 }

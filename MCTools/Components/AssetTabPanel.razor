@@ -1,4 +1,5 @@
-﻿<MudTabPanel Text="@TabName" Class="item-tab-panel" BadgeData="@AssetList.Count" BadgeColor="@BadgeColor">
+﻿@using MCTools.Logic
+<MudTabPanel Text="@TabName" Class="item-tab-panel" BadgeData="@AssetList.Count" BadgeColor="@BadgeColor">
 	<MudList Dense="true" DisablePadding="true" Class="item-tab-root-list">
 		@if (AssetList.Count > 0)
 		{
@@ -14,10 +15,16 @@
 				<MudToolBar Dense="true" Class="item-table-toolbar" WrapContent="true">
 					<MudText Class="pl-2">@AssetList.Count</MudText>
 					<MudSpacer />
-					@if (ClipboardCallback != null)
+					@if (CopyToClipboard && JSHelper != null)
 					{
 						<MudTooltip Text="Copy" Placement="Placement.Top">
-							<MudIconButton Icon="@Icons.Material.Filled.ContentCopy" OnClick="() => ClipboardCallback.Invoke(AssetList)" />
+							<MudIconButton Icon="@Icons.Material.Filled.ContentCopy" OnClick="async () => await InputOutputUtils.CopyTextToClipboard(JSHelper, AssetList)" />
+						</MudTooltip>
+					}
+					@if (!string.IsNullOrWhiteSpace(CustomButtonText) && !string.IsNullOrWhiteSpace(CustomButtonIcon) && CustomButtonCallback.HasDelegate)
+					{
+						<MudTooltip Text="@CustomButtonText" Placement="Placement.Top">
+							<MudIconButton Icon="@CustomButtonIcon" OnClick="CustomButtonCallback" />
 						</MudTooltip>
 					}
 					@if (ExportCallback.HasDelegate)
@@ -26,6 +33,7 @@
 							<MudIconButton Icon="@Icons.Material.Filled.Download" OnClick="ExportCallback" />
 						</MudTooltip>
 					}
+
 				</MudToolBar>
 			}
 		}
@@ -40,10 +48,16 @@
 	[Parameter] public string TabName { get; set; } = "Assets";
 	[Parameter] public string EmptyListText { get; set; } = "No assets";
 	[Parameter] public List<string> AssetList { get; set; }
-	[Parameter] public Action<List<string>> ClipboardCallback { get; set; }
+	[Parameter] public bool CopyToClipboard { get; set; } = true;
 	[Parameter] public EventCallback ExportCallback { get; set; }
 	[Parameter] public Color BadgeColor { get; set; } = Color.Success;
 	[Parameter] public bool HideToolbar { get; set; }
+	[Parameter] public JSHelper JSHelper { get; set; }
+
+	[Parameter] public string CustomButtonText { get; set; }
+	[Parameter] public string CustomButtonIcon { get; set; }
+	[Parameter] public EventCallback CustomButtonCallback { get; set; }
+
 
 	private const float VIRTUALIZER_ITEM_SIZE = 36.02f;
 	private const int VIRTUALIZER_OVERSCAN = 64;
