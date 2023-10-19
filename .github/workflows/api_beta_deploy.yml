@@ -81,4 +81,8 @@ jobs:
           sudo rm -rf $IDLE_SLOT_APIBETA
           sudo mv ${{ env.SERVER_TARGET }}.temp $IDLE_SLOT_APIBETA
           sudo ln -sfn $IDLE_SLOT_APIBETA ${{ env.SERVER_TARGET }}.live
+          sudo chown -R ${{ secrets.USERNAME }}:www-data ${{ env.SERVER_TARGET }}
+          sudo chmod -R u+rwx ${{ env.SERVER_TARGET }}
+          sudo chmod -R g+rwx ${{ env.SERVER_TARGET }}
           sudo systemctl restart ${{ env.SERVICE_NAME }}
+          
