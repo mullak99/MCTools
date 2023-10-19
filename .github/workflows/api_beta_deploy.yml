@@ -53,23 +53,6 @@ jobs:
         Settings.DbNameSuffix: ${{ env.DB_SUFFIX }}
     - name: Publish
       run: dotnet publish ${{ env.CSPROJ }} -c ${{ env.RELEASE_TYPE }} -o ${{ env.PUBLISH_PATH }}
-    - name: Determine Active and Idle Directories
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        key: ${{ secrets.SSHKEY }}
-        port: ${{ secrets.PORT }}
-        script: |
-          ACTIVE_DIR=$(readlink ${{ env.SERVER_TARGET }}.live)
-          echo "Active directory is $ACTIVE_DIR"
-          if [ "$ACTIVE_DIR" == "${{ env.SERVER_TARGET }}.slot1" ]; then
-            echo "::set-output name=idle::slot2"
-          else
-            echo "::set-output name=idle::slot1"
-          fi
-    - name: Set Idle Directory as Env Var
-      run: echo "IDLE_DIR=${{ steps.dirs.outputs.idle }}" >> $GITHUB_ENV
     - name: Deploy
       uses: appleboy/scp-action@v0.1.4
       with:
@@ -78,7 +61,7 @@ jobs:
         key: ${{ secrets.SSHKEY }}
         port: ${{ secrets.PORT }}
         source: "${{ env.PUBLISH_PATH }}/*"
-        target: ${{ env.SERVER_TARGET }}.${{ env.IDLE_DIR }}
+        target: ${{ env.SERVER_TARGET }}.temp
     - name: Switch Active Directory and Restart Service
       uses: appleboy/ssh-action@master
       with:
@@ -87,5 +70,14 @@ jobs:
         key: ${{ secrets.SSHKEY }}
         port: ${{ secrets.PORT }}
         script: |
-          ln -sf ${{ env.SERVER_TARGET }}.${{ env.IDLE_DIR }} ${{ env.SERVER_TARGET }}.live
+          ACTIVE_DIR=$(readlink ${{ env.SERVER_TARGET }}.live)
+          if [ "$ACTIVE_DIR" == "${{ env.SERVER_TARGET }}.slot1" ]; then
+            IDLE_SLOT_APIBETA="${{ env.SERVER_TARGET }}.slot2"
+          else
+            IDLE_SLOT_APIBETA="${{ env.SERVER_TARGET }}.slot1"
+          fi
+          
+          sudo rm -rf $IDLE_SLOT_APIBETA
+          sudo mv ${{ env.SERVER_TARGET }}.temp $IDLE_SLOT_APIBETA
+          sudo ln -sfn $IDLE_SLOT_APIBETA ${{ env.SERVER_TARGET }}.live
           sudo systemctl restart ${{ env.SERVICE_NAME }}
