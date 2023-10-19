@@ -62,6 +62,7 @@ jobs:
         port: ${{ secrets.PORT }}
         source: "${{ env.PUBLISH_PATH }}/*"
         target: ${{ env.SERVER_TARGET }}.temp
+        strip_components: 2
     - name: Switch Active Directory and Restart Service
       uses: appleboy/ssh-action@master
       with:
