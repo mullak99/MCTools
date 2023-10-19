@@ -53,7 +53,8 @@ jobs:
         Settings.DbNameSuffix: ${{ env.DB_SUFFIX }}
     - name: Publish
       run: dotnet publish ${{ env.CSPROJ }} -c ${{ env.RELEASE_TYPE }} -o ${{ env.PUBLISH_PATH }}
-    - name: Stop Service
+    - name: Determine Active and Idle Directories
+      id: dirs
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.HOST }}
@@ -61,9 +62,13 @@ jobs:
         key: ${{ secrets.SSHKEY }}
         port: ${{ secrets.PORT }}
         script: |
-          sudo systemctl stop ${{ env.SERVICE_NAME }}
-          sudo rm -rf ${{ env.SERVER_TARGET }}
-          mkdir ${{ env.SERVER_TARGET }}
+          ACTIVE_DIR=$(readlink ${{ env.SERVER_TARGET }}.current)
+          echo "Active directory is $ACTIVE_DIR"
+          if [ "$ACTIVE_DIR" == "${{ env.SERVER_TARGET }}.slot1" ]; then
+            echo "::set-output name=idle::slot2"
+          else
+            echo "::set-output name=idle::slot1"
+          fi
     - name: Deploy
       uses: appleboy/scp-action@v0.1.4
       with:
@@ -72,16 +77,14 @@ jobs:
         key: ${{ secrets.SSHKEY }}
         port: ${{ secrets.PORT }}
         source: "${{ env.PUBLISH_PATH }}/*"
-        target: ${{ env.SERVER_TARGET }}
-        strip_components: 2
-    - name: Start Service
+        target: ${{ env.SERVER_TARGET }}.${{ steps.dirs.outputs.idle }}
+    - name: Switch Active Directory and Restart Service
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.SSHKEY }}
         port: ${{ secrets.PORT }}
-        script: | 
-          sudo chmod +x ${{ env.SERVER_TARGET }}/MCTools.API.dll
-          sudo chown -R www-data:www-data ${{ env.SERVER_TARGET }}
-          sudo systemctl start ${{ env.SERVICE_NAME }}
+        script: |
+          ln -sf /var/www/${{ env.SERVER_TARGET }}.${{ steps.dirs.outputs.idle }} /var/www/${{ env.SERVER_TARGET }}.live
+          sudo systemctl restart ${{ env.SERVICE_NAME }}
