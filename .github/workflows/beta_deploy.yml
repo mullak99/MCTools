@@ -60,7 +60,7 @@ jobs:
         source: "${{ env.PUBLISH_PATH }}/*"
         target: ${{ env.SERVER_TARGET }}.temp
         strip_components: 2
-    - name: Switch Active Directory and Restart Service
+    - name: Switch Active Directory
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.HOST }}
@@ -81,4 +81,3 @@ jobs:
           sudo chown -R ${{ secrets.USERNAME }}:www-data /var/www
           sudo chmod -R u+rwx /var/www
           sudo chmod -R g+rwx /var/www
-          sudo systemctl restart ${{ env.SERVICE_NAME }}
