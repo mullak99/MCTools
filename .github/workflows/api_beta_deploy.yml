@@ -64,10 +64,13 @@ jobs:
           ACTIVE_DIR=$(readlink ${{ env.SERVER_TARGET }}.live)
           echo "Active directory is $ACTIVE_DIR"
           if [ "$ACTIVE_DIR" == "${{ env.SERVER_TARGET }}.slot1" ]; then
-            echo "IDLE_DIR=slot2" >> $GITHUB_ENV
+            echo "slot2"
           else
-            echo "IDLE_DIR=slot1" >> $GITHUB_ENV
+            echo "slot1"
           fi
+        script_output: true
+    - name: Set Idle Directory as Env Var
+      run: echo "IDLE_DIR=${{ steps.dirs.outputs.stdout }}" >> $GITHUB_ENV
     - name: Deploy
       uses: appleboy/scp-action@v0.1.4
       with:
