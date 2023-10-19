@@ -54,7 +54,6 @@ jobs:
     - name: Publish
       run: dotnet publish ${{ env.CSPROJ }} -c ${{ env.RELEASE_TYPE }} -o ${{ env.PUBLISH_PATH }}
     - name: Determine Active and Idle Directories
-      id: dirs
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.HOST }}
@@ -65,9 +64,9 @@ jobs:
           ACTIVE_DIR=$(readlink ${{ env.SERVER_TARGET }}.live)
           echo "Active directory is $ACTIVE_DIR"
           if [ "$ACTIVE_DIR" == "${{ env.SERVER_TARGET }}.slot1" ]; then
-            echo "::set-output name=idle::slot2"
+            echo "IDLE_DIR=slot2" >> $GITHUB_ENV
           else
-            echo "::set-output name=idle::slot1"
+            echo "IDLE_DIR=slot1" >> $GITHUB_ENV
           fi
     - name: Deploy
       uses: appleboy/scp-action@v0.1.4
@@ -77,7 +76,7 @@ jobs:
         key: ${{ secrets.SSHKEY }}
         port: ${{ secrets.PORT }}
         source: "${{ env.PUBLISH_PATH }}/*"
-        target: ${{ env.SERVER_TARGET }}.${{ steps.dirs.outputs.idle }}
+        target: ${{ env.SERVER_TARGET }}.${{ env.IDLE_DIR }}
     - name: Switch Active Directory and Restart Service
       uses: appleboy/ssh-action@master
       with:
@@ -86,5 +85,5 @@ jobs:
         key: ${{ secrets.SSHKEY }}
         port: ${{ secrets.PORT }}
         script: |
-          ln -sf ${{ env.SERVER_TARGET }}.${{ steps.dirs.outputs.idle }} ${{ env.SERVER_TARGET }}.live
+          ln -sf ${{ env.SERVER_TARGET }}.${{ env.IDLE_DIR }} ${{ env.SERVER_TARGET }}.live
           sudo systemctl restart ${{ env.SERVICE_NAME }}
