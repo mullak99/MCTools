@@ -20,7 +20,7 @@ env:
   SERVER_TARGET: /var/www/mctools.api-beta
   SERVICE_NAME: mctools.api-beta
   DB_SUFFIX: beta
-
+  
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -62,7 +62,7 @@ jobs:
         key: ${{ secrets.SSHKEY }}
         port: ${{ secrets.PORT }}
         script: |
-          ACTIVE_DIR=$(readlink ${{ env.SERVER_TARGET }}.current)
+          ACTIVE_DIR=$(readlink ${{ env.SERVER_TARGET }}.live)
           echo "Active directory is $ACTIVE_DIR"
           if [ "$ACTIVE_DIR" == "${{ env.SERVER_TARGET }}.slot1" ]; then
             echo "::set-output name=idle::slot2"
@@ -86,5 +86,5 @@ jobs:
         key: ${{ secrets.SSHKEY }}
         port: ${{ secrets.PORT }}
         script: |
-          ln -sf /var/www/${{ env.SERVER_TARGET }}.${{ steps.dirs.outputs.idle }} /var/www/${{ env.SERVER_TARGET }}.live
+          ln -sf ${{ env.SERVER_TARGET }}.${{ steps.dirs.outputs.idle }} ${{ env.SERVER_TARGET }}.live
           sudo systemctl restart ${{ env.SERVICE_NAME }}
