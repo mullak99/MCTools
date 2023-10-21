@@ -1,0 +1,43 @@
+name: MCTools SDK (Beta)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ beta ]
+    paths:
+      - 'MCTools.SDK/**'
+  pull_request:
+    branches: [ beta ]
+    paths:
+      - 'MCTools.SDK/**'
+
+env:
+  CSPROJ: MCTools.SDK/MCTools.SDK.csproj
+  PACK_PATH: bin/Pack
+  RELEASE_TYPE: Release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET 6.0
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x
+    - name: Restore dependencies
+      run: dotnet restore ${{ env.CSPROJ }}
+    - name: Build
+      run: dotnet build ${{ env.CSPROJ }} -c ${{ env.RELEASE_TYPE }} --no-restore
+    - name: Test
+      run: dotnet test ${{ env.CSPROJ }} --no-build --verbosity normal
+    - name: Package
+      run: dotnet pack ${{ env.CSPROJ }} -c ${{ env.RELEASE_TYPE }} -o ${{ env.PACK_PATH }}
+    - name: Upload NuGet package artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: nuget-package
+        path: ${{ env.PACK_PATH }}/*.nupkg
+    - name: Push to NuGet
+      run: dotnet nuget push ${{ env.PACK_PATH }}/*.nupkg -s https://nuget.mullak99.co.uk/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
