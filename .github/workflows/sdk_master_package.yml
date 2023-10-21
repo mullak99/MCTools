@@ -3,11 +3,11 @@ name: MCTools SDK (Stable)
 on:
   workflow_dispatch:
   push:
-    branches: [ beta ]
+    branches: [ master ]
     paths:
       - 'MCTools.SDK/**'
   pull_request:
-    branches: [ beta ]
+    branches: [ master ]
     paths:
       - 'MCTools.SDK/**'
 
