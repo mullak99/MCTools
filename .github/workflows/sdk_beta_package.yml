@@ -32,8 +32,11 @@ jobs:
       run: dotnet build ${{ env.CSPROJ }} -c ${{ env.RELEASE_TYPE }} --no-restore
     - name: Test
       run: dotnet test ${{ env.CSPROJ }} --no-build --verbosity normal
+    - name: Get Git Tag
+      id: short-sha
+      run: echo "::set-output name=sha::$(echo ${GITHUB_SHA:0:7})"
     - name: Package
-      run: dotnet pack ${{ env.CSPROJ }} -c ${{ env.RELEASE_TYPE }} -o ${{ env.PACK_PATH }} --version-suffix beta${{ github.run_number }}
+      run: dotnet pack ${{ env.CSPROJ }} -c ${{ env.RELEASE_TYPE }} -o ${{ env.PACK_PATH }} --version-suffix pre-${{ steps.short-sha.outputs.sha }}
     - name: Upload NuGet package artifact
       uses: actions/upload-artifact@v3
       with:
