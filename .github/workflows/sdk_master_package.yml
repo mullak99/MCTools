@@ -1,4 +1,4 @@
-name: MCTools SDK (Beta)
+name: MCTools SDK (Stable)
 
 on:
   workflow_dispatch:
