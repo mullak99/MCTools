@@ -1,6 +1,6 @@
 ﻿@using MCTools.Enums
 @using MCTools.Models
-@using MCTools.Controllers
+@using MCTools.SDK.Controllers
 @using MCTools.SDK.Models
 @using MudBlazor
 @inject ISnackbar Snackbar
@@ -23,7 +23,8 @@
 </MudItem>
 
 @code {
-	[Parameter] public ApiController ApiController { get; set; }
+	[Parameter] public JavaController JavaController { get; set; }
+	[Parameter] public BedrockController BedrockController { get; set; }
 	[Parameter] public EventCallback<MCVersion> VersionChanged { get; set; }
 	[Parameter] public EventCallback<MCEdition> EditionChanged { get; set; }
 	[Parameter] public bool IsProcessing { get; set; }
@@ -42,7 +43,10 @@
 	private bool DisableVersionSelector => DisableControls || DisableVersions;
 
 	protected override async Task OnInitializedAsync()
-		=> await SelectedEditionChanged(SelectedEdition);
+	{
+		DisableBedrock = DisableBedrock || BedrockController == null;
+		await SelectedEditionChanged(SelectedEdition);
+	}
 
 	public void SetDefaultVersionSelection()
 	{
@@ -56,7 +60,7 @@
 
 	public async Task SelectedEditionChanged(MCEdition edition)
 	{
-		if (edition != SelectedEdition || MinecraftVersions.Count == 0)
+		if (edition != SelectedEdition || MinecraftVersions.Count == 0 && !(DisableBedrock && edition == MCEdition.Bedrock))
 		{
 			try
 			{
@@ -65,8 +69,8 @@
 				MinecraftVersions = new List<MCVersion>(); // Reset list
 
 				MinecraftVersions = edition == MCEdition.Java
-					? await ApiController.GetJavaVersions(MainLayout.ExpandedVersionSelector)
-					: await ApiController.GetBedrockVersions();
+					? await JavaController.GetVersions(MainLayout.ExpandedVersionSelector)
+					: await BedrockController.GetVersions();
 
 				SetDefaultVersionSelection();
 			}

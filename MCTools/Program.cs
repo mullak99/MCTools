@@ -1,5 +1,4 @@
 using Blazored.LocalStorage;
-using MCTools.Controllers;
 using MCTools.Logic;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,6 +9,8 @@ using System.Globalization;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
+using MCTools.SDK.Controllers;
+using MCTools.SDK.Enums.Controllers;
 using MCTools.SDK.Enums.Telemetry;
 using MCTools.SDK.Models.Telemetry;
 
@@ -73,9 +74,12 @@ namespace MCTools
 			StableUrl = builder.Configuration["Urls:Stable"];
 			BetaUrl = builder.Configuration["Urls:Beta"];
 
-			builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(ApiAddress ?? string.Empty) });
+			ApiClient client = new(new HttpClient(), $"MCTools/{GetVersion()}", ApiRelease.None, ApiAddress ?? string.Empty);
+			builder.Services.AddSingleton<IApiClient>(_ => client);
+
 			builder.Services.AddScoped<HealthController>();
-			builder.Services.AddScoped<ApiController>();
+			builder.Services.AddScoped<JavaController>();
+			builder.Services.AddScoped<BedrockController>();
 			builder.Services.AddScoped<TelemetryController>();
 			builder.Services.AddScoped<JSHelper>();
 

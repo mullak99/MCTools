@@ -126,7 +126,9 @@ namespace MCTools.API.Logic
 		{
 			try
 			{
-				using var httpResponse = await _httpClient.GetAsync("https://launchermeta.mojang.com/mc/game/version_manifest.json", HttpCompletionOption.ResponseHeadersRead);
+				using var httpResponse = await _httpClient.GetAsync(
+					"https://launchermeta.mojang.com/mc/game/version_manifest.json",
+					HttpCompletionOption.ResponseHeadersRead);
 				httpResponse.EnsureSuccessStatusCode();
 
 				var rawJson = await httpResponse.Content.ReadAsStringAsync();
@@ -139,7 +141,8 @@ namespace MCTools.API.Logic
 				string latestSnapshot = latestSnapshotT != null ? latestSnapshotT.ToString() : "";
 
 				List<AssetMCVersion> versions = new();
-				json.SelectTokens($"$.versions[?(@.type == 'release' || @.id == '{latestSnapshot}' || @.id == '{latestRelease}')]")
+				json.SelectTokens(
+						$"$.versions[?(@.type == 'release' || @.id == '{latestSnapshot}' || @.id == '{latestRelease}')]")
 					.ToList().ForEach(x =>
 					{
 						var obj = x.ToObject<AssetMCVersion>();
@@ -150,6 +153,11 @@ namespace MCTools.API.Logic
 						}
 					});
 				return LimitVersions(versions, bypassHighestVersionLimit);
+			}
+			catch (HttpRequestException e)
+			{
+				_logger.LogError(e, "Unable to make request to Mojang!");
+				throw new HttpRequestException("Unable to make request to Mojang!", e);
 			}
 			catch (Exception e)
 			{

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using MCTools.Enums;
 using MCTools.Shared.Dialog;
@@ -38,19 +39,19 @@ namespace MCTools.Shared
 			if (Program.IsPreRelease())
 			{
 				string releaseType = Program.GetReleaseType(true, true);
-				tasks.Add(_jsHelper.SetTitleAsync($"Minecraft Tools ({releaseType})"));
+				tasks.Add(JsHelper.SetTitleAsync($"Minecraft Tools ({releaseType})"));
 			}
 
 			await Task.WhenAll(tasks);
 			await InvokeAsync(StateHasChanged);
 
-			_ = Task.Run(async () => await telemetryController.AddAppLaunch());
+			_ = Task.Run(async () => await TelemetryController.AddAppLaunch(Program.GetAppInfo()));
 			_ = Task.Run(async () => await UpdateHealthStatus());
 		}
 
 		public async Task UpdateHealthStatus()
 		{
-			ApiStatus = await healthController.GetApiStatus();
+			ApiStatus = await HealthController.GetApiStatus() == HttpStatusCode.OK ? ApiStatus.Online : ApiStatus.Offline;
 			if (ApiStatus == ApiStatus.Offline)
 				Snackbar.Add("The API is currently offline! Most features will not work!", Severity.Error);
 

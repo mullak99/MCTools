@@ -2,15 +2,16 @@
 @using MCTools.Components
 @using MCTools.Enums
 @using Blazored.LocalStorage
-@using MCTools.Controllers
 @using MCTools.Logic
+@using MCTools.SDK.Controllers
 
 @inherits LayoutComponentBase
 @inject ISnackbar Snackbar
 @inject IDialogService Dialog
-@inject ILocalStorageService localStore
-@inject ApiController _apiController
-@inject JSHelper _JsHelper
+@inject ILocalStorageService LocalStore
+@inject JavaController JavaController
+@inject BedrockController BedrockController
+@inject JSHelper JsHelper
 
 <MudText Typo="Typo.h3" GutterBottom="true">Textures Tool</MudText>
 <MudPaper Class="px-8">
@@ -25,7 +26,11 @@
 				@UploadText
 			</MudButton>
 		</MudItem>
-		<VersionSelector ApiController="_apiController" VersionChanged="SelectedVersionChanged" EditionChanged="SelectedEditionChanged" IsProcessing="IsProcessing" />
+		<VersionSelector JavaController="JavaController"
+						 BedrockController="BedrockController"
+						 VersionChanged="SelectedVersionChanged"
+						 EditionChanged="SelectedEditionChanged"
+						 IsProcessing="IsProcessing" />
 		<MudItem xs="12" Class="pa-2 my-1">
 			<MudText Typo="Typo.h6" GutterBottom="true">Exclusions</MudText>
 			<MudGrid Justify="Justify.SpaceAround" Spacing="2" >
@@ -138,11 +143,11 @@
 			<MudGrid Justify="Justify.Center" Spacing="4">
 				<MudItem Class="d-flex align-center">
 					<MudButton StartIcon="@Icons.Material.Filled.Compare" Size="Size.Large" Class="action-button" Variant="Variant.Filled" Color="Color.Primary"
-					           ButtonType="ButtonType.Submit" OnClick="@Compare" Disabled="@(!CanCompare || IsProcessing)">Compare</MudButton>
+							   ButtonType="ButtonType.Submit" OnClick="@Compare" Disabled="@(!CanCompare || IsProcessing)">Compare</MudButton>
 				</MudItem>
 				<MudItem Class="d-flex align-center">
 					<MudButton StartIcon="@Icons.Material.Filled.RestartAlt" Size="Size.Large" Class="action-button" Variant="Variant.Filled" Color="Color.Error"
-					           ButtonType="ButtonType.Reset" OnClick="@Reset" Disabled="@(Pack == null || IsProcessing)">Reset</MudButton>
+							   ButtonType="ButtonType.Reset" OnClick="@Reset" Disabled="@(Pack == null || IsProcessing)">Reset</MudButton>
 				</MudItem>
 			</MudGrid>
 		</MudItem>
@@ -151,14 +156,14 @@
 				<AssetTabPanel TabName="Matching Textures"
 							   EmptyListText="No matching textures"
 							   AssetList="@MatchingTexturesList"
-							   JSHelper="_JsHelper"
+							   JSHelper="JsHelper"
 							   ExportCallback="ExportMatchingTextures"
 							   BadgeColor="Color.Success" />
 
 				<AssetTabPanel TabName="Missing Textures"
 							   EmptyListText="No missing textures"
 							   AssetList="@MissingTexturesList"
-							   JSHelper="_JsHelper"
+							   JSHelper="JsHelper"
 							   ExportCallback="ExportMissingTextures"
 							   BadgeColor="Color.Error" />
 
@@ -173,21 +178,21 @@
 					<AssetTabPanel TabName="Matching McMetas"
 								   EmptyListText="No matching MCMetas"
 								   AssetList="@MatchingMcMetasList"
-								   JSHelper="_JsHelper"
+								   JSHelper="JsHelper"
 								   ExportCallback="ExportMatchingMcMetas"
 								   BadgeColor="Color.Success" />
 
 					<AssetTabPanel TabName="Missing McMetas"
 								   EmptyListText="No missing MCMetas"
 								   AssetList="@MissingMcMetasList"
-								   JSHelper="_JsHelper"
+								   JSHelper="JsHelper"
 								   ExportCallback="ExportMissingMcMetas"
 								   BadgeColor="Color.Error" />
 
 					<AssetTabPanel TabName="Unused McMetas"
 								   EmptyListText="No unused MCMetas"
 								   AssetList="@UnusedMcMetasList"
-								   JSHelper="_JsHelper"
+								   JSHelper="JsHelper"
 								   ExportCallback="ExportUnusedMcMetas"
 								   BadgeColor="Color.Warning" />
 				}
@@ -212,12 +217,12 @@
 						<AssetTabPanel TabName="Textures"
 									   EmptyListText="No textures"
 									   AssetList="@Pack.GetTextures()"
-									   JSHelper="_JsHelper" />
+									   JSHelper="JsHelper" />
 
 						<AssetTabPanel TabName="MCMetas"
 									   EmptyListText="No MCMetas"
 									   AssetList="@Pack.GetMcMetas()"
-									   JSHelper="_JsHelper" />
+									   JSHelper="JsHelper" />
 					</MudTabs>
 				</MudItem>
 			}

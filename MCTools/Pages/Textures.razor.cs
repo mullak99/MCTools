@@ -130,8 +130,8 @@ namespace MCTools.Pages
 		/// </summary>
 		private async Task SetBlacklistFromLocalStorage()
 		{
-			string rawJavaBL = await localStore.GetItemAsStringAsync("blacklistJava");
-			string rawBedrockBL = await localStore.GetItemAsStringAsync("blacklistBedrock");
+			string rawJavaBL = await LocalStore.GetItemAsStringAsync("blacklistJava");
+			string rawBedrockBL = await LocalStore.GetItemAsStringAsync("blacklistBedrock");
 
 			try
 			{
@@ -169,12 +169,12 @@ namespace MCTools.Pages
 			if (edition == MCEdition.Java)
 			{
 				BlacklistRegexJava = DefaultBlacklistJava;
-				await localStore.SetItemAsStringAsync("blacklistJava", JsonConvert.SerializeObject(BlacklistRegexJava));
+				await LocalStore.SetItemAsStringAsync("blacklistJava", JsonConvert.SerializeObject(BlacklistRegexJava));
 			}
 			else
 			{
 				BlacklistRegexBedrock = DefaultBlacklistBedrock;
-				await localStore.SetItemAsStringAsync("blacklistBedrock", JsonConvert.SerializeObject(BlacklistRegexBedrock));
+				await LocalStore.SetItemAsStringAsync("blacklistBedrock", JsonConvert.SerializeObject(BlacklistRegexBedrock));
 			}
 		}
 		#endregion
@@ -233,8 +233,8 @@ namespace MCTools.Pages
 			try
 			{
 				Assets = SelectedEdition == MCEdition.Java
-					? await _apiController.GetJavaAssets(SelectedVersion.Id)
-					: await _apiController.GetBedrockAssets(SelectedVersion.Id);
+					? await JavaController.GetAssets(SelectedVersion.Id)
+					: await BedrockController.GetAssets(SelectedVersion.Id);
 
 				if (Assets.Textures is not { Count: > 0 })
 				{
@@ -429,7 +429,7 @@ namespace MCTools.Pages
 		}
 
 		private async Task<bool> GetOverlaySupport()
-			=> SelectedEdition == MCEdition.Java && await _apiController.GetOverlaySupport(SelectedVersion.Id);
+			=> SelectedEdition == MCEdition.Java && await JavaController.GetOverlaySupport(SelectedVersion.Id);
 		#endregion
 
 		#region Blacklist
@@ -533,19 +533,19 @@ namespace MCTools.Pages
 		/// Export a text file containing the matching textures
 		/// </summary>
 		private async Task ExportMatchingTextures()
-			=> await InputOutputUtils.Export(_JsHelper, MatchingTexturesList, $"MatchingTextures_{Pack.Name}.txt");
+			=> await InputOutputUtils.Export(JsHelper, MatchingTexturesList, $"MatchingTextures_{Pack.Name}.txt");
 
 		/// <summary>
 		/// Export a text file containing the missing textures
 		/// </summary>
 		private async Task ExportMissingTextures()
-			=> await InputOutputUtils.Export(_JsHelper, MissingTexturesList, $"MissingTextures_{Pack.Name}.txt");
+			=> await InputOutputUtils.Export(JsHelper, MissingTexturesList, $"MissingTextures_{Pack.Name}.txt");
 
 		/// <summary>
 		/// Export a text file containing the unused textures
 		/// </summary>
 		private async Task ExportUnusedTextures()
-			=> await InputOutputUtils.Export(_JsHelper, UnusedTexturesList, $"UnusedTextures_{Pack.Name}.txt");
+			=> await InputOutputUtils.Export(JsHelper, UnusedTexturesList, $"UnusedTextures_{Pack.Name}.txt");
 		#endregion
 
 		#region MCMetas
@@ -553,19 +553,19 @@ namespace MCTools.Pages
 		/// Export a text file containing the matching mcmetas
 		/// </summary>
 		private async Task ExportMatchingMcMetas()
-			=> await InputOutputUtils.Export(_JsHelper, MatchingMcMetasList, $"MatchingMCMetas_{Pack.Name}.txt");
+			=> await InputOutputUtils.Export(JsHelper, MatchingMcMetasList, $"MatchingMCMetas_{Pack.Name}.txt");
 
 		/// <summary>
 		/// Export a text file containing the missing mcmetas
 		/// </summary>
 		private async Task ExportMissingMcMetas()
-			=> await InputOutputUtils.Export(_JsHelper, MissingMcMetasList, $"MissingMCMetas_{Pack.Name}.txt");
+			=> await InputOutputUtils.Export(JsHelper, MissingMcMetasList, $"MissingMCMetas_{Pack.Name}.txt");
 
 		/// <summary>
 		/// Export a text file containing the unused mcmetas
 		/// </summary>
 		private async Task ExportUnusedMcMetas()
-			=> await InputOutputUtils.Export(_JsHelper, UnusedMcMetasList, $"UnusedMCMetas_{Pack.Name}.txt");
+			=> await InputOutputUtils.Export(JsHelper, UnusedMcMetasList, $"UnusedMCMetas_{Pack.Name}.txt");
 		#endregion
 		#endregion
 	}

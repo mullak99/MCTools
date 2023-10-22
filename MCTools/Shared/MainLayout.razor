@@ -1,15 +1,15 @@
 ﻿@using Blazored.LocalStorage
-@using MCTools.Controllers
 @using MCTools.Components
 @using MCTools.Logic
+@using MCTools.SDK.Controllers
 @inherits LayoutComponentBase
 
 @inject ILocalStorageService localStore
 @inject IDialogService Dialog
-@inject HealthController healthController
-@inject TelemetryController telemetryController
+@inject HealthController HealthController
+@inject TelemetryController TelemetryController
 @inject ISnackbar Snackbar
-@inject JSHelper _jsHelper
+@inject JSHelper JsHelper
 
 <MudThemeProvider Theme="CurrentTheme" />
 <MudDialogProvider />

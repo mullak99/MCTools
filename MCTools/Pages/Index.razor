@@ -1,8 +1,8 @@
 ﻿@page "/"
-@using MCTools.Controllers
 @using MCTools.Components
+@using MCTools.SDK.Controllers
 @using MCTools.SDK.Models.Telemetry
-@inject TelemetryController telemetryController
+@inject TelemetryController TelemetryController
 
 <MudText Typo="Typo.h3">Minecraft Tools @(Program.IsPreRelease() ? $" ({Program.GetReleaseType(true, true)})" : string.Empty)</MudText>
 <MudText Class="mb-8">This app is a work-in-progress. More tools will be coming soon!</MudText>
@@ -51,7 +51,7 @@ else
 
 	private async Task GetStatusMessages()
 	{
-		_sysMessages = await telemetryController.GetStatusMessages();
+		_sysMessages = await TelemetryController.GetStatusMessages();
 		await InvokeAsync(StateHasChanged);
 	}
 }

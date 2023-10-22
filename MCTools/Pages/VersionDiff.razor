@@ -1,19 +1,22 @@
 ﻿@page "/version-diff"
-@using MCTools.Controllers
 @using MCTools.Logic
 @using MCTools.Components
 @using MCTools.Enums
+@using MCTools.SDK.Controllers
 
 @inherits LayoutComponentBase
 @inject ISnackbar Snackbar
-@inject ApiController _apiController
-@inject HttpClient _httpClient
-@inject JSHelper _jsHelper
+@inject JavaController JavaController
+@inject HttpClient HttpClient
+@inject JSHelper JsHelper
 
 <MudText Typo="Typo.h3" GutterBottom="true">Version Difference</MudText>
 <MudPaper Class="px-8">
 	<MudGrid Justify="Justify.Center">
-		<VersionComparison ApiController="_apiController" VersionChanged="x => SelectedVersionChanged(x.From, x.To)" EditionChanged="SelectedEditionChanged" IsProcessing="IsProcessing" />
+		<VersionComparison JavaController="JavaController"
+		                   VersionChanged="x => SelectedVersionChanged(x.From, x.To)"
+		                   EditionChanged="SelectedEditionChanged"
+		                   IsProcessing="IsProcessing" />
 		@if (SelectedEdition == MCEdition.Java)
 		{
 			<MudItem xs="12" Class="pa-2 my-1">
@@ -93,14 +96,14 @@
 							   AssetList="@AddedAssets"
 							   BadgeColor="Color.Success"
 							   ExportCallback="DownloadAddedAssets"
-							   JSHelper="_jsHelper" />
+							   JSHelper="JsHelper" />
 
 				<AssetTabPanel TabName="Removed"
 							   EmptyListText="No removed assets"
 							   AssetList="@RemovedAssets"
 							   BadgeColor="Color.Error"
 							   ExportCallback="DownloadRemovedAssets"
-							   JSHelper="_jsHelper" />
+							   JSHelper="JsHelper" />
 
 				<AssetTabPanel TabName="Changed"
 							   EmptyListText="No changed assets"
@@ -110,14 +113,14 @@
 							   CustomButtonText="Export Difference"
 							   CustomButtonIcon="@Icons.Material.Filled.Difference"
 							   CustomButtonCallback="DownloadDifferentAssetsShowDiff"
-							   JSHelper="_jsHelper" />
+							   JSHelper="JsHelper" />
 
 				<AssetTabPanel TabName="Unchanged"
 							   EmptyListText="No unchanged assets"
 							   AssetList="@SameAssets"
 							   BadgeColor="Color.Info"
 							   ExportCallback="DownloadSameAssets"
-							   JSHelper="_jsHelper" />
+							   JSHelper="JsHelper" />
 			</MudTabs>
 		</MudItem>
 	</MudGrid>

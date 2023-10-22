@@ -195,7 +195,7 @@ namespace MCTools.Pages
 				}
 				byte[] zipBytes = memoryStream.ToArray();
 				MCEdition convertedToEdition = SelectedEdition == MCEdition.Bedrock ? MCEdition.Java : MCEdition.Bedrock;
-				await _jsHelper.DownloadZip($"Potions-{convertedToEdition}-{Path.GetFileNameWithoutExtension(Pack.Name)}.zip", zipBytes);
+				await JsHelper.DownloadZip($"Potions-{convertedToEdition}-{Path.GetFileNameWithoutExtension(Pack.Name)}.zip", zipBytes);
 			}
 			zipWriteSw.Stop();
 			if (PerfLogging)
@@ -297,7 +297,7 @@ namespace MCTools.Pages
 		}
 
 		private async Task<bool> GetOverlaySupport()
-			=> SelectedEdition == MCEdition.Java && await _apiController.GetOverlaySupport(SelectedVersion.Id);
+			=> SelectedEdition == MCEdition.Java && await JavaController.GetOverlaySupport(SelectedVersion.Id);
 
 		private string ConversionString
 			=> $"Convert ({(SelectedEdition == MCEdition.Java ? "Java > Bedrock" : "Bedrock > Java")})";

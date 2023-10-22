@@ -1,12 +1,12 @@
 ﻿@page "/potion-converter"
-@using MCTools.Controllers
 @using MCTools.Logic
 @using MCTools.Components
+@using MCTools.SDK.Controllers
 
 @inherits LayoutComponentBase
 @inject ISnackbar Snackbar
-@inject ApiController _apiController
-@inject JSHelper _jsHelper
+@inject JavaController JavaController
+@inject JSHelper JsHelper
 
 <MudText Typo="Typo.h3" GutterBottom="true">Potion Converter</MudText>
 <MudPaper Class="px-8">
@@ -14,14 +14,18 @@
 		<MudItem xs="12">
 			<InputFile id="fileInput" OnChange="UploadFile" hidden accept="@Validation.GetSupportedPackFormats(SelectedEdition)" />
 			<MudButton HtmlTag="label"
-			           Variant="Variant.Filled"
-			           Color="Color.Primary"
-			           StartIcon="@Icons.Material.Filled.CloudUpload"
-			           for="fileInput" style="width: 100%;" >
+					   Variant="Variant.Filled"
+					   Color="Color.Primary"
+					   StartIcon="@Icons.Material.Filled.CloudUpload"
+					   for="fileInput" style="width: 100%;" >
 				@UploadText
 			</MudButton>
 		</MudItem>
-		<VersionSelector ApiController="_apiController" VersionChanged="SelectedVersionChanged" EditionChanged="SelectedEditionChanged" IsProcessing="IsProcessing" DisableBedrock="true" DisableVersions="true" />
+		<VersionSelector JavaController="JavaController"
+						 VersionChanged="SelectedVersionChanged"
+						 EditionChanged="SelectedEditionChanged"
+						 IsProcessing="IsProcessing"
+						 DisableVersions="true" />
 		<MudText Typo="Typo.caption" Align="Align.Center" GutterBottom="true" Class="mt-1">Note: Select the edition you are converting from.</MudText>
 		<OverlayToggles Pack="Pack" OverlaySupport="IsOverlaySupported" IsProcessing="IsProcessing" />
 		@if (MainLayout.DebugMode)
@@ -31,15 +35,15 @@
 				<MudGrid Justify="Justify.SpaceAround" Spacing="2">
 					<MudList>
 						<ToggleSwitch @bind-Checked="DebugLogging"
-						              Label="Debug Logging"
-						              TooltipText="Output process to the console"
-						              IsProcessing="IsProcessing" />
+									  Label="Debug Logging"
+									  TooltipText="Output process to the console"
+									  IsProcessing="IsProcessing" />
 					</MudList>
 					<MudList>
 						<ToggleSwitch @bind-Checked="PerfLogging"
-						              Label="Performance Logging"
-						              TooltipText="Log performance to the console"
-						              IsProcessing="IsProcessing" />
+									  Label="Performance Logging"
+									  TooltipText="Log performance to the console"
+									  IsProcessing="IsProcessing" />
 					</MudList>
 				</MudGrid>
 			</MudItem>
@@ -47,12 +51,12 @@
 		<MudItem xs="12">
 			<MudProgressLinear Color="Color.Primary" Size="Size.Small" Value="0" Max="100" Indeterminate="IsProcessing" Class="my-7" Rounded="true" />
 			<MudButton HtmlTag="label"
-			           Variant="Variant.Filled"
-			           Color="Color.Primary"
-			           StartIcon="@Icons.Material.Filled.Start"
-			           style="width: 100%;"
-			           Disabled="@(IsProcessing || Pack == null)"
-			           OnClick="@ConvertAssets">
+					   Variant="Variant.Filled"
+					   Color="Color.Primary"
+					   StartIcon="@Icons.Material.Filled.Start"
+					   style="width: 100%;"
+					   Disabled="@(IsProcessing || Pack == null)"
+					   OnClick="@ConvertAssets">
 				@ConversionString
 			</MudButton>
 		</MudItem>

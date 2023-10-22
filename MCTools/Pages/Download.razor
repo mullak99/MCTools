@@ -1,19 +1,24 @@
 ﻿@page "/assets"
-@using MCTools.Controllers
 @using MCTools.Logic
 @using MCTools.Components
 @using MCTools.Enums
+@using MCTools.SDK.Controllers
 
 @inherits LayoutComponentBase
 @inject ISnackbar Snackbar
-@inject ApiController _apiController
-@inject HttpClient _httpClient
-@inject JSHelper _jsHelper
+@inject JavaController JavaController
+@inject BedrockController BedrockController
+@inject HttpClient HttpClient
+@inject JSHelper JsHelper
 
 <MudText Typo="Typo.h3" GutterBottom="true">Vanilla Assets</MudText>
 <MudPaper Class="px-8">
 	<MudGrid Justify="Justify.Center">
-		<VersionSelector ApiController="_apiController" VersionChanged="SelectedVersionChanged" EditionChanged="SelectedEditionChanged" IsProcessing="IsProcessing" />
+		<VersionSelector JavaController="JavaController"
+						 BedrockController="BedrockController"
+						 VersionChanged="SelectedVersionChanged"
+						 EditionChanged="SelectedEditionChanged"
+						 IsProcessing="IsProcessing" />
 		@if (SelectedEdition == MCEdition.Java)
 		{
 			<MudItem xs="12" Class="pa-2 my-1">

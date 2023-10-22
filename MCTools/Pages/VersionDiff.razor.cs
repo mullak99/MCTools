@@ -91,11 +91,11 @@ namespace MCTools.Pages
 			switch (SelectedEdition)
 			{
 				case MCEdition.Java:
-					Task<string> jarFromDownloadTask = _apiController.GetJavaJar(SelectedVersionFrom.Id);
-					Task<MCAssets> assetsFromTask = _apiController.GetJavaAssets(SelectedVersionFrom.Id);
+					Task<string> jarFromDownloadTask = JavaController.GetJar(SelectedVersionFrom.Id);
+					Task<MCAssets> assetsFromTask = JavaController.GetAssets(SelectedVersionFrom.Id);
 
-					Task<string> jarToDownloadTask = _apiController.GetJavaJar(SelectedVersionTo.Id);
-					Task<MCAssets> assetsToTask = _apiController.GetJavaAssets(SelectedVersionTo.Id);
+					Task<string> jarToDownloadTask = JavaController.GetJar(SelectedVersionTo.Id);
+					Task<MCAssets> assetsToTask = JavaController.GetAssets(SelectedVersionTo.Id);
 
 					SetProgress(10, "Getting assets...");
 					await Task.WhenAll(jarFromDownloadTask, assetsFromTask, jarToDownloadTask, assetsToTask);
@@ -132,7 +132,7 @@ namespace MCTools.Pages
 
 					if (DownloadRawJar)
 					{
-						await Task.WhenAll(_jsHelper.OpenLinkInNewTab(jarDownloadFrom), _jsHelper.OpenLinkInNewTab(jarDownloadTo));
+						await Task.WhenAll(JsHelper.OpenLinkInNewTab(jarDownloadFrom), JsHelper.OpenLinkInNewTab(jarDownloadTo));
 						SetProgress(100, string.Empty);
 						IsProcessing = false;
 						return;
@@ -210,7 +210,7 @@ namespace MCTools.Pages
 
 		private async Task<ConcurrentDictionary<string, byte[]>> DownloadFromUrl(string url, MCAssets assets, string consoleId)
 		{
-			byte[] zipBytes = await _httpClient.GetByteArrayAsync(url).ConfigureAwait(false);
+			byte[] zipBytes = await HttpClient.GetByteArrayAsync(url).ConfigureAwait(false);
 			Stopwatch perfLogging = new();
 
 			if (PerfLogging)
@@ -303,7 +303,7 @@ namespace MCTools.Pages
 				}
 			}
 			byte[] zippedBytes = ms.ToArray();
-			await _jsHelper.DownloadZip($"{type}-{SavedFromVersion.Id}-to-{SavedToVersion.Id}-{(SelectedEdition == MCEdition.Java ? "Java" : "Bedrock")}.zip", zippedBytes);
+			await JsHelper.DownloadZip($"{type}-{SavedFromVersion.Id}-to-{SavedToVersion.Id}-{(SelectedEdition == MCEdition.Java ? "Java" : "Bedrock")}.zip", zippedBytes);
 		}
 
 		private void SetProgress(byte? value, string text)
@@ -414,7 +414,7 @@ namespace MCTools.Pages
 			}
 
 			byte[] zippedBytes = ms.ToArray();
-			await _jsHelper.DownloadZip($"Changed_Highlighted-{SavedFromVersion.Id}-to-{SavedToVersion.Id}-{(SelectedEdition == MCEdition.Java ? "Java" : "Bedrock")}.zip", zippedBytes);
+			await JsHelper.DownloadZip($"Changed_Highlighted-{SavedFromVersion.Id}-to-{SavedToVersion.Id}-{(SelectedEdition == MCEdition.Java ? "Java" : "Bedrock")}.zip", zippedBytes);
 		}
 
 		#endregion

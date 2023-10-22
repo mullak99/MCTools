@@ -49,8 +49,8 @@ namespace MCTools.Pages
 			switch (SelectedEdition)
 			{
 				case MCEdition.Java:
-					Task<string> jarDownloadTask = _apiController.GetJavaJar(SelectedVersion.Id);
-					Task<MCAssets> assetsTask = _apiController.GetJavaAssets(SelectedVersion.Id);
+					Task<string> jarDownloadTask = JavaController.GetJar(SelectedVersion.Id);
+					Task<MCAssets> assetsTask = JavaController.GetAssets(SelectedVersion.Id);
 					await Task.WhenAll(jarDownloadTask, assetsTask);
 
 					string jarDownload = jarDownloadTask.Result;
@@ -66,7 +66,7 @@ namespace MCTools.Pages
 						Console.WriteLine($"Client JAR: {jarDownload}");
 
 					if (DownloadRawJar)
-						await _jsHelper.OpenLinkInNewTab(jarDownload);
+						await JsHelper.OpenLinkInNewTab(jarDownload);
 					else
 						await DownloadFromUrl(jarDownload, assets);
 					break;
@@ -78,7 +78,7 @@ namespace MCTools.Pages
 					if (OutputSourceUrl)
 						Console.WriteLine($"Bedrock Assets: {zipUrl}");
 
-					await _jsHelper.OpenLinkInNewTab(zipUrl); // Don't filter Bedrock assets: The size of the original ZIP would make this slow.
+					await JsHelper.OpenLinkInNewTab(zipUrl); // Don't filter Bedrock assets: The size of the original ZIP would make this slow.
 					break;
 			}
 
@@ -87,7 +87,7 @@ namespace MCTools.Pages
 
 		private async Task DownloadFromUrl(string url, MCAssets assets)
 		{
-			byte[] zipBytes = await _httpClient.GetByteArrayAsync(url).ConfigureAwait(false);
+			byte[] zipBytes = await HttpClient.GetByteArrayAsync(url).ConfigureAwait(false);
 			Stopwatch perfLogging = new();
 
 			if (PerfLogging)
@@ -144,7 +144,7 @@ namespace MCTools.Pages
 						perfLogging.Restart();
 					}
 
-					await _jsHelper.DownloadZip($"Minecraft-{(SelectedEdition == MCEdition.Java ? "Java" : "Bedrock")}-{assets.Minecraft.Version}.zip", zippedBytes);
+					await JsHelper.DownloadZip($"Minecraft-{(SelectedEdition == MCEdition.Java ? "Java" : "Bedrock")}-{assets.Minecraft.Version}.zip", zippedBytes);
 
 					if (PerfLogging)
 					{
@@ -155,7 +155,7 @@ namespace MCTools.Pages
 			}
 			else
 			{
-				await _jsHelper.DownloadZip($"Minecraft-{(SelectedEdition == MCEdition.Java ? "Java" : "Bedrock")}-{assets.Minecraft.Version}.zip", zipBytes);
+				await JsHelper.DownloadZip($"Minecraft-{(SelectedEdition == MCEdition.Java ? "Java" : "Bedrock")}-{assets.Minecraft.Version}.zip", zipBytes);
 
 				if (PerfLogging)
 				{
