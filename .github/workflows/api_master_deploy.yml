@@ -51,17 +51,6 @@ jobs:
         Common.Email: ${{ secrets.EMAIL }}
     - name: Publish
       run: dotnet publish ${{ env.CSPROJ }} -c ${{ env.RELEASE_TYPE }} -o ${{ env.PUBLISH_PATH }}
-    - name: Stop Service
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        key: ${{ secrets.SSHKEY }}
-        port: ${{ secrets.PORT }}
-        script: |
-          sudo systemctl stop ${{ env.SERVICE_NAME }}
-          sudo rm -rf ${{ env.SERVER_TARGET }}
-          mkdir ${{ env.SERVER_TARGET }}
     - name: Deploy
       uses: appleboy/scp-action@v0.1.4
       with:
@@ -70,16 +59,27 @@ jobs:
         key: ${{ secrets.SSHKEY }}
         port: ${{ secrets.PORT }}
         source: "${{ env.PUBLISH_PATH }}/*"
-        target: ${{ env.SERVER_TARGET }}
+        target: ${{ env.SERVER_TARGET }}.temp
         strip_components: 2
-    - name: Start Service
+    - name: Switch Active Directory and Restart Service
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.SSHKEY }}
         port: ${{ secrets.PORT }}
-        script: | 
-          sudo chmod +x ${{ env.SERVER_TARGET }}/MCTools.API.dll
-          sudo chown -R www-data:www-data ${{ env.SERVER_TARGET }}
-          sudo systemctl start ${{ env.SERVICE_NAME }}
+        script: |
+          ACTIVE_DIR=$(readlink ${{ env.SERVER_TARGET }}.live)
+          if [ "$ACTIVE_DIR" == "${{ env.SERVER_TARGET }}.slot1" ]; then
+            IDLE_SLOT_APIBETA="${{ env.SERVER_TARGET }}.slot2"
+          else
+            IDLE_SLOT_APIBETA="${{ env.SERVER_TARGET }}.slot1"
+          fi
+
+          sudo rm -rf $IDLE_SLOT_APIBETA
+          sudo mv ${{ env.SERVER_TARGET }}.temp $IDLE_SLOT_APIBETA
+          sudo ln -sfn $IDLE_SLOT_APIBETA ${{ env.SERVER_TARGET }}.live
+          sudo chown -R ${{ secrets.USERNAME }}:www-data /var/www
+          sudo chmod -R u+rwx /var/www
+          sudo chmod -R g+rwx /var/www
+          sudo systemctl restart ${{ env.SERVICE_NAME }}
