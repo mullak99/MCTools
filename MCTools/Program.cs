@@ -36,7 +36,11 @@ namespace MCTools
 			var builder = WebAssemblyHostBuilder.CreateDefault(args);
 			builder.RootComponents.Add<App>("#app");
 
-			builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+			HttpClient httpClient = new()
+			{
+				Timeout = TimeSpan.FromSeconds(30)
+			};
+			builder.Services.AddScoped(_ => httpClient);
 
 			builder.Services.AddMudServices(config =>
 				{
@@ -74,7 +78,7 @@ namespace MCTools
 			StableUrl = builder.Configuration["Urls:Stable"];
 			BetaUrl = builder.Configuration["Urls:Beta"];
 
-			ApiClient client = new(new HttpClient(), $"MCTools/{GetVersion()}", ApiRelease.None, ApiAddress ?? string.Empty);
+			ApiClient client = new(new HttpClient(), ApiRelease.None, ApiAddress ?? string.Empty);
 			builder.Services.AddSingleton<IApiClient>(_ => client);
 
 			builder.Services.AddScoped<HealthController>();

@@ -7,7 +7,7 @@ namespace MCTools.SDK.Controllers
 		private readonly HttpClient _client;
 		private readonly string _baseAddress;
 
-		public ApiClient(HttpClient client, string userAgent, ApiRelease apiRelease = ApiRelease.Release, string overrideBaseAddress = "")
+		public ApiClient(HttpClient client, ApiRelease apiRelease = ApiRelease.Release, string overrideBaseAddress = "")
 		{
 			_client = client;
 			_baseAddress = apiRelease switch
@@ -17,8 +17,6 @@ namespace MCTools.SDK.Controllers
 				_ => overrideBaseAddress.TrimEnd('/')
 			};
 			_client.BaseAddress = new Uri(_baseAddress);
-			_client.DefaultRequestHeaders.Add("User-Agent", userAgent);
-			_client.DefaultRequestHeaders.Add("Accept", "application/json");
 		}
 
 		public string BuildRequestUri(string requestUri, string apiVersion = "1.0")
