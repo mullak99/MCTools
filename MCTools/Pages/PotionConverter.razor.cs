@@ -176,14 +176,14 @@ namespace MCTools.Pages
 			}
 
 			HttpClient httpClient = new HttpClient { BaseAddress = new Uri(Program.BaseAddress) }; // Need a new client because of the Uri
-			List<Potion> potions = await httpClient.GetFromJsonAsync<List<Potion>>(POTIONS_FILE) ?? new List<Potion>();
+			List<EffectItem> effectItems = await httpClient.GetFromJsonAsync<List<EffectItem>>(POTIONS_FILE) ?? new List<EffectItem>();
 
 			Stopwatch zipWriteSw = Stopwatch.StartNew();
 			using (MemoryStream memoryStream = new MemoryStream())
 			{
-				await using (ZipOutputStream zipOutputStream = new ZipOutputStream(memoryStream))
+				await using (ZipOutputStream zipOutputStream = new(memoryStream))
 				{
-					potions.ForEach(async potion => await CreatePotions(potion, potionBottle, splashPotionBottle, lingeringPotionBottle, tippedArrowBase, potionOverlay, tippedArrowOverlay, zipOutputStream));
+					effectItems.ForEach(async item => await CreateEffectItem(item, potionBottle, splashPotionBottle, lingeringPotionBottle, tippedArrowBase, potionOverlay, tippedArrowOverlay, zipOutputStream));
 
 					if (DebugLogging)
 						Console.WriteLine("Copying base textures");
@@ -213,7 +213,7 @@ namespace MCTools.Pages
 
 		private async Task AddEntryToZipFileAsync(ZipOutputStream zipOutputStream, string entryName, Stream data)
 		{
-			data.Position = 0;  // Reset the stream position to the beginning
+			data.Position = 0; // Reset the stream position to the beginning
 
 			ZipEntry entry = new(entryName)
 			{
@@ -226,7 +226,7 @@ namespace MCTools.Pages
 			zipOutputStream.CloseEntry();  // Close the current entry
 		}
 
-		private async Task CreatePotions(Potion potion, Image potionImg, Image splashImg, Image lingeringImg, Image tippedArrowBaseImg, Image<Rgba32> potionOverlayImage, Image<Rgba32> tippedArrowOverlayImage, ZipOutputStream zipOutputStream)
+		private async Task CreateEffectItem(EffectItem potion, Image potionImg, Image splashImg, Image lingeringImg, Image tippedArrowBaseImg, Image<Rgba32> potionOverlayImage, Image<Rgba32> tippedArrowOverlayImage, ZipOutputStream zipOutputStream)
 		{
 			if (potion.PotionName != null)
 			{
@@ -287,7 +287,7 @@ namespace MCTools.Pages
 			using Image<Rgba32> result = new(baseImage.Width, baseImage.Height);
 			result.Mutate(context =>
 			{
-				context.DrawImage(baseImage, new Point(0, 0), 1.0f);        // Draw the base image
+				context.DrawImage(baseImage, new Point(0, 0), 1.0f);    // Draw the base image
 				context.DrawImage(overlayImage, new Point(0, 0), 1.0f); // Draw the overlay
 			});
 

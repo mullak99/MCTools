@@ -135,6 +135,7 @@ namespace MCTools.API
 
 			// Logic
 			services.AddScoped<IToolsLogic, ToolsLogic>();
+			services.AddScoped<IConversionLogic, ConversionLogic>();
 			services.AddScoped<ITelemetryLogic, TelemetryLogic>();
 
 			// Autorun
