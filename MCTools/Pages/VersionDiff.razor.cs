@@ -81,131 +81,128 @@ namespace MCTools.Pages
 
 		private async Task CompareAssets()
 		{
-			IsProcessing = true;
-			Reset();
-
-			// DownloadFromUrl causes the UI to freeze, its not the download itself since its still slow when cached.
-			Console.WriteLine("Extracting and processing the JAR/ZIP can take a while. While it may appear to be stuck, it isn't. More optimisations are needed.");
-			Snackbar.Add("This process can take a while. See console for more details.", Severity.Warning);
-
-			switch (SelectedEdition)
+			try
 			{
-				case MCEdition.Java:
-					Task<string> jarFromDownloadTask = JavaController.GetJar(SelectedVersionFrom.Id);
-					Task<MCAssets> assetsFromTask = JavaController.GetAssets(SelectedVersionFrom.Id);
+				IsProcessing = true;
+				Reset();
 
-					Task<string> jarToDownloadTask = JavaController.GetJar(SelectedVersionTo.Id);
-					Task<MCAssets> assetsToTask = JavaController.GetAssets(SelectedVersionTo.Id);
+				switch (SelectedEdition)
+				{
+					case MCEdition.Java:
+						SetProgress(10, "Getting assets...");
 
-					SetProgress(10, "Getting assets...");
-					await Task.WhenAll(jarFromDownloadTask, assetsFromTask, jarToDownloadTask, assetsToTask);
+						string jarDownloadFrom = await JavaController.GetJar(SelectedVersionFrom.Id);
+						MCAssets assetsFrom = await JavaController.GetAssets(SelectedVersionFrom.Id);
 
-					if (DebugLogging)
-						Console.WriteLine("Got assets and download urls");
-
-					string jarDownloadFrom = jarFromDownloadTask.Result;
-					MCAssets assetsFrom = assetsFromTask.Result;
-
-					string jarDownloadTo = jarToDownloadTask.Result;
-					MCAssets assetsTo = assetsToTask.Result;
-
-					if (IncludeMcMetas)
-					{
-						// Support for .mcmeta files
-						assetsFrom.Textures.AddRange(assetsFrom.Textures.Select(x => x.Replace(".png", ".png.mcmeta")).ToList());
-						assetsTo.Textures.AddRange(assetsTo.Textures.Select(x => x.Replace(".png", ".png.mcmeta")).ToList());
+						string jarDownloadTo = await JavaController.GetJar(SelectedVersionTo.Id);
+						MCAssets assetsTo = await JavaController.GetAssets(SelectedVersionTo.Id);
 
 						if (DebugLogging)
-							Console.WriteLine("Included mcmetas");
-					}
+							Console.WriteLine("Got assets and download urls");
 
-					if (string.IsNullOrWhiteSpace(jarDownloadTo) || string.IsNullOrWhiteSpace(jarDownloadFrom))
-					{
-						SetProgress(100, string.Empty);
-						Snackbar.Add("Unable to download JARs!", Severity.Error);
-						IsProcessing = false;
-						return;
-					}
-
-					if (OutputSourceUrl)
-						Console.WriteLine($"Client JAR (1): {jarDownloadFrom} | Client JAR (2): {jarDownloadTo}");
-
-					if (DownloadRawJar)
-					{
-						await Task.WhenAll(JsHelper.OpenLinkInNewTab(jarDownloadFrom), JsHelper.OpenLinkInNewTab(jarDownloadTo));
-						SetProgress(100, string.Empty);
-						IsProcessing = false;
-						return;
-					}
-
-					if (DebugLogging)
-						Console.WriteLine("Starting asset download...");
-
-					SetProgress(null, "Downloading assets...");
-
-					Task<ConcurrentDictionary<string, byte[]>> fromTask = DownloadFromUrl(jarDownloadFrom, assetsFrom, "From");
-					Task<ConcurrentDictionary<string, byte[]>> toTask = DownloadFromUrl(jarDownloadTo, assetsTo, "To");
-					await Task.WhenAll(fromTask, toTask);
-
-					if (DebugLogging)
-						Console.WriteLine("Downloaded assets!");
-
-					SetProgress(85, "Downloaded assets!");
-
-					FromAssets = fromTask.Result;
-					ToAssets = toTask.Result;
-
-					if (FromAssets == null || ToAssets == null)
-					{
-						Snackbar.Add("Download assets were invalid!", Severity.Error);
-						SetProgress(100, string.Empty);
-						IsProcessing = false;
-						return;
-					}
-
-					List<string> sameFiles = new List<string>();
-					List<string> differentFiles = new List<string>();
-					List<string> removedFiles = new List<string>();
-
-					if (DebugLogging)
-						Console.WriteLine("Starting asset comparison...");
-
-					SetProgress(90, "Comparing assets...");
-
-					foreach (var item in FromAssets)
-					{
-						if (ToAssets.ContainsKey(item.Key))
+						if (IncludeMcMetas)
 						{
-							if (ComputeHash(item.Value) == ComputeHash(ToAssets[item.Key]))
-								sameFiles.Add(item.Key);
-							else
+							// Support for .mcmeta files
+							assetsFrom.Textures.AddRange(assetsFrom.Textures
+								.Select(x => x.Replace(".png", ".png.mcmeta")).ToList());
+							assetsTo.Textures.AddRange(assetsTo.Textures.Select(x => x.Replace(".png", ".png.mcmeta"))
+								.ToList());
+
+							if (DebugLogging)
+								Console.WriteLine("Included mcmetas");
+						}
+
+						if (string.IsNullOrWhiteSpace(jarDownloadTo) || string.IsNullOrWhiteSpace(jarDownloadFrom))
+						{
+							SetProgress(100, string.Empty);
+							Snackbar.Add("Unable to download JARs!", Severity.Error);
+							return;
+						}
+
+						if (OutputSourceUrl)
+							Console.WriteLine($"Client JAR (1): {jarDownloadFrom} | Client JAR (2): {jarDownloadTo}");
+
+						if (DownloadRawJar)
+						{
+							await Task.WhenAll(JsHelper.OpenLinkInNewTab(jarDownloadFrom),
+								JsHelper.OpenLinkInNewTab(jarDownloadTo));
+							SetProgress(100, string.Empty);
+							return;
+						}
+
+						if (DebugLogging)
+							Console.WriteLine("Starting asset download...");
+
+						SetProgress(null, "Downloading assets...");
+
+						FromAssets = await DownloadFromUrl(jarDownloadFrom, assetsFrom, "From");
+						ToAssets = await DownloadFromUrl(jarDownloadTo, assetsTo, "To");
+
+						if (DebugLogging)
+							Console.WriteLine("Downloaded assets!");
+
+						SetProgress(85, "Downloaded assets!");
+
+						if (FromAssets == null || ToAssets == null)
+						{
+							Snackbar.Add("Download assets were invalid!", Severity.Error);
+							SetProgress(100, string.Empty);
+							return;
+						}
+
+						List<string> sameFiles = new();
+						List<string> differentFiles = new();
+						List<string> removedFiles = new();
+
+						if (DebugLogging)
+							Console.WriteLine("Starting asset comparison...");
+
+						SetProgress(90, "Comparing assets...");
+
+						foreach (var item in FromAssets)
+						{
+							if (ToAssets.ContainsKey(item.Key))
 							{
-								// Hashes didn't match, perform pixel-by-pixel comparison
-								if (AreImagesIdentical(item.Value, ToAssets[item.Key]))
+								if (ComputeHash(item.Value) == ComputeHash(ToAssets[item.Key]))
 									sameFiles.Add(item.Key);
 								else
-									differentFiles.Add(item.Key);
+								{
+									// Hashes didn't match, perform pixel-by-pixel comparison
+									if (AreImagesIdentical(item.Value, ToAssets[item.Key]))
+										sameFiles.Add(item.Key);
+									else
+										differentFiles.Add(item.Key);
+								}
 							}
+							else removedFiles.Add(item.Key);
 						}
-						else removedFiles.Add(item.Key);
-					}
-					List<string> addedFiles = (from item in ToAssets where !FromAssets.ContainsKey(item.Key) select item.Key).ToList();
 
-					SameAssets = sameFiles;
-					DifferentAssets = differentFiles;
-					RemovedAssets = removedFiles;
-					AddedAssets = addedFiles;
+						List<string> addedFiles =
+							(from item in ToAssets where !FromAssets.ContainsKey(item.Key) select item.Key).ToList();
 
-					SetProgress(100, "Done!");
-					if (DebugLogging)
-						Console.WriteLine("Finished!");
+						SameAssets = sameFiles;
+						DifferentAssets = differentFiles;
+						RemovedAssets = removedFiles;
+						AddedAssets = addedFiles;
 
-					break;
-				case MCEdition.Bedrock:
-					Snackbar.Add("Bedrock edition is not supported!", Severity.Warning);
-					break;
+						SetProgress(100, string.Empty);
+						if (DebugLogging)
+							Console.WriteLine("Finished!");
+
+						break;
+					case MCEdition.Bedrock:
+						Snackbar.Add("Bedrock edition is not supported!", Severity.Warning);
+						break;
+				}
 			}
-			IsProcessing = false;
+			catch (Exception ex)
+			{
+				ErrorHandler.HandleException(ex);
+			}
+			finally
+			{
+				IsProcessing = false;
+			}
 		}
 
 		private async Task<ConcurrentDictionary<string, byte[]>> DownloadFromUrl(string url, MCAssets assets, string consoleId)
@@ -227,15 +224,23 @@ namespace MCTools.Pages
 			using MemoryStream zipStream = new(zipBytes);
 			using ZipFile archive = new(zipStream);
 
+			int delayInterval = 25;
+			int currInterval = 0;
 			foreach (ZipEntry entry in archive)
 			{
-				if (!assets.Textures.Contains(entry.Name)) continue;
+				if (!assets.Textures.Contains(entry.Name) && (!IncludeMcMetas || !assets.McMetas.Contains(entry.Name))) continue;
 
 				using MemoryStream ms = new();
 				await using Stream entryStream = archive.GetInputStream(entry);
 				await entryStream.CopyToAsync(ms).ConfigureAwait(false);
 				extractedFiles.TryAdd(entry.Name, ms.ToArray());
+
+				currInterval += 1;
+				if (currInterval < delayInterval)
+					continue;
+
 				await Task.Delay(1); // Yield to the UI thread
+				currInterval = 0;
 			}
 
 			if (PerfLogging)
@@ -289,6 +294,8 @@ namespace MCTools.Pages
 			using MemoryStream ms = new();
 			await using (ZipOutputStream finalArchive = new(ms))
 			{
+				int delayInterval = 50;
+				int currInterval = 0;
 				foreach (var entry in targetAssets)
 				{
 					var asset = toAssets[entry];
@@ -299,7 +306,13 @@ namespace MCTools.Pages
 					await finalArchive.PutNextEntryAsync(zipEntry).ConfigureAwait(false);
 					finalArchive.Write(asset, 0, asset.Length);
 					finalArchive.CloseEntry();
+
+					currInterval += 1;
+					if (currInterval < delayInterval)
+						continue;
+
 					await Task.Delay(1); // Yield to the UI thread
+					currInterval = 0;
 				}
 			}
 			byte[] zippedBytes = ms.ToArray();
@@ -338,14 +351,14 @@ namespace MCTools.Pages
 					if (pixel1.Equals(pixel2))
 					{
 						// Identical
-						diffImage[x, y] = new Rgba32(0, 0, 255, 255);
+						diffImage[x, y] = new(0, 0, 255, 255);
 					}
 					else
 					{
 						// Compute difference magnitude
 						float diff = (Math.Abs(pixel1.R - pixel2.R) + Math.Abs(pixel1.G - pixel2.G) + Math.Abs(pixel1.B - pixel2.B)) / 3.0f;
 						float scale = diff / 255.0f;
-						diffImage[x, y] = new Rgba32(255, 0, 255, (byte)(scale * 255));
+						diffImage[x, y] = new(255, 0, 255, (byte)(scale * 255));
 					}
 				}
 			}

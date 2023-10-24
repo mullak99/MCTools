@@ -81,9 +81,12 @@ namespace MCTools
 			ApiClient client = new(new HttpClient(), ApiRelease.None, ApiAddress ?? string.Empty);
 			builder.Services.AddSingleton<IApiClient>(_ => client);
 
+			builder.Services.AddScoped<IErrorHandler, ErrorHandler>();
+
 			builder.Services.AddScoped<HealthController>();
 			builder.Services.AddScoped<JavaController>();
 			builder.Services.AddScoped<BedrockController>();
+			builder.Services.AddScoped<ConversionController>();
 			builder.Services.AddScoped<TelemetryController>();
 			builder.Services.AddScoped<JSHelper>();
 
@@ -91,6 +94,7 @@ namespace MCTools
 
 			_appInfo = new AppInfo
 			{
+				SessionId = Guid.NewGuid(),
 				AppId = "MCTools",
 				ReleaseType = apiType switch
 				{
@@ -108,6 +112,9 @@ namespace MCTools
 
 		public static AppInfo GetAppInfo()
 			=> _appInfo;
+
+		public static Guid GetSessionId()
+			=> _appInfo.SessionId ?? Guid.Empty;
 
 		public static bool IsPreRelease()
 			=> _isPreRelease;

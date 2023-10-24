@@ -5,6 +5,7 @@
 @using MCTools.SDK.Controllers
 
 @inherits LayoutComponentBase
+@inject IErrorHandler ErrorHandler
 @inject ISnackbar Snackbar
 @inject JavaController JavaController
 @inject BedrockController BedrockController
@@ -61,7 +62,20 @@
 			</MudItem>
 		}
 		<MudItem xs="12">
-			<MudProgressLinear Color="Color.Primary" Size="Size.Small" Value="0" Max="100" Indeterminate="IsProcessing" Class="my-7" Rounded="true" />
+			<MudProgressLinear Color="Color.Primary"
+			                   Size="@(string.IsNullOrWhiteSpace(ProgressText) ? Size.Small : Size.Large)"
+			                   Value="@(ProgressValue ?? 0)"
+			                   Indeterminate="@(ProgressValue == null && IsProcessing)"
+			                   Max="100"
+			                   Class="my-7"
+			                   Rounded="true">
+				@if (!string.IsNullOrWhiteSpace(ProgressText))
+				{
+					<MudText Typo="Typo.caption" Color="Color.Surface">
+						@ProgressText
+					</MudText>
+				}
+			</MudProgressLinear>
 			<MudButton HtmlTag="label"
 					   Variant="Variant.Filled"
 					   Color="Color.Primary"

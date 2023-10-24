@@ -1,0 +1,37 @@
+﻿@inherits LayoutComponentBase
+
+<MudDialog>
+	<DialogContent>
+		<MudItem>
+			<MudText>
+				An unexpected error has occurred!
+			</MudText>
+			<MudText Class="pt-4">
+				Press submit to automatically report this error. You can also submit an issue on the <MudLink Href="https://github.com/mullak99/MCTools/issues"><b>GitHub Issues</b></MudLink> page.
+			</MudText>
+			<MudText>
+				Please include the Error Id at the bottom-left in your report.
+			</MudText>
+		</MudItem>
+		<MudExpansionPanels Class="pt-8" MultiExpansion="true">
+			<MudExpansionPanel Text="Exception">
+				<MudText>
+					@Exception.GetType().FullName
+				</MudText>
+				<MudText Class="pt-4">
+					@Exception.Message
+				</MudText>
+			</MudExpansionPanel>
+			<MudExpansionPanel Text="Stacktrace">
+				<MudText>
+					@(Exception.StackTrace ?? "No stacktrace available")
+				</MudText>
+			</MudExpansionPanel>
+		</MudExpansionPanels>
+	</DialogContent>
+	<DialogActions>
+		<MudButton Color="Color.Error" OnClick="Cancel">Cancel</MudButton>
+		<MudButton Color="Color.Primary" OnClick="Submit">Submit</MudButton>
+		<MudText Typo="Typo.caption" Class="settings-version">Error Id: @_errorId</MudText>
+	</DialogActions>
+</MudDialog>

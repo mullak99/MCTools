@@ -37,5 +37,14 @@ namespace MCTools.SDK.Controllers
 			string rawJson = await res.Content.ReadAsStringAsync();
 			return JsonConvert.DeserializeObject<List<ApiMessage>>(rawJson) ?? new();
 		}
+
+		public async Task<bool> AddAppError(AppError appError)
+		{
+			HttpRequestMessage req = new(HttpMethod.Post, _client.BuildRequestUri("telemetry/error/add", _apiVersion));
+			req.Content = new StringContent(JsonConvert.SerializeObject(appError), Encoding.UTF8, "application/json");
+			HttpResponseMessage res = await _client.GetClient().SendAsync(req);
+
+			return res.StatusCode == System.Net.HttpStatusCode.OK;
+		}
 	}
 }

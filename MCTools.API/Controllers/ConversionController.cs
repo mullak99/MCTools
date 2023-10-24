@@ -30,8 +30,8 @@ namespace MCTools.API.Controllers
 		{
 			try
 			{
-				await Task.CompletedTask;
-				return Ok();
+				var result = await _conversionLogic.GetAllEffectItems();
+				return Ok(result);
 			}
 			catch (Exception ex)
 			{
@@ -39,6 +39,7 @@ namespace MCTools.API.Controllers
 				return StatusCode(500, ex.Message);
 			}
 		}
+
 
 		[HttpGet("effectitem/get/byname/{name}")]
 		[SwaggerResponse(200, Type = typeof(EffectItem), Description = "An effect item, including its colour and needed variations for Bedrock")]
@@ -49,13 +50,15 @@ namespace MCTools.API.Controllers
 			try
 			{
 				string itemNameSanitized = itemName.Replace("_", " ");
+				var result = await _conversionLogic.GetEffectItem(itemNameSanitized);
 
-				await Task.CompletedTask;
-				return Ok();
+				if (result == null)
+					return BadRequest($"No effect item with the name {itemNameSanitized} could be found");
+				return Ok(result);
 			}
 			catch (Exception ex)
 			{
-				_logger.LogError(ex, "An error occurred while getting the effect items");
+				_logger.LogError(ex, "An error occurred while getting the effect item");
 				return StatusCode(500, ex.Message);
 			}
 		}
@@ -68,27 +71,49 @@ namespace MCTools.API.Controllers
 		{
 			try
 			{
-				await Task.CompletedTask;
-				return Ok();
+				var result = await _conversionLogic.GetEffectItem(id);
+
+				if (result == null)
+					return BadRequest($"No effect item with the id {id} could be found");
+				return Ok(result);
 			}
 			catch (Exception ex)
 			{
-				_logger.LogError(ex, "An error occurred while getting the effect items");
+				_logger.LogError(ex, "An error occurred while getting the effect item");
 				return StatusCode(500, ex.Message);
 			}
 		}
 
-		[HttpPost("effectitem/add/{id}")]
-		[SwaggerResponse(200, Type = typeof(EffectItem), Description = "An effect item, including its colour and needed variations for Bedrock")]
+		[HttpPost("effectitem/add")]
+		[SwaggerResponse(200, Type = typeof(bool), Description = "If the effect item was added successfully")]
 		[SwaggerResponse(400, "No effect item could be found")]
 		[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
 		[Authorize("write:effectitem")]
-		public async Task<IActionResult> AddItem([FromRoute] Guid id, [FromBody] EffectItem item)
+		public async Task<IActionResult> AddItem([FromBody] EffectItem item)
 		{
 			try
 			{
-				await Task.CompletedTask;
-				return Ok();
+				var result = await _conversionLogic.AddEffectItem(item);
+				return result ? Ok() : BadRequest("Invalid effect item!");
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "An error occurred while adding the effect item");
+				return StatusCode(500, ex.Message);
+			}
+		}
+
+		[HttpPost("effectitem/addmany")]
+		[SwaggerResponse(200, Type = typeof(bool), Description = "If the effect item was added successfully")]
+		[SwaggerResponse(400, "No effect item could be found")]
+		[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+		[Authorize("write:effectitem")]
+		public async Task<IActionResult> AddItems([FromBody] List<EffectItem> items)
+		{
+			try
+			{
+				var result = await _conversionLogic.AddEffectItems(items);
+				return result ? Ok() : BadRequest("Invalid effect items!");
 			}
 			catch (Exception ex)
 			{
@@ -98,7 +123,7 @@ namespace MCTools.API.Controllers
 		}
 
 		[HttpPatch("effectitem/edit/{id}")]
-		[SwaggerResponse(200, Type = typeof(EffectItem), Description = "An effect item, including its colour and needed variations for Bedrock")]
+		[SwaggerResponse(200, Type = typeof(EffectItem), Description = "If the effect item was edited successfully")]
 		[SwaggerResponse(400, "No effect item could be found")]
 		[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
 		[Authorize("write:effectitem")]
@@ -106,27 +131,44 @@ namespace MCTools.API.Controllers
 		{
 			try
 			{
-				await Task.CompletedTask;
-				return Ok();
+				var result = await _conversionLogic.UpdateEffectItem(id, item);
+				return result ? Ok() : BadRequest("Invalid request!");
 			}
 			catch (Exception ex)
 			{
-				_logger.LogError(ex, "An error occurred while editing the effect items");
+				_logger.LogError(ex, "An error occurred while editing the effect item");
 				return StatusCode(500, ex.Message);
 			}
 		}
 
 		[HttpDelete("effectitem/delete/{id}")]
-		[SwaggerResponse(200, Type = typeof(EffectItem), Description = "An effect item, including its colour and needed variations for Bedrock")]
-		[SwaggerResponse(400, "No effect item could be found")]
+		[SwaggerResponse(200, Type = typeof(bool), Description = "If the effect item was deleted successfully")]
 		[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
 		[Authorize("delete:effectitem")]
 		public async Task<IActionResult> DeleteItemById([FromRoute] Guid id)
 		{
 			try
 			{
-				await Task.CompletedTask;
-				return Ok();
+				var result = await _conversionLogic.DeleteEffectItem(id);
+				return Ok(result);
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "An error occurred while deleting the effect item");
+				return StatusCode(500, ex.Message);
+			}
+		}
+
+		[HttpDelete("effectitem/deleteall")]
+		[SwaggerResponse(200, Type = typeof(int), Description = "Number of effect items deleted")]
+		[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+		[Authorize("delete:effectitem")]
+		public async Task<IActionResult> DeleteItems()
+		{
+			try
+			{
+				var result = await _conversionLogic.DeleteAllEffectItems();
+				return Ok(result);
 			}
 			catch (Exception ex)
 			{

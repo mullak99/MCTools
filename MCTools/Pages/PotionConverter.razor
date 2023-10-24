@@ -2,10 +2,13 @@
 @using MCTools.Logic
 @using MCTools.Components
 @using MCTools.SDK.Controllers
+@using Microsoft.Extensions.Logging
 
 @inherits LayoutComponentBase
+@inject IErrorHandler ErrorHandler
 @inject ISnackbar Snackbar
 @inject JavaController JavaController
+@inject ConversionController ConversionController
 @inject JSHelper JsHelper
 
 <MudText Typo="Typo.h3" GutterBottom="true">Potion Converter</MudText>

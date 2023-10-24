@@ -128,9 +128,11 @@ namespace MCTools.API
 
 			// Cache
 			services.AddSingleton<IVersionAssetsCache, VersionAssetsCache>();
+			services.AddSingleton<IEffectItemCache, EffectItemCache>();
 
 			// Repos
 			services.AddScoped<IVersionAssetsRepository, VersionAssetsRepository>();
+			services.AddScoped<IEffectItemRepository, EffectItemRepository>();
 			services.AddScoped<ITelemetryRepository, TelemetryRepository>();
 
 			// Logic

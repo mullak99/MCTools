@@ -283,32 +283,34 @@ namespace MCTools.Pages
 		/// <returns></returns>
 		private async Task Compare(List<string> refTexFiles, List<string> refMcMetaFiles, List<string> blacklist)
 		{
-			Stopwatch st = Stopwatch.StartNew();
-			bool success = await Pack.Process(Validation.GetMaxFileSizeBytes());
-			st.Stop();
-
-			if (!success)
+			try
 			{
-				Snackbar.Add("Unable to process resource pack!", Severity.Error);
-				return;
+				Stopwatch st = Stopwatch.StartNew();
+				bool success = await Pack.Process(Validation.GetMaxFileSizeBytes());
+				st.Stop();
+
+				if (!success)
+				{
+					Snackbar.Add("Unable to process resource pack!", Severity.Error);
+					return;
+				}
+
+				if (PerfLogging)
+					Console.WriteLine($"Processed pack in {st.ElapsedMilliseconds}ms");
+
+				await CompareTextures(refTexFiles, blacklist);
+
+				if (!ExcludeMcMetas)
+				{
+					DidCompareMcMetas = true;
+					await CompareMcMetas(refMcMetaFiles, blacklist);
+				}
+				else DidCompareMcMetas = false;
 			}
-
-			if (PerfLogging)
-				Console.WriteLine($"Processed pack in {st.ElapsedMilliseconds}ms");
-
-			List<Task> tasks = new()
+			catch (Exception ex)
 			{
-				CompareTextures(refTexFiles, blacklist)
-			};
-
-			if (!ExcludeMcMetas)
-			{
-				DidCompareMcMetas = true;
-				tasks.Add(CompareMcMetas(refMcMetaFiles, blacklist));
+				ErrorHandler.HandleException(ex);
 			}
-			else DidCompareMcMetas = false;
-
-			await Task.WhenAll(tasks);
 		}
 
 		/// <summary>
@@ -509,21 +511,31 @@ namespace MCTools.Pages
 		/// <param name="e"></param>
 		private async Task UploadFile(InputFileChangeEventArgs e)
 		{
-			IsProcessing = true;
-			List<string> errors = Validation.PackValidation(SelectedEdition, e.File);
-			if (errors.Count > 0) // Show warnings for any validation errors
+			try
 			{
-				errors.ForEach(x => Snackbar.Add(x, Severity.Warning));
-				Pack = null;
+				IsProcessing = true;
+				List<string> errors = Validation.PackValidation(SelectedEdition, e.File);
+				if (errors.Count > 0) // Show warnings for any validation errors
+				{
+					errors.ForEach(x => Snackbar.Add(x, Severity.Warning));
+					Pack = null;
+				}
+				else // Pack is valid
+				{
+					Snackbar.Add("Resource pack uploaded!", Severity.Success);
+					Pack = new(e.File, SelectedEdition);
+					await Pack.Init(Validation.GetMaxFileSizeBytes());
+				}
 			}
-			else // Pack is valid
+			catch (Exception ex)
 			{
-				Snackbar.Add("Resource pack uploaded!", Severity.Success);
-				Pack = new(e.File, SelectedEdition);
-				await Pack.Init(Validation.GetMaxFileSizeBytes());
+				ErrorHandler.HandleException(ex);
 			}
-			IsProcessing = false;
-			StateHasChanged();
+			finally
+			{
+				IsProcessing = false;
+				await InvokeAsync(StateHasChanged);
+			}
 		}
 		#endregion
 
