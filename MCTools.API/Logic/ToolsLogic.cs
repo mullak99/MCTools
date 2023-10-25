@@ -126,33 +126,63 @@ namespace MCTools.API.Logic
 		{
 			try
 			{
-				using var httpResponse = await _httpClient.GetAsync(
-					"https://launchermeta.mojang.com/mc/game/version_manifest.json",
+				using var httpResponse = await _httpClient.GetAsync("https://launchermeta.mojang.com/mc/game/version_manifest.json",
 					HttpCompletionOption.ResponseHeadersRead);
 				httpResponse.EnsureSuccessStatusCode();
 
 				var rawJson = await httpResponse.Content.ReadAsStringAsync();
 				var json = JObject.Parse(rawJson);
 
-				JToken? latestReleaseT = json.SelectToken("$.latest.release");
-				JToken? latestSnapshotT = json.SelectToken("$.latest.snapshot");
-
-				string latestRelease = latestReleaseT != null ? latestReleaseT.ToString() : "";
-				string latestSnapshot = latestSnapshotT != null ? latestSnapshotT.ToString() : "";
+				var latestReleaseId = json["latest"]?["release"]?.ToString();
+				var latestSnapshotId = json["latest"]?["snapshot"]?.ToString();
 
 				List<AssetMCVersion> versions = new();
-				json.SelectTokens(
-						$"$.versions[?(@.type == 'release' || @.id == '{latestSnapshot}' || @.id == '{latestRelease}')]")
-					.ToList().ForEach(x =>
+
+				JToken? versionsToken = json["versions"];
+
+				if (versionsToken == null)
+					return versions;
+
+				// Extract versions based on given conditions
+				versionsToken
+					.Where(v => v["type"]?.ToString() == "release" || v["id"]?.ToString() == latestReleaseId || v["id"]?.ToString() == latestSnapshotId)
+					.ToList()
+					.ForEach(v =>
 					{
-						var obj = x.ToObject<AssetMCVersion>();
+						var obj = v.ToObject<AssetMCVersion>();
 						if (obj != null)
 						{
 							obj.Edition = "java";
 							versions.Add(obj);
 						}
 					});
-				return LimitVersions(versions, bypassHighestVersionLimit);
+
+				// Extract the releaseTime of the latest release
+				AssetMCVersion? latestRelease = versions.FirstOrDefault(v => v.Id == latestReleaseId);
+				if (latestRelease != null)
+				{
+					var newerSnapshots = versionsToken
+						.Where(v => v["type"]?.ToString() == "snapshot" && DateTime.Parse(v["releaseTime"]?.ToString() ?? string.Empty) > latestRelease.ReleaseTime)
+						.OrderByDescending(v => DateTime.Parse(v["time"]?.ToString() ?? string.Empty))
+						.Take(3).ToList();
+
+					var olderSnapshot = versionsToken
+						.Where(v => v["type"]?.ToString() == "snapshot" && DateTime.Parse(v["releaseTime"]?.ToString() ?? string.Empty) < latestRelease.ReleaseTime)
+						.OrderByDescending(v => DateTime.Parse(v["releaseTime"]?.ToString() ?? string.Empty))
+						.Take(1).ToList();
+
+					newerSnapshots.AddRange(olderSnapshot);
+					newerSnapshots.ForEach(v =>
+					{
+						var obj = v.ToObject<AssetMCVersion>();
+						if (obj != null && versions.All(x => x.Id != obj.Id))
+						{
+							obj.Edition = "java";
+							versions.Add(obj);
+						}
+					});
+				}
+				return LimitVersions(versions.Distinct().OrderByDescending(x => x.ReleaseTime).ToList(), bypassHighestVersionLimit);
 			}
 			catch (HttpRequestException e)
 			{
@@ -305,11 +335,18 @@ namespace MCTools.API.Logic
 					// Include latest snapshot if it is newer than the latest full-release
 					if ((split.Count == 1 || x.Id.Any(char.IsLetter)) && x.ReleaseTime >= tempList[0].ReleaseTime)
 						newList.Add(x);
-					else
+					else if (x.Edition == "java" && x.Id.Contains('.') && !x.Id.Contains('-'))
 					{
-						List<int> verSplit = split.Select(int.Parse).ToList();
-						if (!newList.Any(y => y.Id.StartsWith($"{verSplit[0]}.{verSplit[1]}") && y.Type == "release"))
-							newList.Add(x);
+						try
+						{
+							List<int> verSplit = split.Select(int.Parse).ToList();
+							if (!newList.Any(y => y.Id.StartsWith($"{verSplit[0]}.{verSplit[1]}") && y.Type == "release"))
+								newList.Add(x);
+						}
+						catch (Exception ex)
+						{
+							_logger.LogWarning(ex, $"Failed to parse version {x.Id}. We probably don't want to show this, but better filtering would be ideal!");
+						}
 					}
 				});
 			}
