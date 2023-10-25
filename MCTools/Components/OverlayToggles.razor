@@ -1,6 +1,6 @@
 ﻿@using MCTools.Models
 
-@if (Pack is { Overlays: { } } && Pack.Overlays.Any())
+@if (Pack is { Overlays: not null } && Pack.Overlays.Any())
 {
 	<MudItem xs="12" Class="pa-2 my-1">
 		<MudText Typo="Typo.h6" GutterBottom="true">Overlays</MudText>
@@ -25,11 +25,11 @@
 
 	protected override void OnParametersSet()
 	{
-		if (Pack is {Overlays: { } })
-		{
-			foreach (Assets overlay in Pack.Overlays)
-				overlay.Enabled = OverlaySupport;
-		}
+		if (Pack is not {Overlays: not null })
+			return;
+
+		foreach (Assets overlay in Pack.Overlays)
+			overlay.Enabled = OverlaySupport;
 	}
 
 	private bool _isDisabled => IsProcessing || !OverlaySupport;

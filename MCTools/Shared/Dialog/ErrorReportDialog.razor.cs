@@ -2,6 +2,7 @@
 using MudBlazor;
 using System;
 using System.Threading.Tasks;
+using MCTools.Models;
 using MCTools.SDK.Controllers;
 using MCTools.SDK.Models.Telemetry;
 
@@ -14,6 +15,7 @@ namespace MCTools.Shared.Dialog
 		[Parameter] public Exception Exception { get; set; }
 
 		[Inject] private TelemetryController TelemetryController { get; set; }
+		[Inject] private AppLinks AppLinks { get; set; }
 
 		private Guid _errorId;
 

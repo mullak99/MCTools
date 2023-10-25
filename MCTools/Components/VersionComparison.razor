@@ -92,16 +92,19 @@
 					: await BedrockController.GetVersions();
 
 				SetDefaultVersionSelection();
+
+				if (EditionChanged.HasDelegate)
+					await EditionChanged.InvokeAsync(edition);
 			}
 			catch (Exception)
 			{
 				Snackbar.Add("An error occurred when loading versions! Check the console for errors.", Severity.Error);
 				throw;
 			}
-			IsLoading = false;
-
-			if (EditionChanged.HasDelegate)
-				await EditionChanged.InvokeAsync(edition);
+			finally
+			{
+				IsLoading = false;
+			}
 		}
 	}
 

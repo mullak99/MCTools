@@ -1,4 +1,5 @@
 ﻿@using MCTools.Logic
+
 <MudTabPanel Text="@TabName" Class="item-tab-panel" BadgeData="@AssetList.Count" BadgeColor="@BadgeColor">
 	<MudList Dense="true" DisablePadding="true" Class="item-tab-root-list">
 		@if (AssetList.Count > 0)
@@ -57,7 +58,6 @@
 	[Parameter] public string CustomButtonText { get; set; }
 	[Parameter] public string CustomButtonIcon { get; set; }
 	[Parameter] public EventCallback CustomButtonCallback { get; set; }
-
 
 	private const float VIRTUALIZER_ITEM_SIZE = 36.02f;
 	private const int VIRTUALIZER_OVERSCAN = 64;

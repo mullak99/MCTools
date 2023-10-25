@@ -1,4 +1,7 @@
 ﻿@page "/privacy"
+@using MCTools.Models
+
+@inject AppLinks AppLinks
 
 <MudText Typo="Typo.h3">Privacy Policy</MudText>
 <MudText Class="mb-8">Last edited: 15th October 2023</MudText>
@@ -45,7 +48,7 @@
 	</MudExpansionPanel>
 	<MudExpansionPanel Text="Contact" IsInitiallyExpanded="true">
 		<MudText>
-			If you have any questions about this Privacy Policy, contact me by e-mail at <a href="mailto:mullak99@mullak99.co.uk">mullak99@mullak99.co.uk</a>.
+			If you have any questions about this Privacy Policy, contact me by e-mail at <a href="@($"mailto:{AppLinks.Email}")">@AppLinks.Email</a>.
 		</MudText>
 	</MudExpansionPanel>
 </MudExpansionPanels>

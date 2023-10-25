@@ -17,9 +17,9 @@
 			Directory.CreateDirectory(_logDirPath);
 		}
 
-		public IDisposable? BeginScope<TState>(TState state)
+		public IDisposable BeginScope<TState>(TState state)
 		{
-			return null;
+			return null!;
 		}
 
 		public bool IsEnabled(LogLevel logLevel)

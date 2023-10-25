@@ -9,10 +9,13 @@ using System.Globalization;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
+using MCTools.Models;
 using MCTools.SDK.Controllers;
 using MCTools.SDK.Enums.Controllers;
 using MCTools.SDK.Enums.Telemetry;
 using MCTools.SDK.Models.Telemetry;
+using Microsoft.Extensions.Configuration;
+#pragma warning disable IL2026
 
 namespace MCTools
 {
@@ -35,6 +38,9 @@ namespace MCTools
 		{
 			var builder = WebAssemblyHostBuilder.CreateDefault(args);
 			builder.RootComponents.Add<App>("#app");
+
+			AppLinks appLinks = builder.Configuration.GetSection("Links").Get<AppLinks>();
+			builder.Services.AddSingleton(_ => appLinks);
 
 			HttpClient httpClient = new()
 			{
