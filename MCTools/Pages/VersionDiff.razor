@@ -15,14 +15,33 @@
 <MudPaper Class="px-8">
 	<MudGrid Justify="Justify.Center">
 		<VersionComparison JavaController="JavaController"
-		                   VersionChanged="x => SelectedVersionChanged(x.From, x.To)"
-		                   EditionChanged="SelectedEditionChanged"
-		                   IsProcessing="IsProcessing" />
-		@if (SelectedEdition == MCEdition.Java)
-		{
-			<MudItem xs="12" Class="pa-2 my-1">
-				<MudText Typo="Typo.h6" GutterBottom="true">Options</MudText>
-				<MudGrid Justify="Justify.SpaceAround" Spacing="2" >
+						   VersionChanged="x => SelectedVersionChanged(x.From, x.To)"
+						   EditionChanged="SelectedEditionChanged"
+						   IsProcessing="IsProcessing" />
+		<MudItem xs="12" Class="pa-2 my-1">
+			<MudText Typo="Typo.h6" GutterBottom="true">Options</MudText>
+			<MudGrid Justify="Justify.SpaceAround" Spacing="2" >
+				<MudTooltip Text="Colour for the same pixels when exporting">
+					<MudColorPicker Label="Matching Colour"
+									@bind-Text="SameColourHex"
+									DisableAlpha="true"
+									Disabled="IsProcessing"
+									Class="outlined-text"
+									Style="@($"color: {SameColourHex};")" />
+				</MudTooltip>
+
+				<MudTooltip Text="Colour for different pixels when exporting">
+					<MudColorPicker Label="Difference Colour"
+									@bind-Text="DiffColourHex"
+									DisableAlpha="true"
+									Disabled="IsProcessing"
+									Class="outlined-text"
+									Style="@($"color: {DiffColourHex};")" />
+				</MudTooltip>
+			</MudGrid>
+			@if (SelectedEdition == MCEdition.Java)
+			{
+				<MudGrid Class="pt-2" Justify="Justify.SpaceAround" Spacing="2" >
 					<MudList>
 						<ToggleSwitch @bind-Checked="IncludeMcMetas"
 									  Label="Include MCMeta Files"
@@ -30,8 +49,8 @@
 									  IsProcessing="IsProcessing" />
 					</MudList>
 				</MudGrid>
-			</MudItem>
-		}
+			}
+		</MudItem>
 		@if (MainLayout.DebugMode)
 		{
 			<MudItem xs="12" Class="pa-2 my-1">

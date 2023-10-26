@@ -14,6 +14,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using MCTools.Extensions;
 
 namespace MCTools.Pages
 {
@@ -58,6 +59,33 @@ namespace MCTools.Pages
 		private bool DownloadRawJar { get; set; }
 		private bool PerfLogging { get; set; }
 		private bool DebugLogging { get; set; }
+
+		private Rgba32 SameColour { get; set; } = new(0, 0, 255, 255); // Blue
+		private Rgba32 DiffColour { get; set; } = new(255, 0, 255, 255); // Magenta - Alpha will be ignored
+
+		private string SameColourHex
+		{
+			get => SameColour.ToHexNoAlpha();
+			set
+			{
+				if (!Rgba32.TryParseHex(value, out Rgba32 colour))
+					return;
+				colour.A = 255;
+				SameColour = colour;
+			}
+		}
+
+		private string DiffColourHex
+		{
+			get => DiffColour.ToHexNoAlpha();
+			set
+			{
+				if (!Rgba32.TryParseHex(value, out Rgba32 colour))
+					return;
+				colour.A = 255;
+				DiffColour = colour;
+			}
+		}
 		#endregion
 
 		#region Operations
@@ -224,7 +252,7 @@ namespace MCTools.Pages
 			using MemoryStream zipStream = new(zipBytes);
 			using ZipFile archive = new(zipStream);
 
-			int delayInterval = 25;
+			int delayInterval = 15;
 			int currInterval = 0;
 			foreach (ZipEntry entry in archive)
 			{
@@ -326,39 +354,49 @@ namespace MCTools.Pages
 			StateHasChanged();
 		}
 
-		private byte[] ShowDifferences(string asset)
+		private byte[] ShowDifferences(string asset, List<string> warnings)
 		{
 			using var ms1 = new MemoryStream(FromAssets[asset]);
 			using var ms2 = new MemoryStream(ToAssets[asset]);
 			using var image1 = Image.Load<Rgba32>(ms1);
 			using var image2 = Image.Load<Rgba32>(ms2);
 
+			// Determine the dimensions of the larger image
+			int width = Math.Max(image1.Width, image2.Width);
+			int height = Math.Max(image1.Height, image2.Height);
+
 			if (image1.Width != image2.Width || image1.Height != image2.Height)
-			{
-				Console.WriteLine($"Image sizes are different for {asset}! {image1.Width}x{image1.Height} vs {image2.Width}x{image2.Height}");
-				return null;
-			}
+				warnings.Add($"{asset}: Image dimensions do not match! ({image1.Width}x{image1.Height} vs {image2.Width}x{image2.Height})");
 
-			var diffImage = new Image<Rgba32>(image1.Width, image1.Height);
+			var diffImage = new Image<Rgba32>(width, height);
 
-			for (int y = 0; y < image1.Height; y++)
+			for (int y = 0; y < height; y++)
 			{
-				for (int x = 0; x < image1.Width; x++)
+				for (int x = 0; x < width; x++)
 				{
-					var pixel1 = image1[x, y];
-					var pixel2 = image2[x, y];
-
-					if (pixel1.Equals(pixel2))
+					if (x < image1.Width && y < image1.Height && x < image2.Width && y < image2.Height)
 					{
-						// Identical
-						diffImage[x, y] = new(0, 0, 255, 255);
+						// Overlapping area
+						var pixel1 = image1[x, y];
+						var pixel2 = image2[x, y];
+
+						if (pixel1.Equals(pixel2))
+						{
+							// Identical pixel in overlapping area
+							diffImage[x, y] = SameColour;
+						}
+						else
+						{
+							// Difference in overlapping area
+							float diff = (Math.Abs(pixel1.R - pixel2.R) + Math.Abs(pixel1.G - pixel2.G) + Math.Abs(pixel1.B - pixel2.B)) / 3.0f;
+							float scale = diff / 255.0f;
+							diffImage[x, y] = new Rgba32(DiffColour.R, DiffColour.G, DiffColour.B, (byte)(scale * 255));
+						}
 					}
 					else
 					{
-						// Compute difference magnitude
-						float diff = (Math.Abs(pixel1.R - pixel2.R) + Math.Abs(pixel1.G - pixel2.G) + Math.Abs(pixel1.B - pixel2.B)) / 3.0f;
-						float scale = diff / 255.0f;
-						diffImage[x, y] = new(255, 0, 255, (byte)(scale * 255));
+						// Non-overlapping area
+						diffImage[x, y] = SameColour;
 					}
 				}
 			}
@@ -382,7 +420,8 @@ namespace MCTools.Pages
 
 		private async Task DownloadDifferentAssetsShowDiff()
 		{
-			Dictionary<string, byte[]> diffAssets = DifferentAssets.ToDictionary(asset => asset, ShowDifferences);
+			List<string> warnings = new();
+			Dictionary<string, byte[]> diffAssets = DifferentAssets.ToDictionary(asset => asset, x => ShowDifferences(x, warnings));
 			bool didDetectError = false;
 
 			using MemoryStream ms = new();
@@ -406,17 +445,28 @@ namespace MCTools.Pages
 				StringBuilder sb = new();
 
 				sb.AppendLine("This archive contains the differences between the two selected versions.\nPixel Colour Key:");
-				sb.AppendLine("- Blue: Pixels that are unchanged between From and To.");
-				sb.AppendLine("- Magenta: Pixels that are different. The shade shows the magnitude of the difference.");
+				sb.AppendLine($"- {SameColour.ToHexNoAlpha()}: Pixels that are unchanged between From and To.");
+				sb.AppendLine($"- {DiffColour.ToHexNoAlpha()}: Pixels that are different. The shade shows the magnitude of the difference.");
 
-				if (didDetectError)
+				if (didDetectError || warnings.Any())
 				{
-					Snackbar.Add("Unable to show differences for some assets! Check console for more information", Severity.Warning);
+					Snackbar.Add("Some assets generated warnings! See the README in the ZIP for more information.", Severity.Warning);
 
-					sb.AppendLine();
-					sb.AppendLine("Warning! Unable to show differences for some assets!\n");
-					foreach (var entry in diffAssets.Where(x => x.Value == null))
-						sb.AppendLine($"- {entry.Key}");
+					if (didDetectError)
+					{
+						sb.AppendLine();
+						sb.AppendLine("Unable to show differences for the following assets:");
+						foreach (var entry in diffAssets.Where(x => x.Value == null))
+							sb.AppendLine($"- {entry.Key}");
+					}
+
+					if (warnings.Any())
+					{
+						sb.AppendLine();
+						sb.AppendLine("The following assets generated warnings:");
+						foreach (var warning in warnings)
+							sb.AppendLine($"- {warning}");
+					}
 				}
 
 				byte[] infoBytes = Encoding.UTF8.GetBytes(sb.ToString());
