@@ -45,11 +45,11 @@ namespace MCTools.API.Controllers
 		[SwaggerResponse(200, Type = typeof(EffectItem), Description = "An effect item, including its colour and needed variations for Bedrock")]
 		[SwaggerResponse(400, "No effect item could be found")]
 		[ResponseCache(Duration = GET_CACHE_DURATION_ALL, Location = ResponseCacheLocation.Any, NoStore = false)]
-		public async Task<IActionResult> GetItemByName([FromRoute] string itemName)
+		public async Task<IActionResult> GetItemByName([FromRoute] string name)
 		{
 			try
 			{
-				string itemNameSanitized = itemName.Replace("_", " ");
+				string itemNameSanitized = name.Replace("_", " ");
 				var result = await _conversionLogic.GetEffectItem(itemNameSanitized);
 
 				if (result == null)
