@@ -57,3 +57,23 @@
 			 -1px 1px 0 var(--mud-palette-black),
 			 1px 1px 0 var(--mud-palette-black);
 }
+
+.mc-texture-preview {
+	image-rendering: pixelated;
+	height: 128px;
+	width: auto;
+	transition: transform 0.3s ease;
+	display: block;
+	background-color: #000;
+}
+
+	.mc-texture-preview:hover {
+		transform: scale(2);
+	}
+
+.scrollable-dialog-container {
+	max-height: 75vh;
+	overflow-y: scroll;
+	border-top: 1px solid var(--mud-palette-lines-default);
+	border-bottom: 1px solid var(--mud-palette-lines-default);
+}

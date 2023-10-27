@@ -1,0 +1,52 @@
+﻿@inherits LayoutComponentBase
+
+<MudDialog DisableSidePadding="true" ClassActions="pt-0">
+	<DialogContent>
+		<MudContainer Class="scrollable-dialog-container">
+			<Virtualize TItem="KeyValuePair<string, byte[]>" Items="@Images" ItemSize="329.35f" OverscanCount="4">
+				<MudPaper Class="py-1 my-2" Outlined="true">
+					<MudList Class="align-center py-0 my-0">
+						<MudListItem>
+							<MudText Typo="Typo.body2" Align="Align.Center">@context.Key</MudText>
+						</MudListItem>
+						<MudListItem Class="my-1">
+							<MudGrid Justify="Justify.SpaceAround" Spacing="4" Class="my-0">
+								<MudItem xs="3">
+									<MudList>
+										<MudListItem>
+											<MudText Typo="Typo.body2" Align="Align.Center">Old</MudText>
+										</MudListItem>
+										<MudListItem>
+										</MudListItem>
+									</MudList>
+								</MudItem>
+								<MudItem xs="3">
+									<MudList>
+										<MudListItem>
+											<MudText Typo="Typo.body2" Align="Align.Center">New</MudText>
+										</MudListItem>
+										<MudListItem>
+										</MudListItem>
+									</MudList>
+								</MudItem>
+								<MudItem xs="3">
+									<MudList>
+										<MudListItem>
+											<MudText Typo="Typo.body2" Align="Align.Center">Comparison</MudText>
+										</MudListItem>
+										<MudListItem>
+											<MudImage Src="@($"data:image/png;base64,{Convert.ToBase64String(context.Value)}")" Class="mc-texture-preview mx-auto"/>
+										</MudListItem>
+									</MudList>
+								</MudItem>
+							</MudGrid>
+						</MudListItem>
+					</MudList>
+				</MudPaper>
+			</Virtualize>
+		</MudContainer>
+	</DialogContent>
+	<DialogActions>
+		<MudButton Color="Color.Error" OnClick="Close">Close</MudButton>
+	</DialogActions>
+</MudDialog>

@@ -15,6 +15,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using MCTools.Extensions;
+using MCTools.Shared.Dialog;
 
 namespace MCTools.Pages
 {
@@ -417,6 +418,18 @@ namespace MCTools.Pages
 
 		private async Task DownloadSameAssets()
 			=> await DownloadAssets("Unchanged", SameAssets, ToAssets);
+
+		private void PreviewAssets()
+		{
+			List<string> warnings = new();
+			Dictionary<string, byte[]> diffAssets = DifferentAssets.OrderBy(x => x).ToDictionary(asset => asset, x => ShowDifferences(x, warnings));
+			DialogOptions options = new() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+			DialogParameters parameters = new()
+			{
+				{"Images", diffAssets}
+			};
+			DialogService.Show<ImagePreviewDialog>("Preview Different Assets", parameters, options);
+		}
 
 		private async Task DownloadDifferentAssetsShowDiff()
 		{

@@ -5,6 +5,7 @@
 @using MCTools.SDK.Controllers
 
 @inherits LayoutComponentBase
+@inject IDialogService DialogService
 @inject IErrorHandler ErrorHandler
 @inject ISnackbar Snackbar
 @inject JavaController JavaController
@@ -143,6 +144,20 @@
 							   JSHelper="JsHelper" />
 			</MudTabs>
 		</MudItem>
+		@if (DifferentAssets.Count > 0)
+		{
+			<MudItem xs="12" Class="pb-4">
+				<MudButton HtmlTag="label"
+						   Variant="Variant.Filled"
+						   Color="Color.Primary"
+						   StartIcon="@Icons.Material.Filled.Preview"
+						   style="width: 100%;"
+						   Disabled="@(IsProcessing || DifferentAssets.Count == 0)"
+						   OnClick="@PreviewAssets">
+					Preview
+				</MudButton>
+			</MudItem>
+		}
 	</MudGrid>
 </MudPaper>
 <MudExpansionPanels Class="pt-4">
