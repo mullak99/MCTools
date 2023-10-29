@@ -110,7 +110,7 @@
 				</MudItem>
 			</MudGrid>
 		</MudItem>
-		<MudItem xs="12" Class="pt-1 pb-4">
+		<MudItem xs="12" Class="pt-1 pb-1">
 			<MudTabs Outlined="true" Position="Position.Left" Rounded="true" Border="true" ApplyEffectsToContainer="true">
 				<AssetTabPanel TabName="Added"
 							   EmptyListText="No added assets"
@@ -144,20 +144,17 @@
 							   JSHelper="JsHelper" />
 			</MudTabs>
 		</MudItem>
-		@if (DifferentAssets.Count > 0)
-		{
-			<MudItem xs="12" Class="pb-4">
-				<MudButton HtmlTag="label"
-						   Variant="Variant.Filled"
-						   Color="Color.Primary"
-						   StartIcon="@Icons.Material.Filled.Preview"
-						   style="width: 100%;"
-						   Disabled="@(IsProcessing || DifferentAssets.Count == 0)"
-						   OnClick="@PreviewAssets">
-					Preview
-				</MudButton>
-			</MudItem>
-		}
+		<MudItem xs="12" Class="pb-4">
+			<MudButton HtmlTag="label"
+			           Variant="Variant.Filled"
+			           Color="Color.Primary"
+			           StartIcon="@Icons.Material.Filled.Preview"
+			           style="width: 100%;"
+			           Disabled="@(IsProcessing || !_enablePreview)"
+			           OnClick="@PreviewAssets">
+				Preview
+			</MudButton>
+		</MudItem>
 	</MudGrid>
 </MudPaper>
 <MudExpansionPanels Class="pt-4">
@@ -167,6 +164,11 @@
 		</MudText>
 		<MudText Class="mt-2">
 			Select an edition and versions of the game to compare and click compare.
+		</MudText>
+		<MudText Class="mt-2">
+			<li>Download button in each tab (Added, Removed, Changed, Unchanged) will download the assets in that tab.</li>
+			<li>Export Difference button in the Changed tab will download images that show the difference between the two assets.</li>
+			<li>Preview button will open a dialog that shows Added, Removed, and Changed textures in-browser.</li>
 		</MudText>
 	</MudExpansionPanel>
 </MudExpansionPanels>

@@ -64,11 +64,14 @@
 	width: auto;
 	transition: transform 0.3s ease;
 	display: block;
-	background-color: #000;
 }
 
 	.mc-texture-preview:hover {
 		transform: scale(2);
+	}
+
+	.mc-texture-preview.disable-background {
+		background-color: #000;
 	}
 
 .scrollable-dialog-container {

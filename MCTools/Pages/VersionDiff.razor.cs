@@ -15,6 +15,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using MCTools.Extensions;
+using MCTools.Models;
 using MCTools.Shared.Dialog;
 
 namespace MCTools.Pages
@@ -43,6 +44,7 @@ namespace MCTools.Pages
 		private MCVersion SavedToVersion;
 
 		private bool _compareEnabled => IsProcessing || SelectedVersionFrom == SelectedVersionTo;
+		private bool _enablePreview => DifferentAssets.Any() || AddedAssets.Any() || RemovedAssets.Any();
 
 		private void SelectedVersionChanged(MCVersion from, MCVersion to)
 		{
@@ -419,18 +421,6 @@ namespace MCTools.Pages
 		private async Task DownloadSameAssets()
 			=> await DownloadAssets("Unchanged", SameAssets, ToAssets);
 
-		private void PreviewAssets()
-		{
-			List<string> warnings = new();
-			Dictionary<string, byte[]> diffAssets = DifferentAssets.OrderBy(x => x).ToDictionary(asset => asset, x => ShowDifferences(x, warnings));
-			DialogOptions options = new() { MaxWidth = MaxWidth.Medium, FullWidth = true };
-			DialogParameters parameters = new()
-			{
-				{"Images", diffAssets}
-			};
-			DialogService.Show<ImagePreviewDialog>("Preview Different Assets", parameters, options);
-		}
-
 		private async Task DownloadDifferentAssetsShowDiff()
 		{
 			List<string> warnings = new();
@@ -493,6 +483,25 @@ namespace MCTools.Pages
 			await JsHelper.DownloadZip($"Changed_Highlighted-{SavedFromVersion.Id}-to-{SavedToVersion.Id}-{(SelectedEdition == MCEdition.Java ? "Java" : "Bedrock")}.zip", zippedBytes);
 		}
 
+		private void PreviewAssets()
+		{
+			List<string> warnings = new();
+			Dictionary<string, byte[]> diffAssets = DifferentAssets.OrderBy(x => x).ToDictionary(asset => asset, x => ShowDifferences(x, warnings));
+
+			List<DiffImage> images = new();
+			images.AddRange(diffAssets.Select(x => new DiffImage(x.Key, x.Value, DiffImageType.Different)));
+			images.AddRange(AddedAssets.OrderBy(x => x).Select(x => new DiffImage(x, ToAssets[x], DiffImageType.Added)));
+			images.AddRange(RemovedAssets.OrderBy(x => x).Select(x => new DiffImage(x, FromAssets[x], DiffImageType.Removed)));
+
+			DialogOptions options = new() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+			DialogParameters parameters = new()
+			{
+				{"Images", images},
+				{"FromAssets", FromAssets},
+				{"ToAssets", ToAssets}
+			};
+			DialogService.Show<ImagePreviewDialog>("Asset Preview", parameters, options);
+		}
 		#endregion
 		#endregion
 	}

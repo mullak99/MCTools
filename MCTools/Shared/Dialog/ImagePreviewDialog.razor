@@ -1,49 +1,114 @@
-﻿@inherits LayoutComponentBase
+﻿@using MCTools.Models
+@inherits LayoutComponentBase
 
 <MudDialog DisableSidePadding="true" ClassActions="pt-0">
 	<DialogContent>
 		<MudContainer Class="scrollable-dialog-container">
-			<Virtualize TItem="KeyValuePair<string, byte[]>" Items="@Images" ItemSize="329.35f" OverscanCount="4">
-				<MudPaper Class="py-1 my-2" Outlined="true">
-					<MudList Class="align-center py-0 my-0">
-						<MudListItem>
-							<MudText Typo="Typo.body2" Align="Align.Center">@context.Key</MudText>
-						</MudListItem>
-						<MudListItem Class="my-1">
-							<MudGrid Justify="Justify.SpaceAround" Spacing="4" Class="my-0">
-								<MudItem xs="3">
-									<MudList>
+			@if (AddedImages is { Count: 0 } && DifferentImages is { Count: 0 } && RemovedImages is { Count: 0 })
+			{
+				<MudText Class="py-4">No changed assets</MudText>
+			}
+			else
+			{
+				<MudExpansionPanels Class="py-4" MultiExpansion="true" Dense="true">
+					@if (AddedImages is { Count: > 0 })
+					{
+						<MudExpansionPanel Text="Added">
+							<Virtualize TItem="DiffImage" Items="@AddedImages" ItemSize="@SINGLE_TEX_VIRTUALIZE_SIZE" OverscanCount="@TEX_VIRTUALIZE_OVERSCAN">
+								<MudPaper Class="py-1 my-2" Outlined="true">
+									<MudList Class="align-center py-0 my-0">
 										<MudListItem>
-											<MudText Typo="Typo.body2" Align="Align.Center">Old</MudText>
+											<MudText Typo="Typo.body2" Align="Align.Center">@context.Name</MudText>
 										</MudListItem>
-										<MudListItem>
-										</MudListItem>
-									</MudList>
-								</MudItem>
-								<MudItem xs="3">
-									<MudList>
-										<MudListItem>
-											<MudText Typo="Typo.body2" Align="Align.Center">New</MudText>
-										</MudListItem>
-										<MudListItem>
+										<MudListItem Class="my-1 pt-4 pb-8">
+											<MudImage Src="@context.ImageBase64" Class="mc-texture-preview mx-auto" />
 										</MudListItem>
 									</MudList>
-								</MudItem>
-								<MudItem xs="3">
-									<MudList>
+								</MudPaper>
+							</Virtualize>
+						</MudExpansionPanel>
+					}
+					@if (DifferentImages is { Count: > 0 })
+					{
+						<MudExpansionPanel Text="Changed">
+							<Virtualize TItem="DiffImage" Items="@DifferentImages" ItemSize="@MULTI_TEX_VIRTUALIZE_SIZE" OverscanCount="@TEX_VIRTUALIZE_OVERSCAN">
+								<MudPaper Class="py-1 my-2" Outlined="true">
+									<MudList Class="align-center py-0 my-0">
 										<MudListItem>
-											<MudText Typo="Typo.body2" Align="Align.Center">Comparison</MudText>
+											<MudText Typo="Typo.body2" Align="Align.Center">@context.Name</MudText>
 										</MudListItem>
-										<MudListItem>
-											<MudImage Src="@($"data:image/png;base64,{Convert.ToBase64String(context.Value)}")" Class="mc-texture-preview mx-auto"/>
+										<MudListItem Class="my-1">
+											<MudGrid Justify="Justify.SpaceAround" Spacing="0" Class="my-0">
+												<MudItem xs="3">
+													<MudList>
+														<MudListItem>
+															<MudText Typo="Typo.body2" Align="Align.Center">Old</MudText>
+														</MudListItem>
+														<MudListItem>
+															@if (FromAssets.TryGetValue(context.Name, out var asset))
+															{
+																<MudImage Src="@($"data:image/png;base64,{Convert.ToBase64String(asset)}")" Class="mc-texture-preview mx-auto" />
+															}
+															else
+															{
+																<MudText>Not found</MudText>
+															}
+														</MudListItem>
+													</MudList>
+												</MudItem>
+												<MudItem xs="3">
+													<MudList>
+														<MudListItem>
+															<MudText Typo="Typo.body2" Align="Align.Center">New</MudText>
+														</MudListItem>
+														<MudListItem>
+															@if (ToAssets.TryGetValue(context.Name, out var asset))
+															{
+																<MudImage Src="@($"data:image/png;base64,{Convert.ToBase64String(asset)}")" Class="mc-texture-preview mx-auto" />
+															}
+															else
+															{
+																<MudText>Not found</MudText>
+															}
+														</MudListItem>
+													</MudList>
+												</MudItem>
+												<MudItem xs="3">
+													<MudList>
+														<MudListItem>
+															<MudText Typo="Typo.body2" Align="Align.Center">Comparison</MudText>
+														</MudListItem>
+														<MudListItem>
+															<MudImage Src="@context.ImageBase64" Class="mc-texture-preview disable-background mx-auto" />
+														</MudListItem>
+													</MudList>
+												</MudItem>
+											</MudGrid>
 										</MudListItem>
 									</MudList>
-								</MudItem>
-							</MudGrid>
-						</MudListItem>
-					</MudList>
-				</MudPaper>
-			</Virtualize>
+								</MudPaper>
+							</Virtualize>
+						</MudExpansionPanel>
+					}
+					@if (RemovedImages is { Count: > 0 })
+					{
+						<MudExpansionPanel Text="Removed">
+							<Virtualize TItem="DiffImage" Items="@RemovedImages" ItemSize="@SINGLE_TEX_VIRTUALIZE_SIZE" OverscanCount="@TEX_VIRTUALIZE_OVERSCAN">
+								<MudPaper Class="py-1 my-2" Outlined="true">
+									<MudList Class="align-center py-0 my-0">
+										<MudListItem>
+											<MudText Typo="Typo.body2" Align="Align.Center">@context.Name</MudText>
+										</MudListItem>
+										<MudListItem Class="my-1 pt-4 pb-8">
+											<MudImage Src="@context.ImageBase64" Class="mc-texture-preview mx-auto" />
+										</MudListItem>
+									</MudList>
+								</MudPaper>
+							</Virtualize>
+						</MudExpansionPanel>
+					}
+				</MudExpansionPanels>
+			}
 		</MudContainer>
 	</DialogContent>
 	<DialogActions>
