@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
 	<PropertyGroup>
-		<TargetFramework>net6.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 		<PackageProjectUrl>https://mctools.mullak99.co.uk/</PackageProjectUrl>
 		<AssemblyVersion>1.5.0.0</AssemblyVersion>
 		<FileVersion>1.4.0.0</FileVersion>
@@ -31,15 +31,15 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Blazored.LocalStorage" Version="4.4.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.23" />
-		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.23" PrivateAssets="all" />
+		<PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.1" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.1" PrivateAssets="all" />
 		<PackageReference Include="MudBlazor.ThemeManager" Version="1.0.8" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="SharpZipLib" Version="1.4.2" />
-		<PackageReference Include="SixLabors.ImageSharp" Version="3.0.2" />
-		<PackageReference Include="System.Net.Http.Json" Version="6.0.1" />
-		<PackageReference Include="MudBlazor" Version="6.11.0" />
+		<PackageReference Include="SixLabors.ImageSharp" Version="3.1.2" />
+		<PackageReference Include="System.Net.Http.Json" Version="8.0.0" />
+		<PackageReference Include="MudBlazor" Version="6.15.0" />
 	</ItemGroup>
 
 	<ItemGroup>
