@@ -5,7 +5,7 @@
 		<AssemblyVersion>1.5.0.0</AssemblyVersion>
 		<FileVersion>1.4.0.0</FileVersion>
 		<EnableTrimAnalyzer>True</EnableTrimAnalyzer>
-		<PublishTrimmed>True</PublishTrimmed>
+		<PublishTrimmed>False</PublishTrimmed>
 		<TrimMode>link</TrimMode>
 		<ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
 		<RepositoryUrl>https://github.com/mullak99/MCTools</RepositoryUrl>
