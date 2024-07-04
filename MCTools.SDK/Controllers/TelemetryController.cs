@@ -26,6 +26,18 @@ namespace MCTools.SDK.Controllers
 				Console.WriteLine($"Unable to communicate with the API! Response: {await res.Content.ReadAsStringAsync()}");
 		}
 
+		public async Task AddAppAction(Guid sessionId, AppAction appAction)
+		{
+			HttpRequestMessage req = new(HttpMethod.Post, _client.BuildRequestUri($"telemetry/action/add/{sessionId}", _apiVersion));
+			req.Content = new StringContent(JsonConvert.SerializeObject(appAction), Encoding.UTF8, "application/json");
+			HttpResponseMessage res = await _client.GetClient().SendAsync(req);
+
+			if (res.StatusCode == System.Net.HttpStatusCode.BadRequest)
+				Console.WriteLine($"Unable to find specified sessionId!");
+			else if (res.StatusCode != System.Net.HttpStatusCode.OK)
+				Console.WriteLine($"Unable to communicate with the API! Response: {await res.Content.ReadAsStringAsync()}");
+		}
+
 		public async Task<List<ApiMessage>> GetStatusMessages()
 		{
 			HttpRequestMessage req = new(HttpMethod.Get, _client.BuildRequestUri("telemetry/launch", _apiVersion));

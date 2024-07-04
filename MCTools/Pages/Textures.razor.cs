@@ -1,7 +1,9 @@
 ﻿using MCTools.Enums;
 using MCTools.Logic;
 using MCTools.Models;
+using MCTools.SDK.Controllers;
 using MCTools.SDK.Models;
+using MCTools.SDK.Models.Telemetry;
 using MCTools.Shared.Dialog;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
@@ -286,6 +288,17 @@ namespace MCTools.Pages
 			try
 			{
 				Stopwatch st = Stopwatch.StartNew();
+
+				_ = TelemetryController.AddAppAction(Program.GetSessionId(), new AppAction
+				{
+					Action = "CompareTextures",
+					Details =
+					[
+						$"Edition: {(SelectedEdition == MCEdition.Java ? "Java" : "Bedrock")}",
+						$"Version: {SelectedVersion.Id}"
+					]
+				});
+
 				bool success = await Pack.Process(Validation.GetMaxFileSizeBytes());
 				st.Stop();
 

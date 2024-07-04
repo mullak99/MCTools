@@ -61,6 +61,14 @@ namespace MCTools.API.Repository
 		public async Task<long> DeleteAllAppVisits()
 			=> (await _appInfo.DeleteManyAsync(_ => true)).DeletedCount;
 		#endregion
+
+		#region Update
+		public async Task<bool> AddAppAction(Guid sessionId, AppAction appInfo)
+		{
+			UpdateResult? request = await _appInfo.UpdateOneAsync(x => x.SessionId == sessionId, Builders<AppInfo>.Update.Push(x => x.Actions, appInfo));
+			return request.ModifiedCount > 0;
+		}
+		#endregion
 		#endregion
 
 		#region AppError
@@ -97,6 +105,7 @@ namespace MCTools.API.Repository
 		Task<long> GetAppVisitsCount(DateTime from, DateTime to);
 		Task<long> GetAppVisitsCount(AppReleaseType releaseType, DateTime from, DateTime to);
 		Task<long> DeleteAllAppVisits();
+		Task<bool> AddAppAction(Guid sessionId, AppAction appInfo);
 		#endregion
 
 		#region AppError

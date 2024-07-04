@@ -64,6 +64,12 @@ namespace MCTools.API.Logic
 			_logger.LogInformation("Purging app visits...");
 			return await _telemetryRepository.DeleteAllAppVisits();
 		}
+
+		public async Task<bool> AddAppAction(Guid sessionId, AppAction appAction)
+			=> await _telemetryRepository.AddAppAction(sessionId, appAction);
+
+		public async Task<List<AppAction>?> GetAppActions(Guid sessionId)
+			=> (await GetAppVisits()).Find(x => x.SessionId == sessionId)?.Actions;
 		#endregion
 
 		#region AppError
@@ -110,8 +116,9 @@ namespace MCTools.API.Logic
 		Task<long> GetAppVisitsCount(AppReleaseType releaseType);
 		Task<long> GetAppVisitsCount(DateTime from, DateTime to);
 		Task<long> GetAppVisitsCount(AppReleaseType releaseType, DateTime from, DateTime to);
-
 		Task<long> PurgeAppVisits();
+		Task<bool> AddAppAction(Guid sessionId, AppAction appAction);
+		Task<List<AppAction>?> GetAppActions(Guid sessionId);
 		#endregion
 
 		#region AppError

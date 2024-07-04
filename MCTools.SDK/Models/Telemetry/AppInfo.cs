@@ -12,6 +12,7 @@ namespace MCTools.SDK.Models.Telemetry
 		public string Version { get; set; } = "UNKNOWN";
 		public string Build { get; set; } = "UNKNOWN";
 		public DateTime RequestDateTime { get; set; } = DateTime.UtcNow;
+		public List<AppAction> Actions { get; set; } = new();
 
 		public void UpdateTime()
 			=> RequestDateTime = DateTime.UtcNow;
