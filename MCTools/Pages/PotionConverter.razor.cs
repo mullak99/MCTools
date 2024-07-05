@@ -16,6 +16,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using MCTools.SDK.Models.Telemetry;
 using Image = SixLabors.ImageSharp.Image;
 
 namespace MCTools.Pages
@@ -90,6 +91,16 @@ namespace MCTools.Pages
 			try
 			{
 				IsProcessing = true;
+
+				_ = TelemetryController.AddAppAction(Program.GetSessionId(), new AppAction
+				{
+					Action = "ConvertPotionAssets",
+					Details =
+					[
+						$"Edition: {(SelectedEdition == MCEdition.Java ? "Java" : "Bedrock")}",
+						$"Version: {SelectedVersion.Id}"
+					]
+				});
 
 				bool success = await Pack.Process(Validation.GetMaxFileSizeBytes());
 				if (!success)

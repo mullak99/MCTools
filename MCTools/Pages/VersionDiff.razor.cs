@@ -16,6 +16,7 @@ using System.Text;
 using System.Threading.Tasks;
 using MCTools.Extensions;
 using MCTools.Models;
+using MCTools.SDK.Models.Telemetry;
 using MCTools.Shared.Dialog;
 
 namespace MCTools.Pages
@@ -116,6 +117,17 @@ namespace MCTools.Pages
 			{
 				IsProcessing = true;
 				Reset();
+
+				_ = TelemetryController.AddAppAction(Program.GetSessionId(), new AppAction
+				{
+					Action = "VersionDiff",
+					Details =
+					[
+						$"Edition: {(SelectedEdition == MCEdition.Java ? "Java" : "Bedrock")}",
+						$"VersionFrom: {SelectedVersionFrom.Id}",
+						$"VersionTo: {SelectedVersionTo.Id}"
+					]
+				});
 
 				switch (SelectedEdition)
 				{

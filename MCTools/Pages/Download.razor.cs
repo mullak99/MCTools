@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using MCTools.SDK.Models.Telemetry;
 
 namespace MCTools.Pages
 {
@@ -46,6 +47,16 @@ namespace MCTools.Pages
 			{
 				IsProcessing = true;
 				SetProgress(null, string.Empty);
+
+				_ = TelemetryController.AddAppAction(Program.GetSessionId(), new AppAction
+				{
+					Action = "DownloadVanillaAssets",
+					Details =
+					[
+						$"Edition: {(SelectedEdition == MCEdition.Java ? "Java" : "Bedrock")}",
+						$"Version: {SelectedVersion.Id}"
+					]
+				});
 
 				switch (SelectedEdition)
 				{
