@@ -1,15 +1,16 @@
 ﻿@using Blazored.LocalStorage
 @using MCTools.Components
 @using MCTools.Logic
+@using MCTools.Models
 @using MCTools.SDK.Controllers
 @inherits LayoutComponentBase
-
 @inject ILocalStorageService localStore
 @inject IDialogService Dialog
 @inject HealthController HealthController
 @inject TelemetryController TelemetryController
 @inject ISnackbar Snackbar
 @inject JSHelper JsHelper
+@inject AppLinks AppLinks
 
 <MudThemeProvider Theme="CurrentTheme" />
 <MudDialogProvider />
@@ -17,7 +18,7 @@
 
 <MudLayout>
 	<MudAppBar Elevation="0" Dense="true" Fixed="true">
-		<MudIconButton Icon="@(IsDrawerOpen ? Icons.Material.Filled.MenuOpen : Icons.Material.Filled.Menu)" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => ToggleDrawer())" />
+		<MudIconButton Icon="@(IsDrawerOpen ? Icons.Material.Filled.MenuOpen : Icons.Material.Filled.Menu)" Color="Color.Inherit" Edge="Edge.Start" OnClick="@(_ => ToggleDrawer())" />
 		<MudText Typo="Typo.h6" Class="pl-4 pr-1">Minecraft Tools</MudText>
 		@if (Program.IsPreRelease())
 		{
@@ -25,7 +26,7 @@
 		}
 		<MudSpacer />
 		<MudToolBar WrapContent="true" Dense="true" DisableGutters="true">
-			<MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Title="GitHub" aria-label="github" Href="https://github.com/mullak99/MCTools" />
+			<MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Title="GitHub" aria-label="github" Href="@AppLinks.GitHub" />
 			<MudIconButton Icon="@Icons.Material.Filled.Api" Color="Color.Inherit" Title="Swagger" Href="@($"{Program.ApiAddress.TrimEnd('/', '\\')}/swagger")" />
 
 			<MudIconButton Class="ml-8" Icon="@Icons.Material.Filled.Settings" Color="Color.Inherit" Title="Settings" OnClick="@OpenSettingsDialog" />
@@ -42,13 +43,12 @@
 	</MudMainContent>
 	<MudAppBar Bottom="true" Fixed="true" Dense="true" Elevation="1">
 		<MudText Typo="Typo.caption" Class="toolbar-version">
-			MCTools @Program.GetVersion()
-			(@Program.GetGitTag())
+			MCTools @Program.GetVersion() (@Program.GetGitTag())
 		</MudText>
 		<ApiStatusIcon Status="@ApiStatus" />
 		<MudSpacer/>
 		<MudToolBar WrapContent="true" Dense="true" DisableGutters="true">
-			<MudIconButton Icon="@Icons.Material.Filled.BugReport" Color="Color.Inherit" Title="Report a bug" Href="https://github.com/mullak99/MCTools/issues" />
+			<MudIconButton Icon="@Icons.Material.Filled.BugReport" Color="Color.Inherit" Title="Report a bug" Href="@AppLinks.GitHubIssues" />
 			<MudIconButton Icon="@Icons.Material.Filled.PrivacyTip" Color="Color.Inherit" Title="Privacy Policy" Href="/privacy" />
 		</MudToolBar>
 	</MudAppBar>

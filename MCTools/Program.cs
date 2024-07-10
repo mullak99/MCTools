@@ -9,10 +9,13 @@ using System.Globalization;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
+using MCTools.Models;
 using MCTools.SDK.Controllers;
 using MCTools.SDK.Enums.Controllers;
 using MCTools.SDK.Enums.Telemetry;
 using MCTools.SDK.Models.Telemetry;
+using Microsoft.Extensions.Configuration;
+#pragma warning disable IL2026
 
 namespace MCTools
 {
@@ -35,6 +38,9 @@ namespace MCTools
 		{
 			var builder = WebAssemblyHostBuilder.CreateDefault(args);
 			builder.RootComponents.Add<App>("#app");
+
+			AppLinks appLinks = builder.Configuration.GetSection("Links").Get<AppLinks>();
+			builder.Services.AddSingleton(_ => appLinks);
 
 			HttpClient httpClient = new()
 			{
@@ -81,9 +87,12 @@ namespace MCTools
 			ApiClient client = new(new HttpClient(), ApiRelease.None, ApiAddress ?? string.Empty);
 			builder.Services.AddSingleton<IApiClient>(_ => client);
 
+			builder.Services.AddScoped<IErrorHandler, ErrorHandler>();
+
 			builder.Services.AddScoped<HealthController>();
 			builder.Services.AddScoped<JavaController>();
 			builder.Services.AddScoped<BedrockController>();
+			builder.Services.AddScoped<ConversionController>();
 			builder.Services.AddScoped<TelemetryController>();
 			builder.Services.AddScoped<JSHelper>();
 
@@ -91,6 +100,7 @@ namespace MCTools
 
 			_appInfo = new AppInfo
 			{
+				SessionId = Guid.NewGuid(),
 				AppId = "MCTools",
 				ReleaseType = apiType switch
 				{
@@ -108,6 +118,9 @@ namespace MCTools
 
 		public static AppInfo GetAppInfo()
 			=> _appInfo;
+
+		public static Guid GetSessionId()
+			=> _appInfo.SessionId ?? Guid.Empty;
 
 		public static bool IsPreRelease()
 			=> _isPreRelease;

@@ -190,7 +190,7 @@ namespace MCTools.API.Controllers
 			}
 			catch (Exception ex)
 			{
-				_logger.LogError(ex, "An error occurred while getting app visits count");
+				_logger.LogError(ex, "An error occurred while purging app visits");
 				return StatusCode(500, ex.Message);
 			}
 		}

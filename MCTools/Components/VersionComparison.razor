@@ -2,6 +2,9 @@
 @using MCTools.SDK.Controllers
 @using MCTools.SDK.Models
 @using MudBlazor
+@using System.Globalization
+@using MCTools.Extensions
+
 @inject ISnackbar Snackbar
 
 <MudItem xs="4">
@@ -16,7 +19,16 @@
 			   SelectedValues="new List<MCVersion>() { SelectedVersionOne }" SelectedValuesChanged="(e) => SelectedVersionChanged(e.First(), 0)">
 		@foreach (MCVersion ver in MinecraftVersions)
 		{
-			<MudSelectItem Value="ver" Disabled="ver == SelectedVersionTwo">@($"{ver.Id}{ver.GetSuffix(LatestVersion)}")</MudSelectItem>
+			string icon = ver.GetIcon(LatestVersion);
+			<MudSelectItem Value="ver" Disabled="ver == SelectedVersionTwo">
+				@ver.Id
+				@if (icon != null)
+				{
+					<MudTooltip Text="@ver.GetDetailedType(LatestVersion)">
+						<MudIcon Class="version-select-icon" Icon="@icon" Size="Size.Small" />
+					</MudTooltip>
+				}
+			</MudSelectItem>
 		}
 	</MudSelect>
 </MudItem>
@@ -25,7 +37,16 @@
 			   SelectedValues="new List<MCVersion>() { SelectedVersionTwo }" SelectedValuesChanged="(e) => SelectedVersionChanged(e.First(), 1)">
 		@foreach (MCVersion ver in MinecraftVersions)
 		{
-			<MudSelectItem Value="ver" Disabled="ver == SelectedVersionOne">@($"{ver.Id}{ver.GetSuffix(LatestVersion)}")</MudSelectItem>
+			string icon = ver.GetIcon(LatestVersion);
+			<MudSelectItem Value="ver" Disabled="ver == SelectedVersionOne">
+				@ver.Id
+				@if (icon != null)
+				{
+					<MudTooltip Text="@ver.GetDetailedType(LatestVersion)">
+						<MudIcon Class="version-select-icon" Icon="@icon" Size="Size.Small" />
+					</MudTooltip>
+				}
+			</MudSelectItem>
 		}
 	</MudSelect>
 </MudItem>
@@ -92,16 +113,19 @@
 					: await BedrockController.GetVersions();
 
 				SetDefaultVersionSelection();
+
+				if (EditionChanged.HasDelegate)
+					await EditionChanged.InvokeAsync(edition);
 			}
 			catch (Exception)
 			{
 				Snackbar.Add("An error occurred when loading versions! Check the console for errors.", Severity.Error);
 				throw;
 			}
-			IsLoading = false;
-
-			if (EditionChanged.HasDelegate)
-				await EditionChanged.InvokeAsync(edition);
+			finally
+			{
+				IsLoading = false;
+			}
 		}
 	}
 

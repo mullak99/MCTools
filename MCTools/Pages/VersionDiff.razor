@@ -5,8 +5,11 @@
 @using MCTools.SDK.Controllers
 
 @inherits LayoutComponentBase
+@inject IDialogService DialogService
+@inject IErrorHandler ErrorHandler
 @inject ISnackbar Snackbar
 @inject JavaController JavaController
+@inject TelemetryController TelemetryController
 @inject HttpClient HttpClient
 @inject JSHelper JsHelper
 
@@ -14,14 +17,33 @@
 <MudPaper Class="px-8">
 	<MudGrid Justify="Justify.Center">
 		<VersionComparison JavaController="JavaController"
-		                   VersionChanged="x => SelectedVersionChanged(x.From, x.To)"
-		                   EditionChanged="SelectedEditionChanged"
-		                   IsProcessing="IsProcessing" />
-		@if (SelectedEdition == MCEdition.Java)
-		{
-			<MudItem xs="12" Class="pa-2 my-1">
-				<MudText Typo="Typo.h6" GutterBottom="true">Options</MudText>
-				<MudGrid Justify="Justify.SpaceAround" Spacing="2" >
+						   VersionChanged="x => SelectedVersionChanged(x.From, x.To)"
+						   EditionChanged="SelectedEditionChanged"
+						   IsProcessing="IsProcessing" />
+		<MudItem xs="12" Class="pa-2 my-1">
+			<MudText Typo="Typo.h6" GutterBottom="true">Options</MudText>
+			<MudGrid Justify="Justify.SpaceAround" Spacing="2" >
+				<MudTooltip Text="Colour for the same pixels when exporting">
+					<MudColorPicker Label="Matching Colour"
+									@bind-Text="SameColourHex"
+									DisableAlpha="true"
+									Disabled="IsProcessing"
+									Class="outlined-text"
+									Style="@($"color: {SameColourHex};")" />
+				</MudTooltip>
+
+				<MudTooltip Text="Colour for different pixels when exporting">
+					<MudColorPicker Label="Difference Colour"
+									@bind-Text="DiffColourHex"
+									DisableAlpha="true"
+									Disabled="IsProcessing"
+									Class="outlined-text"
+									Style="@($"color: {DiffColourHex};")" />
+				</MudTooltip>
+			</MudGrid>
+			@if (SelectedEdition == MCEdition.Java)
+			{
+				<MudGrid Class="pt-2" Justify="Justify.SpaceAround" Spacing="2" >
 					<MudList>
 						<ToggleSwitch @bind-Checked="IncludeMcMetas"
 									  Label="Include MCMeta Files"
@@ -29,8 +51,8 @@
 									  IsProcessing="IsProcessing" />
 					</MudList>
 				</MudGrid>
-			</MudItem>
-		}
+			}
+		</MudItem>
 		@if (MainLayout.DebugMode)
 		{
 			<MudItem xs="12" Class="pa-2 my-1">
@@ -89,7 +111,7 @@
 				</MudItem>
 			</MudGrid>
 		</MudItem>
-		<MudItem xs="12" Class="pt-1 pb-4">
+		<MudItem xs="12" Class="pt-1 pb-1">
 			<MudTabs Outlined="true" Position="Position.Left" Rounded="true" Border="true" ApplyEffectsToContainer="true">
 				<AssetTabPanel TabName="Added"
 							   EmptyListText="No added assets"
@@ -123,6 +145,17 @@
 							   JSHelper="JsHelper" />
 			</MudTabs>
 		</MudItem>
+		<MudItem xs="12" Class="pb-4">
+			<MudButton HtmlTag="label"
+			           Variant="Variant.Filled"
+			           Color="Color.Primary"
+			           StartIcon="@Icons.Material.Filled.Preview"
+			           style="width: 100%;"
+			           Disabled="@(IsProcessing || !_enablePreview)"
+			           OnClick="@PreviewAssets">
+				Preview
+			</MudButton>
+		</MudItem>
 	</MudGrid>
 </MudPaper>
 <MudExpansionPanels Class="pt-4">
@@ -132,6 +165,11 @@
 		</MudText>
 		<MudText Class="mt-2">
 			Select an edition and versions of the game to compare and click compare.
+		</MudText>
+		<MudText Class="mt-2">
+			<li>Download button in each tab (Added, Removed, Changed, Unchanged) will download the assets in that tab.</li>
+			<li>Export Difference button in the Changed tab will download images that show the difference between the two assets.</li>
+			<li>Preview button will open a dialog that shows Added, Removed, and Changed textures in-browser.</li>
 		</MudText>
 	</MudExpansionPanel>
 </MudExpansionPanels>

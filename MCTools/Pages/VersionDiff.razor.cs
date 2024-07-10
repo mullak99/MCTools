@@ -14,6 +14,10 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using MCTools.Extensions;
+using MCTools.Models;
+using MCTools.SDK.Models.Telemetry;
+using MCTools.Shared.Dialog;
 
 namespace MCTools.Pages
 {
@@ -41,6 +45,7 @@ namespace MCTools.Pages
 		private MCVersion SavedToVersion;
 
 		private bool _compareEnabled => IsProcessing || SelectedVersionFrom == SelectedVersionTo;
+		private bool _enablePreview => DifferentAssets.Any() || AddedAssets.Any() || RemovedAssets.Any();
 
 		private void SelectedVersionChanged(MCVersion from, MCVersion to)
 		{
@@ -58,6 +63,33 @@ namespace MCTools.Pages
 		private bool DownloadRawJar { get; set; }
 		private bool PerfLogging { get; set; }
 		private bool DebugLogging { get; set; }
+
+		private Rgba32 SameColour { get; set; } = new(0, 0, 255, 255); // Blue
+		private Rgba32 DiffColour { get; set; } = new(255, 0, 255, 255); // Magenta - Alpha will be ignored
+
+		private string SameColourHex
+		{
+			get => SameColour.ToHexNoAlpha();
+			set
+			{
+				if (!Rgba32.TryParseHex(value, out Rgba32 colour))
+					return;
+				colour.A = 255;
+				SameColour = colour;
+			}
+		}
+
+		private string DiffColourHex
+		{
+			get => DiffColour.ToHexNoAlpha();
+			set
+			{
+				if (!Rgba32.TryParseHex(value, out Rgba32 colour))
+					return;
+				colour.A = 255;
+				DiffColour = colour;
+			}
+		}
 		#endregion
 
 		#region Operations
@@ -81,131 +113,139 @@ namespace MCTools.Pages
 
 		private async Task CompareAssets()
 		{
-			IsProcessing = true;
-			Reset();
-
-			// DownloadFromUrl causes the UI to freeze, its not the download itself since its still slow when cached.
-			Console.WriteLine("Extracting and processing the JAR/ZIP can take a while. While it may appear to be stuck, it isn't. More optimisations are needed.");
-			Snackbar.Add("This process can take a while. See console for more details.", Severity.Warning);
-
-			switch (SelectedEdition)
+			try
 			{
-				case MCEdition.Java:
-					Task<string> jarFromDownloadTask = JavaController.GetJar(SelectedVersionFrom.Id);
-					Task<MCAssets> assetsFromTask = JavaController.GetAssets(SelectedVersionFrom.Id);
+				IsProcessing = true;
+				Reset();
 
-					Task<string> jarToDownloadTask = JavaController.GetJar(SelectedVersionTo.Id);
-					Task<MCAssets> assetsToTask = JavaController.GetAssets(SelectedVersionTo.Id);
+				_ = TelemetryController.AddAppAction(Program.GetSessionId(), new AppAction
+				{
+					Action = "VersionDiff",
+					Details =
+					[
+						$"Edition: {(SelectedEdition == MCEdition.Java ? "Java" : "Bedrock")}",
+						$"VersionFrom: {SelectedVersionFrom.Id}",
+						$"VersionTo: {SelectedVersionTo.Id}"
+					]
+				});
 
-					SetProgress(10, "Getting assets...");
-					await Task.WhenAll(jarFromDownloadTask, assetsFromTask, jarToDownloadTask, assetsToTask);
+				switch (SelectedEdition)
+				{
+					case MCEdition.Java:
+						SetProgress(10, "Getting assets...");
 
-					if (DebugLogging)
-						Console.WriteLine("Got assets and download urls");
+						string jarDownloadFrom = await JavaController.GetJar(SelectedVersionFrom.Id);
+						MCAssets assetsFrom = await JavaController.GetAssets(SelectedVersionFrom.Id);
 
-					string jarDownloadFrom = jarFromDownloadTask.Result;
-					MCAssets assetsFrom = assetsFromTask.Result;
-
-					string jarDownloadTo = jarToDownloadTask.Result;
-					MCAssets assetsTo = assetsToTask.Result;
-
-					if (IncludeMcMetas)
-					{
-						// Support for .mcmeta files
-						assetsFrom.Textures.AddRange(assetsFrom.Textures.Select(x => x.Replace(".png", ".png.mcmeta")).ToList());
-						assetsTo.Textures.AddRange(assetsTo.Textures.Select(x => x.Replace(".png", ".png.mcmeta")).ToList());
+						string jarDownloadTo = await JavaController.GetJar(SelectedVersionTo.Id);
+						MCAssets assetsTo = await JavaController.GetAssets(SelectedVersionTo.Id);
 
 						if (DebugLogging)
-							Console.WriteLine("Included mcmetas");
-					}
+							Console.WriteLine("Got assets and download urls");
 
-					if (string.IsNullOrWhiteSpace(jarDownloadTo) || string.IsNullOrWhiteSpace(jarDownloadFrom))
-					{
-						SetProgress(100, string.Empty);
-						Snackbar.Add("Unable to download JARs!", Severity.Error);
-						IsProcessing = false;
-						return;
-					}
-
-					if (OutputSourceUrl)
-						Console.WriteLine($"Client JAR (1): {jarDownloadFrom} | Client JAR (2): {jarDownloadTo}");
-
-					if (DownloadRawJar)
-					{
-						await Task.WhenAll(JsHelper.OpenLinkInNewTab(jarDownloadFrom), JsHelper.OpenLinkInNewTab(jarDownloadTo));
-						SetProgress(100, string.Empty);
-						IsProcessing = false;
-						return;
-					}
-
-					if (DebugLogging)
-						Console.WriteLine("Starting asset download...");
-
-					SetProgress(null, "Downloading assets...");
-
-					Task<ConcurrentDictionary<string, byte[]>> fromTask = DownloadFromUrl(jarDownloadFrom, assetsFrom, "From");
-					Task<ConcurrentDictionary<string, byte[]>> toTask = DownloadFromUrl(jarDownloadTo, assetsTo, "To");
-					await Task.WhenAll(fromTask, toTask);
-
-					if (DebugLogging)
-						Console.WriteLine("Downloaded assets!");
-
-					SetProgress(85, "Downloaded assets!");
-
-					FromAssets = fromTask.Result;
-					ToAssets = toTask.Result;
-
-					if (FromAssets == null || ToAssets == null)
-					{
-						Snackbar.Add("Download assets were invalid!", Severity.Error);
-						SetProgress(100, string.Empty);
-						IsProcessing = false;
-						return;
-					}
-
-					List<string> sameFiles = new List<string>();
-					List<string> differentFiles = new List<string>();
-					List<string> removedFiles = new List<string>();
-
-					if (DebugLogging)
-						Console.WriteLine("Starting asset comparison...");
-
-					SetProgress(90, "Comparing assets...");
-
-					foreach (var item in FromAssets)
-					{
-						if (ToAssets.ContainsKey(item.Key))
+						if (IncludeMcMetas)
 						{
-							if (ComputeHash(item.Value) == ComputeHash(ToAssets[item.Key]))
-								sameFiles.Add(item.Key);
-							else
+							// Support for .mcmeta files
+							assetsFrom.Textures.AddRange(assetsFrom.Textures
+								.Select(x => x.Replace(".png", ".png.mcmeta")).ToList());
+							assetsTo.Textures.AddRange(assetsTo.Textures.Select(x => x.Replace(".png", ".png.mcmeta"))
+								.ToList());
+
+							if (DebugLogging)
+								Console.WriteLine("Included mcmetas");
+						}
+
+						if (string.IsNullOrWhiteSpace(jarDownloadTo) || string.IsNullOrWhiteSpace(jarDownloadFrom))
+						{
+							SetProgress(100, string.Empty);
+							Snackbar.Add("Unable to download JARs!", Severity.Error);
+							return;
+						}
+
+						if (OutputSourceUrl)
+							Console.WriteLine($"Client JAR (1): {jarDownloadFrom} | Client JAR (2): {jarDownloadTo}");
+
+						if (DownloadRawJar)
+						{
+							await Task.WhenAll(JsHelper.OpenLinkInNewTab(jarDownloadFrom),
+								JsHelper.OpenLinkInNewTab(jarDownloadTo));
+							SetProgress(100, string.Empty);
+							return;
+						}
+
+						if (DebugLogging)
+							Console.WriteLine("Starting asset download...");
+
+						SetProgress(null, "Downloading assets...");
+
+						FromAssets = await DownloadFromUrl(jarDownloadFrom, assetsFrom, "From");
+						ToAssets = await DownloadFromUrl(jarDownloadTo, assetsTo, "To");
+
+						if (DebugLogging)
+							Console.WriteLine("Downloaded assets!");
+
+						SetProgress(85, "Downloaded assets!");
+
+						if (FromAssets == null || ToAssets == null)
+						{
+							Snackbar.Add("Download assets were invalid!", Severity.Error);
+							SetProgress(100, string.Empty);
+							return;
+						}
+
+						List<string> sameFiles = new();
+						List<string> differentFiles = new();
+						List<string> removedFiles = new();
+
+						if (DebugLogging)
+							Console.WriteLine("Starting asset comparison...");
+
+						SetProgress(90, "Comparing assets...");
+
+						foreach (var item in FromAssets)
+						{
+							if (ToAssets.ContainsKey(item.Key))
 							{
-								// Hashes didn't match, perform pixel-by-pixel comparison
-								if (AreImagesIdentical(item.Value, ToAssets[item.Key]))
+								if (ComputeHash(item.Value) == ComputeHash(ToAssets[item.Key]))
 									sameFiles.Add(item.Key);
 								else
-									differentFiles.Add(item.Key);
+								{
+									// Hashes didn't match, perform pixel-by-pixel comparison
+									if (AreImagesIdentical(item.Value, ToAssets[item.Key]))
+										sameFiles.Add(item.Key);
+									else
+										differentFiles.Add(item.Key);
+								}
 							}
+							else removedFiles.Add(item.Key);
 						}
-						else removedFiles.Add(item.Key);
-					}
-					List<string> addedFiles = (from item in ToAssets where !FromAssets.ContainsKey(item.Key) select item.Key).ToList();
 
-					SameAssets = sameFiles;
-					DifferentAssets = differentFiles;
-					RemovedAssets = removedFiles;
-					AddedAssets = addedFiles;
+						List<string> addedFiles =
+							(from item in ToAssets where !FromAssets.ContainsKey(item.Key) select item.Key).ToList();
 
-					SetProgress(100, "Done!");
-					if (DebugLogging)
-						Console.WriteLine("Finished!");
+						SameAssets = sameFiles;
+						DifferentAssets = differentFiles;
+						RemovedAssets = removedFiles;
+						AddedAssets = addedFiles;
 
-					break;
-				case MCEdition.Bedrock:
-					Snackbar.Add("Bedrock edition is not supported!", Severity.Warning);
-					break;
+						SetProgress(100, string.Empty);
+						if (DebugLogging)
+							Console.WriteLine("Finished!");
+
+						break;
+					case MCEdition.Bedrock:
+						Snackbar.Add("Bedrock edition is not supported!", Severity.Warning);
+						break;
+				}
 			}
-			IsProcessing = false;
+			catch (Exception ex)
+			{
+				ErrorHandler.HandleException(ex);
+			}
+			finally
+			{
+				IsProcessing = false;
+			}
 		}
 
 		private async Task<ConcurrentDictionary<string, byte[]>> DownloadFromUrl(string url, MCAssets assets, string consoleId)
@@ -227,15 +267,23 @@ namespace MCTools.Pages
 			using MemoryStream zipStream = new(zipBytes);
 			using ZipFile archive = new(zipStream);
 
+			int delayInterval = 15;
+			int currInterval = 0;
 			foreach (ZipEntry entry in archive)
 			{
-				if (!assets.Textures.Contains(entry.Name)) continue;
+				if (!assets.Textures.Contains(entry.Name) && (!IncludeMcMetas || !assets.McMetas.Contains(entry.Name))) continue;
 
 				using MemoryStream ms = new();
 				await using Stream entryStream = archive.GetInputStream(entry);
 				await entryStream.CopyToAsync(ms).ConfigureAwait(false);
 				extractedFiles.TryAdd(entry.Name, ms.ToArray());
+
+				currInterval += 1;
+				if (currInterval < delayInterval)
+					continue;
+
 				await Task.Delay(1); // Yield to the UI thread
+				currInterval = 0;
 			}
 
 			if (PerfLogging)
@@ -289,6 +337,8 @@ namespace MCTools.Pages
 			using MemoryStream ms = new();
 			await using (ZipOutputStream finalArchive = new(ms))
 			{
+				int delayInterval = 50;
+				int currInterval = 0;
 				foreach (var entry in targetAssets)
 				{
 					var asset = toAssets[entry];
@@ -299,7 +349,13 @@ namespace MCTools.Pages
 					await finalArchive.PutNextEntryAsync(zipEntry).ConfigureAwait(false);
 					finalArchive.Write(asset, 0, asset.Length);
 					finalArchive.CloseEntry();
+
+					currInterval += 1;
+					if (currInterval < delayInterval)
+						continue;
+
 					await Task.Delay(1); // Yield to the UI thread
+					currInterval = 0;
 				}
 			}
 			byte[] zippedBytes = ms.ToArray();
@@ -313,39 +369,49 @@ namespace MCTools.Pages
 			StateHasChanged();
 		}
 
-		private byte[] ShowDifferences(string asset)
+		private byte[] ShowDifferences(string asset, List<string> warnings)
 		{
 			using var ms1 = new MemoryStream(FromAssets[asset]);
 			using var ms2 = new MemoryStream(ToAssets[asset]);
 			using var image1 = Image.Load<Rgba32>(ms1);
 			using var image2 = Image.Load<Rgba32>(ms2);
 
+			// Determine the dimensions of the larger image
+			int width = Math.Max(image1.Width, image2.Width);
+			int height = Math.Max(image1.Height, image2.Height);
+
 			if (image1.Width != image2.Width || image1.Height != image2.Height)
-			{
-				Console.WriteLine($"Image sizes are different for {asset}! {image1.Width}x{image1.Height} vs {image2.Width}x{image2.Height}");
-				return null;
-			}
+				warnings.Add($"{asset}: Image dimensions do not match! ({image1.Width}x{image1.Height} vs {image2.Width}x{image2.Height})");
 
-			var diffImage = new Image<Rgba32>(image1.Width, image1.Height);
+			var diffImage = new Image<Rgba32>(width, height);
 
-			for (int y = 0; y < image1.Height; y++)
+			for (int y = 0; y < height; y++)
 			{
-				for (int x = 0; x < image1.Width; x++)
+				for (int x = 0; x < width; x++)
 				{
-					var pixel1 = image1[x, y];
-					var pixel2 = image2[x, y];
-
-					if (pixel1.Equals(pixel2))
+					if (x < image1.Width && y < image1.Height && x < image2.Width && y < image2.Height)
 					{
-						// Identical
-						diffImage[x, y] = new Rgba32(0, 0, 255, 255);
+						// Overlapping area
+						var pixel1 = image1[x, y];
+						var pixel2 = image2[x, y];
+
+						if (pixel1.Equals(pixel2))
+						{
+							// Identical pixel in overlapping area
+							diffImage[x, y] = SameColour;
+						}
+						else
+						{
+							// Difference in overlapping area
+							float diff = (Math.Abs(pixel1.R - pixel2.R) + Math.Abs(pixel1.G - pixel2.G) + Math.Abs(pixel1.B - pixel2.B)) / 3.0f;
+							float scale = diff / 255.0f;
+							diffImage[x, y] = new Rgba32(DiffColour.R, DiffColour.G, DiffColour.B, (byte)(scale * 255));
+						}
 					}
 					else
 					{
-						// Compute difference magnitude
-						float diff = (Math.Abs(pixel1.R - pixel2.R) + Math.Abs(pixel1.G - pixel2.G) + Math.Abs(pixel1.B - pixel2.B)) / 3.0f;
-						float scale = diff / 255.0f;
-						diffImage[x, y] = new Rgba32(255, 0, 255, (byte)(scale * 255));
+						// Non-overlapping area
+						diffImage[x, y] = SameColour;
 					}
 				}
 			}
@@ -369,7 +435,8 @@ namespace MCTools.Pages
 
 		private async Task DownloadDifferentAssetsShowDiff()
 		{
-			Dictionary<string, byte[]> diffAssets = DifferentAssets.ToDictionary(asset => asset, ShowDifferences);
+			List<string> warnings = new();
+			Dictionary<string, byte[]> diffAssets = DifferentAssets.ToDictionary(asset => asset, x => ShowDifferences(x, warnings));
 			bool didDetectError = false;
 
 			using MemoryStream ms = new();
@@ -393,17 +460,28 @@ namespace MCTools.Pages
 				StringBuilder sb = new();
 
 				sb.AppendLine("This archive contains the differences between the two selected versions.\nPixel Colour Key:");
-				sb.AppendLine("- Blue: Pixels that are unchanged between From and To.");
-				sb.AppendLine("- Magenta: Pixels that are different. The shade shows the magnitude of the difference.");
+				sb.AppendLine($"- {SameColour.ToHexNoAlpha()}: Pixels that are unchanged between From and To.");
+				sb.AppendLine($"- {DiffColour.ToHexNoAlpha()}: Pixels that are different. The shade shows the magnitude of the difference.");
 
-				if (didDetectError)
+				if (didDetectError || warnings.Any())
 				{
-					Snackbar.Add("Unable to show differences for some assets! Check console for more information", Severity.Warning);
+					Snackbar.Add("Some assets generated warnings! See the README in the ZIP for more information.", Severity.Warning);
 
-					sb.AppendLine();
-					sb.AppendLine("Warning! Unable to show differences for some assets!\n");
-					foreach (var entry in diffAssets.Where(x => x.Value == null))
-						sb.AppendLine($"- {entry.Key}");
+					if (didDetectError)
+					{
+						sb.AppendLine();
+						sb.AppendLine("Unable to show differences for the following assets:");
+						foreach (var entry in diffAssets.Where(x => x.Value == null))
+							sb.AppendLine($"- {entry.Key}");
+					}
+
+					if (warnings.Any())
+					{
+						sb.AppendLine();
+						sb.AppendLine("The following assets generated warnings:");
+						foreach (var warning in warnings)
+							sb.AppendLine($"- {warning}");
+					}
 				}
 
 				byte[] infoBytes = Encoding.UTF8.GetBytes(sb.ToString());
@@ -417,6 +495,25 @@ namespace MCTools.Pages
 			await JsHelper.DownloadZip($"Changed_Highlighted-{SavedFromVersion.Id}-to-{SavedToVersion.Id}-{(SelectedEdition == MCEdition.Java ? "Java" : "Bedrock")}.zip", zippedBytes);
 		}
 
+		private void PreviewAssets()
+		{
+			List<string> warnings = new();
+			Dictionary<string, byte[]> diffAssets = DifferentAssets.OrderBy(x => x).ToDictionary(asset => asset, x => ShowDifferences(x, warnings));
+
+			List<DiffImage> images = new();
+			images.AddRange(diffAssets.Select(x => new DiffImage(x.Key, x.Value, DiffImageType.Different)));
+			images.AddRange(AddedAssets.OrderBy(x => x).Select(x => new DiffImage(x, ToAssets[x], DiffImageType.Added)));
+			images.AddRange(RemovedAssets.OrderBy(x => x).Select(x => new DiffImage(x, FromAssets[x], DiffImageType.Removed)));
+
+			DialogOptions options = new() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+			DialogParameters parameters = new()
+			{
+				{"Images", images},
+				{"FromAssets", FromAssets},
+				{"ToAssets", ToAssets}
+			};
+			DialogService.Show<ImagePreviewDialog>("Asset Preview", parameters, options);
+		}
 		#endregion
 		#endregion
 	}

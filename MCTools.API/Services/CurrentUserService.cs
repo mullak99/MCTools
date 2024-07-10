@@ -89,7 +89,11 @@ namespace MCTools.API.Services
 				"write:pregenerate-assets",
 				"write:purge-assets",
 				"read:telemetry",
-				"delete:telemetry"
+				"delete:telemetry",
+				"write:effectitem",
+				"delete:effectitem",
+				"write:statusmessage",
+				"delete:statusmessage"
 			};
 		}
 	}

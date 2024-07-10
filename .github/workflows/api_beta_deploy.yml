@@ -20,17 +20,17 @@ env:
   SERVER_TARGET: /var/www/mctools.api-beta
   SERVICE_NAME: mctools.api-beta
   DB_SUFFIX: beta
-  
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v3
-    - name: Setup .NET 6.0
+    - name: Setup .NET 8.0
       uses: actions/setup-dotnet@v2
       with:
-        dotnet-version: 6.0.x
+        dotnet-version: 8.0.x
     - name: Restore dependencies
       run: dotnet restore ${{ env.CSPROJ }}
     - name: Setup appsettings.json
@@ -77,7 +77,7 @@ jobs:
           else
             IDLE_SLOT_APIBETA="${{ env.SERVER_TARGET }}.slot1"
           fi
-          
+
           sudo rm -rf $IDLE_SLOT_APIBETA
           sudo mv ${{ env.SERVER_TARGET }}.temp $IDLE_SLOT_APIBETA
           sudo ln -sfn $IDLE_SLOT_APIBETA ${{ env.SERVER_TARGET }}.live
@@ -85,4 +85,3 @@ jobs:
           sudo chmod -R u+rwx /var/www
           sudo chmod -R g+rwx /var/www
           sudo systemctl restart ${{ env.SERVICE_NAME }}
-          

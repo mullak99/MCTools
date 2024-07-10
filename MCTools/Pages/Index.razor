@@ -1,8 +1,11 @@
 ﻿@page "/"
 @using MCTools.Components
+@using MCTools.Models
 @using MCTools.SDK.Controllers
 @using MCTools.SDK.Models.Telemetry
+
 @inject TelemetryController TelemetryController
+@inject AppLinks AppLinks
 
 <MudText Typo="Typo.h3">Minecraft Tools @(Program.IsPreRelease() ? $" ({Program.GetReleaseType(true, true)})" : string.Empty)</MudText>
 <MudText Class="mb-8">This app is a work-in-progress. More tools will be coming soon!</MudText>
@@ -25,18 +28,22 @@ else
 <MudAlert Class="mt-4" Severity="Severity.Normal">
 	<p>If you encounter any issues, please report them on the GitHub Issues page:</p>
 	<br/>
-	<p>Issues: <MudLink Href="https://github.com/mullak99/MCTools/issues" Typo="Typo.body2" Color="Color.Inherit"><b>https://github.com/mullak99/MCTools/issues</b></MudLink></p>
+	<p>Issues: <MudLink Href="@AppLinks.GitHubIssues" Typo="Typo.body2" Color="Color.Inherit"><b>@AppLinks.GitHubIssues</b></MudLink></p>
 	<br/>
 	<p>Alternatively, you may contact me on the following:</p>
 	<br/>
 	<p>Discord: mullak99</p>
-	<p>Email: <MudLink Href="mailto:mullak99@mullak99.co.uk" Typo="Typo.body2" Color="Color.Inherit"><b>mullak99@mullak99.co.uk</b></MudLink></p>
+	<p>Email: <MudLink Href="@($"mailto:{AppLinks.Email}")" Typo="Typo.body2" Color="Color.Inherit"><b>@AppLinks.Email</b></MudLink></p>
 </MudAlert>
 
 <MudAlert Class="mt-4" Severity="Severity.Success">
 	<h2 class="pb-1">What's new</h2>
-	<li>Added tool to compare two vanilla versions</li>
-	<li>Reordered nav menu</li>
+	<li>Added error reporting</li>
+	<li>Performance improvements</li>
+	<li>Improved Version Difference tool</li>
+	<li>Behind-the-scenes change with Potion Converter tool</li>
+	<li>Styling changes</li>
+	<li>Updated to .NET 8</li>
 </MudAlert>
 
 <SystemMessages Messages="@_sysMessages" />

@@ -17,6 +17,7 @@ namespace MCTools.API.Logic
 			_logger = logger;
 		}
 
+		#region AppInfo
 		public async Task AddAppVisit(AppInfo appInfo)
 		{
 			switch (appInfo.ReleaseType)
@@ -63,10 +64,48 @@ namespace MCTools.API.Logic
 			_logger.LogInformation("Purging app visits...");
 			return await _telemetryRepository.DeleteAllAppVisits();
 		}
+
+		public async Task<bool> AddAppAction(Guid sessionId, AppAction appAction)
+			=> await _telemetryRepository.AddAppAction(sessionId, appAction);
+
+		public async Task<List<AppAction>?> GetAppActions(Guid sessionId)
+			=> (await GetAppVisits()).Find(x => x.SessionId == sessionId)?.Actions;
+		#endregion
+
+		#region AppError
+		public async Task AddAppError(AppError appError)
+		{
+			switch (appError.AppInfo?.ReleaseType)
+			{
+				case AppReleaseType.Dev when _globalSettings.TelemetryIgnoreDev:
+					return;
+				case AppReleaseType.None:
+				case AppReleaseType.Unknown:
+					_logger.LogDebug($"App error with unknown release type! AppInfo: {appError.AppInfo}");
+					return;
+			}
+
+			appError.AppInfo?.UpdateTime();
+			await _telemetryRepository.AddAppError(appError);
+		}
+
+		public async Task<List<AppError>> GetAppErrors()
+			=> await _telemetryRepository.GetAllAppErrors();
+
+		public async Task<long> GetAppErrorCount()
+			=> await _telemetryRepository.GetAppErrorCount();
+
+		public async Task<long> PurgeAppErrors()
+		{
+			_logger.LogInformation("Purging app errors...");
+			return await _telemetryRepository.DeleteAllAppErrors();
+		}
+		#endregion
 	}
 
 	public interface ITelemetryLogic
 	{
+		#region AppInfo
 		Task AddAppVisit(AppInfo appInfo);
 
 		Task<List<AppInfo>> GetAppVisits();
@@ -77,7 +116,16 @@ namespace MCTools.API.Logic
 		Task<long> GetAppVisitsCount(AppReleaseType releaseType);
 		Task<long> GetAppVisitsCount(DateTime from, DateTime to);
 		Task<long> GetAppVisitsCount(AppReleaseType releaseType, DateTime from, DateTime to);
-
 		Task<long> PurgeAppVisits();
+		Task<bool> AddAppAction(Guid sessionId, AppAction appAction);
+		Task<List<AppAction>?> GetAppActions(Guid sessionId);
+		#endregion
+
+		#region AppError
+		Task AddAppError(AppError appError);
+		Task<List<AppError>> GetAppErrors();
+		Task<long> GetAppErrorCount();
+		Task<long> PurgeAppErrors();
+		#endregion
 	}
 }

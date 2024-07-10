@@ -4,8 +4,11 @@
 @using MCTools.SDK.Controllers
 
 @inherits LayoutComponentBase
+@inject IErrorHandler ErrorHandler
 @inject ISnackbar Snackbar
 @inject JavaController JavaController
+@inject ConversionController ConversionController
+@inject TelemetryController TelemetryController
 @inject JSHelper JsHelper
 
 <MudText Typo="Typo.h3" GutterBottom="true">Potion Converter</MudText>

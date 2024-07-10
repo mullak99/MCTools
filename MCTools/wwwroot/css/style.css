@@ -45,3 +45,38 @@
 	margin: 0 2.5rem 0 0;
 	padding: 0 2.5rem 0 0;
 }
+
+.version-select-icon {
+	padding: 0 0 0 0;
+	margin: 0 0 -4px 4px;
+}
+
+.mud-picker-inline.mud-picker-input-button .mud-input, .mud-picker-inline.mud-picker-input-button .mud-input .mud-input-root {
+	text-shadow: -1px -1px 0 var(--mud-palette-black),
+			 1px -1px 0 var(--mud-palette-black),
+			 -1px 1px 0 var(--mud-palette-black),
+			 1px 1px 0 var(--mud-palette-black);
+}
+
+.mc-texture-preview {
+	image-rendering: pixelated;
+	height: 128px;
+	width: auto;
+	transition: transform 0.3s ease;
+	display: block;
+}
+
+	.mc-texture-preview:hover {
+		transform: scale(2);
+	}
+
+	.mc-texture-preview.disable-background {
+		background-color: #000;
+	}
+
+.scrollable-dialog-container {
+	max-height: 75vh;
+	overflow-y: scroll;
+	border-top: 1px solid var(--mud-palette-lines-default);
+	border-bottom: 1px solid var(--mud-palette-lines-default);
+}

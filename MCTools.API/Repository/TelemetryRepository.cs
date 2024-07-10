@@ -7,13 +7,22 @@ namespace MCTools.API.Repository
 	public class TelemetryRepository : ITelemetryRepository
 	{
 		private readonly IMongoCollection<AppInfo> _appInfo;
+		private readonly IMongoCollection<AppError> _appError;
 
 		public TelemetryRepository(IMongoDatabase database, GlobalSettings globalSettings)
 		{
-			string dbName = "Telemetry.AppLaunchInfo";
-			if (!string.IsNullOrWhiteSpace(globalSettings.DbNameSuffix))
-				dbName += $"-{globalSettings.DbNameSuffix}";
-			_appInfo = database.GetCollection<AppInfo>(dbName);
+			{
+				string dbName = "Telemetry.AppLaunchInfo";
+				if (!string.IsNullOrWhiteSpace(globalSettings.DbNameSuffix))
+					dbName += $"-{globalSettings.DbNameSuffix}";
+				_appInfo = database.GetCollection<AppInfo>(dbName);
+			}
+			{
+				string dbName = "Telemetry.AppErrorInfo";
+				if (!string.IsNullOrWhiteSpace(globalSettings.DbNameSuffix))
+					dbName += $"-{globalSettings.DbNameSuffix}";
+				_appError = database.GetCollection<AppError>(dbName);
+			}
 		}
 
 		#region AppInfo
@@ -52,6 +61,34 @@ namespace MCTools.API.Repository
 		public async Task<long> DeleteAllAppVisits()
 			=> (await _appInfo.DeleteManyAsync(_ => true)).DeletedCount;
 		#endregion
+
+		#region Update
+		public async Task<bool> AddAppAction(Guid sessionId, AppAction appInfo)
+		{
+			UpdateResult? request = await _appInfo.UpdateOneAsync(x => x.SessionId == sessionId, Builders<AppInfo>.Update.Push(x => x.Actions, appInfo));
+			return request.ModifiedCount > 0;
+		}
+		#endregion
+		#endregion
+
+		#region AppError
+		#region Create
+		public async Task AddAppError(AppError appError)
+			=> await _appError.InsertOneAsync(appError);
+		#endregion
+
+		#region Read
+		public async Task<List<AppError>> GetAllAppErrors()
+			=> await _appError.Find(_ => true).ToListAsync();
+
+		public async Task<long> GetAppErrorCount()
+			=> await _appError.CountDocumentsAsync(_ => true);
+		#endregion
+
+		#region Delete
+		public async Task<long> DeleteAllAppErrors()
+			=> (await _appError.DeleteManyAsync(_ => true)).DeletedCount;
+		#endregion
 		#endregion
 	}
 
@@ -68,6 +105,14 @@ namespace MCTools.API.Repository
 		Task<long> GetAppVisitsCount(DateTime from, DateTime to);
 		Task<long> GetAppVisitsCount(AppReleaseType releaseType, DateTime from, DateTime to);
 		Task<long> DeleteAllAppVisits();
+		Task<bool> AddAppAction(Guid sessionId, AppAction appInfo);
+		#endregion
+
+		#region AppError
+		Task AddAppError(AppError appError);
+		Task<List<AppError>> GetAllAppErrors();
+		Task<long> GetAppErrorCount();
+		Task<long> DeleteAllAppErrors();
 		#endregion
 	}
 }

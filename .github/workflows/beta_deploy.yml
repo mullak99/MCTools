@@ -27,10 +27,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Setup .NET 6.0
+    - name: Setup .NET 8.0
       uses: actions/setup-dotnet@v2
       with:
-        dotnet-version: 6.0.x
+        dotnet-version: 8.0.x
+    - name: Install wasm-tools workload
+      run: dotnet workload install wasm-tools
     - name: Restore dependencies
       run: dotnet restore ${{ env.CSPROJ }}
     - name: Build
@@ -74,7 +76,7 @@ jobs:
           else
             IDLE_SLOT_APPBETA="${{ env.SERVER_TARGET }}.slot1"
           fi
-          
+
           sudo rm -rf $IDLE_SLOT_APPBETA
           sudo mv ${{ env.SERVER_TARGET }}.temp $IDLE_SLOT_APPBETA
           sudo ln -sfn $IDLE_SLOT_APPBETA ${{ env.SERVER_TARGET }}.live

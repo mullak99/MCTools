@@ -34,12 +34,25 @@ namespace MCTools.Logic
 			await JS.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
 		}
 
+		/// <summary>
+		/// Download a file from a byte array
+		/// </summary>
+		/// <param name="fileName">Output filename</param>
+		/// <param name="contents">Contents of the file</param>
 		public async Task DownloadZip(string fileName, byte[] contents)
 			=> await JS.InvokeVoidAsync("BlazorDownloadFile", fileName, "application/zip", Convert.ToBase64String(contents));
 
+		/// <summary>
+		/// Open a link in a new tab
+		/// </summary>
+		/// <param name="url">Link to open</param>
 		public async Task OpenLinkInNewTab(string url)
 			=> await JS.InvokeVoidAsync("openInNewTab", url);
 
+		/// <summary>
+		/// Set title of the page
+		/// </summary>
+		/// <param name="title">New title</param>
 		public async Task SetTitleAsync(string title)
 			=> await JS.InvokeVoidAsync("setTitle", title);
 	}

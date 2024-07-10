@@ -1,20 +1,18 @@
-﻿using System.Collections.Generic;
-using System;
-
-namespace MCTools.Models
+﻿namespace MCTools.SDK.Models
 {
-	public class Potion
+	public class EffectItem
 	{
-		public string Name { get; set; } = null!;
-		public string PotionName { get; set; } = null!;
-		public string TippedArrowName { get; set; }
-		public Effect Effect { get; set; }
-		public List<Effect> Effects { get; set; }
+		public Guid Id { get; set; } = Guid.NewGuid();
+		public string? Name { get; set; } = null;
+		public string? PotionName { get; set; } = null;
+		public string? TippedArrowName { get; set; }
+		public Effect? Effect { get; set; }
+		public List<Effect>? Effects { get; set; }
 		public bool DisablePotion { get; set; }
 		public bool DisableSplashPotion { get; set; }
 		public bool DisableLingeringPotion { get; set; }
 
-		public string GetPotionName()
+		public string? GetPotionName()
 		{
 			if (!DisablePotion && PotionName != null)
 			{
@@ -25,7 +23,7 @@ namespace MCTools.Models
 			return null;
 		}
 
-		public string GetSplashPotionName()
+		public string? GetSplashPotionName()
 		{
 			if (!DisableSplashPotion && PotionName != null)
 			{
@@ -36,7 +34,7 @@ namespace MCTools.Models
 			return null;
 		}
 
-		public string GetLingeringPotionName()
+		public string? GetLingeringPotionName()
 		{
 			if (!DisableLingeringPotion && PotionName != null)
 			{
@@ -47,7 +45,7 @@ namespace MCTools.Models
 			return null;
 		}
 
-		public string GetTippedArrowName()
+		public string? GetTippedArrowName()
 			=> TippedArrowName != null ? $"tipped_arrow_{TippedArrowName.Replace(" ", "_")}.png" : null;
 
 		public int GetColour()

@@ -4,15 +4,12 @@ namespace MCTools.SDK.Models
 {
 	public class ResponseModel<T>
 	{
-		public ResponseModel()
-		{
-			IsSuccess = true;
-			Message = "";
-		}
 		[JsonProperty("isSuccess")]
-		public bool IsSuccess { get; set; }
+		public bool IsSuccess { get; set; } = true;
+
 		[JsonProperty("message")]
-		public string Message { get; set; }
+		public string Message { get; set; } = "";
+
 		[JsonProperty("data")]
 		public T? Data { get; set; }
 	}

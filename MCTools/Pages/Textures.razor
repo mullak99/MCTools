@@ -6,11 +6,13 @@
 @using MCTools.SDK.Controllers
 
 @inherits LayoutComponentBase
+@inject IErrorHandler ErrorHandler
 @inject ISnackbar Snackbar
 @inject IDialogService Dialog
 @inject ILocalStorageService LocalStore
 @inject JavaController JavaController
 @inject BedrockController BedrockController
+@inject TelemetryController TelemetryController
 @inject JSHelper JsHelper
 
 <MudText Typo="Typo.h3" GutterBottom="true">Textures Tool</MudText>
