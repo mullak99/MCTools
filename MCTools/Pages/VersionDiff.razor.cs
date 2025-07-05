@@ -240,7 +240,7 @@ namespace MCTools.Pages
 			}
 			catch (Exception ex)
 			{
-				ErrorHandler.HandleException(ex);
+				await ErrorHandler.HandleException(ex);
 			}
 			finally
 			{
@@ -495,7 +495,7 @@ namespace MCTools.Pages
 			await JsHelper.DownloadZip($"Changed_Highlighted-{SavedFromVersion.Id}-to-{SavedToVersion.Id}-{(SelectedEdition == MCEdition.Java ? "Java" : "Bedrock")}.zip", zippedBytes);
 		}
 
-		private void PreviewAssets()
+		private async Task PreviewAssets()
 		{
 			List<string> warnings = new();
 			Dictionary<string, byte[]> diffAssets = DifferentAssets.OrderBy(x => x).ToDictionary(asset => asset, x => ShowDifferences(x, warnings));
@@ -512,7 +512,7 @@ namespace MCTools.Pages
 				{"FromAssets", FromAssets},
 				{"ToAssets", ToAssets}
 			};
-			DialogService.Show<ImagePreviewDialog>("Asset Preview", parameters, options);
+			await DialogService.ShowAsync<ImagePreviewDialog>("Asset Preview", parameters, options);
 		}
 		#endregion
 		#endregion

@@ -17,7 +17,7 @@
 
 <MudText Typo="Typo.h3" GutterBottom="true">Textures Tool</MudText>
 <MudPaper Class="px-8">
-	<MudGrid Justify="Justify.Center">
+	<MudGrid Spacing="3" Justify="Justify.Center">
 		<MudItem xs="12">
 			<InputFile id="fileInput" OnChange="UploadFile" hidden accept="@Validation.GetSupportedPackFormats(SelectedEdition)" />
 			<MudButton HtmlTag="label"
@@ -38,7 +38,7 @@
 			<MudGrid Justify="Justify.SpaceAround" Spacing="2" >
 				@if (SelectedEdition == MCEdition.Java)
 				{
-					<MudList>
+					<MudList T="object">
 						<ToggleSwitch @bind-Checked="ExcludeRealms"
 									  Label="Exclude Realms"
 									  TooltipText="Exclude Minecraft Realms textures from the comparison"
@@ -59,7 +59,7 @@
 									  TooltipText="Exclude all title-related textures from the comparison (../textures/gui/title)"
 									  IsProcessing="IsProcessing" />
 					</MudList>
-					<MudList>
+					<MudList T="object">
 						<ToggleSwitch @bind-Checked="ExcludeMisc"
 									  Label="Exclude Misc"
 									  TooltipText="Exclude Misc (textures/misc) from the comparison"
@@ -83,7 +83,7 @@
 				}
 				else
 				{
-					<MudList>
+					<MudList T="object">
 						<ToggleSwitch @bind-Checked="ExcludeRealms"
 									  Label="Exclude Realms"
 									  TooltipText="Exclude Minecraft Realms textures from the comparison"
@@ -94,7 +94,7 @@
 									  TooltipText="Exclude Fonts from the comparison"
 									  IsProcessing="IsProcessing" />
 					</MudList>
-					<MudList>
+					<MudList T="object">
 						<ToggleSwitch @bind-Checked="ExcludeMisc"
 									  Label="Exclude Misc"
 									  TooltipText="Exclude Misc (textures/misc) from the comparison"
@@ -106,15 +106,15 @@
 									  IsProcessing="IsProcessing" />
 					</MudList>
 				}
-				<MudList>
+				<MudList T="object">
 					<MudItem Class="my-1">
-						<MudButton OnClick="() => OpenBlacklistDialog(MCEdition.Java)" Class="blacklist-button" Variant="Variant.Filled" Color="Color.Info" Disabled="IsProcessing">Configure Java Blacklist</MudButton>
+						<MudButton OnClick="async () => await OpenBlacklistDialog(MCEdition.Java)" Class="blacklist-button" Variant="Variant.Filled" Color="Color.Info" Disabled="IsProcessing">Configure Java Blacklist</MudButton>
 					</MudItem>
 					<MudItem Class="my-1">
-						<MudButton OnClick="() => OpenBlacklistDialog(MCEdition.Bedrock)" Class="blacklist-button" Variant="Variant.Filled" Color="Color.Tertiary" Disabled="IsProcessing">Configure Bedrock Blacklist</MudButton>
+						<MudButton OnClick="async () => await OpenBlacklistDialog(MCEdition.Bedrock)" Class="blacklist-button" Variant="Variant.Filled" Color="Color.Tertiary" Disabled="IsProcessing">Configure Bedrock Blacklist</MudButton>
 					</MudItem>
 					<MudItem Class="my-1">
-						<MudButton OnClick="OpenResetConfirmationDialog" Class="blacklist-button" Variant="Variant.Filled" Color="Color.Warning" Disabled="IsProcessing">Reset Both Blacklists</MudButton>
+						<MudButton OnClick="async () => await OpenResetConfirmationDialog()" Class="blacklist-button" Variant="Variant.Filled" Color="Color.Warning" Disabled="IsProcessing">Reset Both Blacklists</MudButton>
 					</MudItem>
 				</MudList>
 			</MudGrid>
@@ -125,13 +125,13 @@
 			<MudItem xs="12" Class="pa-2 my-1">
 				<MudText Typo="Typo.h6" GutterBottom="true">Debug</MudText>
 				<MudGrid Justify="Justify.SpaceAround" Spacing="2" >
-					<MudList>
+					<MudList T="object">
 						<ToggleSwitch @bind-Checked="PerfLogging"
 									  Label="Performance Logging"
 									  TooltipText="Log performance to the console"
 									  IsProcessing="IsProcessing" />
 					</MudList>
-					<MudList>
+					<MudList T="object">
 						<ToggleSwitch @bind-Checked="ResourcePackDebug"
 									  Label="Show Pack Content"
 									  TooltipText="Display content of the pack when processed"
@@ -153,7 +153,7 @@
 				</MudItem>
 			</MudGrid>
 		</MudItem>
-		<MudItem xs="12" Class="pt-1 pb-4">
+		<MudItem xs="12" Class="py-4">
 			<MudTabs Outlined="true" Position="Position.Left" Rounded="true" Border="true" ApplyEffectsToContainer="true">
 				<AssetTabPanel TabName="Matching Textures"
 							   EmptyListText="No matching textures"
@@ -200,7 +200,7 @@
 				}
 			</MudTabs>
 			<MudItem Class="pb-2">
-				<MudGrid Justify="Justify.SpaceBetween">
+				<MudGrid Spacing="3" Justify="Justify.SpaceBetween">
 					@if (TotalTextures > 0)
 					{
 						<AssetStats AssetType="Textures" MatchingList="MatchingTexturesList" MissingList="MissingTexturesList" TotalAssets="TotalTextures" />

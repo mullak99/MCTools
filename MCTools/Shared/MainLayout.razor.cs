@@ -11,9 +11,9 @@ namespace MCTools.Shared
 {
 	public partial class MainLayout : LayoutComponentBase
 	{
-		public MudTheme CurrentTheme { get; set; }
-		public bool IsDarkMode { get; set; } = true;
-		public bool IsDrawerOpen { get; set; } = true;
+		private MudTheme _theme { get; set; }
+		private bool _drawerOpen = true;
+		private bool _isDarkMode = true;
 
 		public ApiStatus ApiStatus { get; set; } = ApiStatus.Unknown;
 
@@ -25,16 +25,22 @@ namespace MCTools.Shared
 		public static bool DebugMode = false;
 		#endif
 
-		private MudTheme GetCurrentTheme() => IsDarkMode ? DarkTheme : DefaultTheme;
-
 		protected override async Task OnInitializedAsync()
 		{
-			List<Task> tasks = new()
+
+			_theme = new()
 			{
+				PaletteLight = _lightPalette,
+				PaletteDark = _darkPalette,
+				LayoutProperties = new LayoutProperties()
+			};
+
+			List<Task> tasks =
+			[
 				GetCurrentThemeFromLocalStorage(),
 				GetDebugFromLocalStorage(),
 				GetExpandedVersionsFromLocalStorage()
-			};
+			];
 
 			if (Program.IsPreRelease())
 			{
@@ -46,7 +52,7 @@ namespace MCTools.Shared
 			await InvokeAsync(StateHasChanged);
 
 			_ = Task.Run(async () => await TelemetryController.AddAppLaunch(Program.GetAppInfo()));
-			_ = Task.Run(async () => await UpdateHealthStatus());
+			_ = Task.Run(UpdateHealthStatus);
 		}
 
 		public async Task UpdateHealthStatus()
@@ -58,10 +64,10 @@ namespace MCTools.Shared
 			await InvokeAsync(StateHasChanged);
 		}
 
-		private void OpenSettingsDialog()
+		private async Task OpenSettingsDialog()
 		{
 			DialogOptions options = new() { MaxWidth = MaxWidth.Small, FullWidth = true };
-			Dialog.Show<SettingsDialog>("Settings", options);
+			await Dialog.ShowAsync<SettingsDialog>("Settings", options);
 		}
 
 		/// <summary>
@@ -72,14 +78,13 @@ namespace MCTools.Shared
 		{
 			try
 			{
-				IsDarkMode = await localStore.GetItemAsync<bool?>("useDarkMode") ?? true;
+				_isDarkMode = await localStore.GetItemAsync<bool?>("useDarkMode") ?? true;
 			}
 			catch (Exception)
 			{
 				Console.WriteLine("An error occurred when loading users theming preference. Using default.");
-				IsDarkMode = true;
+				_isDarkMode = true;
 			}
-			CurrentTheme = GetCurrentTheme();
 		}
 
 		/// <summary>
@@ -128,57 +133,48 @@ namespace MCTools.Shared
 		/// <returns></returns>
 		private async Task ToggleTheme()
 		{
-			IsDarkMode = !IsDarkMode;
-			CurrentTheme = GetCurrentTheme();
-			await localStore.SetItemAsync("useDarkMode", IsDarkMode);
+			_isDarkMode = !_isDarkMode;
+			await localStore.SetItemAsync("useDarkMode", _isDarkMode);
 		}
 
 		private void ToggleDrawer()
 		{
-			IsDrawerOpen = !IsDrawerOpen;
+			_drawerOpen = !_drawerOpen;
 		}
 
-		private static MudTheme DefaultTheme => new()
+		private readonly PaletteLight _lightPalette = new()
 		{
-			Palette = new PaletteLight()
-			{
-				Black = "#272c34",
-				Background = "#ffffff",
-				BackgroundGrey = "#f4f4f4",
-				Surface = "#efefef",
-				DrawerBackground = "#eeeeee",
-				AppbarBackground = "#32b432",
-				ActionDefault = "#2dd22d",
-				ActionDisabled = "rgba(255,255,255, 0.26)",
-				ActionDisabledBackground = "rgba(255,255,255, 0.12)",
-				Primary = "#00aa00",
-				Dark = "#505050"
-			}
+			Black = "#272c34",
+			Background = "#ffffff",
+			BackgroundGray = "#f4f4f4",
+			Surface = "#efefef",
+			DrawerBackground = "#eeeeee",
+			AppbarBackground = "#32b432",
+			ActionDisabled = "rgba(255,255,255, 0.26)",
+			ActionDisabledBackground = "rgba(255,255,255, 0.12)",
+			Primary = "#00aa00",
+			Dark = "#505050"
 		};
 
-		private static MudTheme DarkTheme => new()
+		private readonly PaletteDark _darkPalette = new()
 		{
-			Palette = new PaletteDark()
-			{
-				Black = "#27272f",
-				Background = "#181818",
-				BackgroundGrey = "#242424",
-				Surface = "#3d3d3d",
-				DrawerBackground = "#242424",
-				DrawerText = "rgba(255,255,255, 0.75)",
-				DrawerIcon = "rgba(255,255,255, 0.75)",
-				AppbarBackground = "#303030",
-				AppbarText = "rgba(255,255,255, 0.80)",
-				TextPrimary = "rgba(255,255,255, 0.80)",
-				TextSecondary = "rgba(255,255,255, 0.65)",
-				ActionDefault = "#2dd22d",
-				ActionDisabled = "rgba(255,255,255, 0.45)",
-				ActionDisabledBackground = "rgba(255,255,255, 0.25)",
-				Primary = "#00aa00",
-				Dark = "#808080",
-				HoverOpacity = 0.2,
-				TextDisabled = "rgba(255,255,255, 0.25)"
-			}
+			Black = "#27272f",
+			Background = "#181818",
+			BackgroundGray = "#242424",
+			Surface = "#3d3d3d",
+			DrawerBackground = "#242424",
+			DrawerText = "rgba(255,255,255, 0.75)",
+			DrawerIcon = "rgba(255,255,255, 0.75)",
+			AppbarBackground = "#303030",
+			AppbarText = "rgba(255,255,255, 0.80)",
+			TextPrimary = "rgba(255,255,255, 0.80)",
+			TextSecondary = "rgba(255,255,255, 0.65)",
+			ActionDisabled = "rgba(255,255,255, 0.45)",
+			ActionDisabledBackground = "rgba(255,255,255, 0.25)",
+			Primary = "#00aa00",
+			Dark = "#808080",
+			HoverOpacity = 0.2,
+			TextDisabled = "rgba(255,255,255, 0.25)"
 		};
 	}
 }

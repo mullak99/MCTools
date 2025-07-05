@@ -1,7 +1,7 @@
 ﻿@using MCTools.Models
 @inherits LayoutComponentBase
 
-<MudDialog DisableSidePadding="true" ClassActions="pt-0">
+<MudDialog Gutters="false" ActionsClass="pt-0">
 	<DialogContent>
 		<MudContainer Class="scrollable-dialog-container">
 			@if (AddedImages is { Count: 0 } && DifferentImages is { Count: 0 } && RemovedImages is { Count: 0 })
@@ -16,7 +16,7 @@
 						<MudExpansionPanel Text="Added">
 							<Virtualize TItem="DiffImage" Items="@AddedImages" ItemSize="@SINGLE_TEX_VIRTUALIZE_SIZE" OverscanCount="@TEX_VIRTUALIZE_OVERSCAN">
 								<MudPaper Class="py-1 my-2" Outlined="true">
-									<MudList Class="align-center py-0 my-0">
+									<MudList T="object" Class="align-center py-0 my-0">
 										<MudListItem>
 											<MudText Typo="Typo.body2" Align="Align.Center">@context.Name</MudText>
 										</MudListItem>
@@ -33,7 +33,7 @@
 						<MudExpansionPanel Text="Changed">
 							<Virtualize TItem="DiffImage" Items="@DifferentImages" ItemSize="@MULTI_TEX_VIRTUALIZE_SIZE" OverscanCount="@TEX_VIRTUALIZE_OVERSCAN">
 								<MudPaper Class="py-1 my-2" Outlined="true">
-									<MudList Class="align-center py-0 my-0">
+									<MudList T="object" Class="align-center py-0 my-0">
 										<MudListItem>
 											<MudText Typo="Typo.body2" Align="Align.Center">@context.Name</MudText>
 										</MudListItem>
@@ -95,7 +95,7 @@
 						<MudExpansionPanel Text="Removed">
 							<Virtualize TItem="DiffImage" Items="@RemovedImages" ItemSize="@SINGLE_TEX_VIRTUALIZE_SIZE" OverscanCount="@TEX_VIRTUALIZE_OVERSCAN">
 								<MudPaper Class="py-1 my-2" Outlined="true">
-									<MudList Class="align-center py-0 my-0">
+									<MudList T="object" Class="align-center py-0 my-0">
 										<MudListItem>
 											<MudText Typo="Typo.body2" Align="Align.Center">@context.Name</MudText>
 										</MudListItem>

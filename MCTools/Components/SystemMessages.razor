@@ -4,7 +4,7 @@
 @if (Messages is { Count: > 0 })
 {
 	<MudExpansionPanels Class="mt-4">
-		<MudExpansionPanel Text="System Messages" IsInitiallyExpanded="true">
+		<MudExpansionPanel Text="System Messages" Expanded="true">
 			@foreach (var message in Messages)
 			{
 				Severity severity = message.Severity switch

@@ -146,7 +146,7 @@ namespace MCTools.API.Extentions
 				if (userIdentity != null)
 				{
 					var roleValidator =
-						(IRoleValidator)context.RequestServices.GetService(typeof(IRoleValidator));
+						(IRoleValidator)context.RequestServices.GetService(typeof(IRoleValidator))!;
 
 					foreach (var role in roles.Where(role => roleValidator?.CurrentUserHasRole(userIdentity, role) == true))
 					{
@@ -175,7 +175,7 @@ namespace MCTools.API.Extentions
 				if (userIdentity != null)
 				{
 					var permissionValidator =
-						(IPermissionValidator)context.RequestServices.GetService(typeof(IPermissionValidator));
+						(IPermissionValidator)context.RequestServices.GetService(typeof(IPermissionValidator))!;
 
 					foreach (var permission in permissions.Where(permission =>
 						permissionValidator?.CurrentUserHasPermission(userIdentity, permission) == true))

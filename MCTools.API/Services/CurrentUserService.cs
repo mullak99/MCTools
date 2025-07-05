@@ -26,10 +26,10 @@ namespace MCTools.API.Services
 
 		public static async Task<CurrentUserService> CreateAsync(IConfiguration configuration, ILogger<CurrentUserService> logger)
 		{
-			var auth0ManagementApiAudience = configuration["Auth0:Audience"];
-			var auth0ManagementApiClientId = configuration["Auth0:ClientId"];
-			var auth0ManagementApiClientSecret = configuration["Auth0:ClientSecret"];
-			var auth0Domain = configuration["Auth0:Authority"];
+			var auth0ManagementApiAudience = configuration["Auth0:Audience"] ?? throw new NullReferenceException("Auth0 Audience not configured!");
+			var auth0ManagementApiClientId = configuration["Auth0:ClientId"] ?? throw new NullReferenceException("Auth0 ClientId not configured!");
+			var auth0ManagementApiClientSecret = configuration["Auth0:ClientSecret"] ?? throw new NullReferenceException("Auth0 ClientSecret not configured!");
+			var auth0Domain = configuration["Auth0:Authority"] ?? throw new NullReferenceException("Auth0 Authority not configured!");
 
 			var managementApiToken = await GetManagementApiTokenAsync(auth0Domain, auth0ManagementApiClientId, auth0ManagementApiClientSecret, logger);
 			var managementApiBaseUri = new Uri($"{auth0Domain}/api/v2/");

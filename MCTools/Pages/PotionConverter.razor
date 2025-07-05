@@ -13,7 +13,7 @@
 
 <MudText Typo="Typo.h3" GutterBottom="true">Potion Converter</MudText>
 <MudPaper Class="px-8">
-	<MudGrid Justify="Justify.Center">
+	<MudGrid Spacing="3" Justify="Justify.Center">
 		<MudItem xs="12">
 			<InputFile id="fileInput" OnChange="UploadFile" hidden accept="@Validation.GetSupportedPackFormats(SelectedEdition)" />
 			<MudButton HtmlTag="label"
@@ -36,13 +36,13 @@
 			<MudItem xs="12" Class="pa-2 my-1">
 				<MudText Typo="Typo.h6" GutterBottom="true">Debug</MudText>
 				<MudGrid Justify="Justify.SpaceAround" Spacing="2">
-					<MudList>
+					<MudList T="object">
 						<ToggleSwitch @bind-Checked="DebugLogging"
 									  Label="Debug Logging"
 									  TooltipText="Output process to the console"
 									  IsProcessing="IsProcessing" />
 					</MudList>
-					<MudList>
+					<MudList T="object">
 						<ToggleSwitch @bind-Checked="PerfLogging"
 									  Label="Performance Logging"
 									  TooltipText="Log performance to the console"
@@ -51,7 +51,7 @@
 				</MudGrid>
 			</MudItem>
 		}
-		<MudItem xs="12">
+		<MudItem xs="12" Class="pb-4">
 			<MudProgressLinear Color="Color.Primary" Size="Size.Small" Value="0" Max="100" Indeterminate="IsProcessing" Class="my-7" Rounded="true" />
 			<MudButton HtmlTag="label"
 					   Variant="Variant.Filled"

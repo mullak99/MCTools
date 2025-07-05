@@ -2,9 +2,9 @@
 {
 	public class GitOptions : IGitOptions
 	{
-		public string PersonalAccessToken { get; set; }
-		public string AuthorName { get; set; }
-		public string AuthorEmail { get; set; }
+		public string PersonalAccessToken { get; set; } = string.Empty;
+		public string AuthorName { get; set; } = string.Empty;
+		public string AuthorEmail { get; set; } = string.Empty;
 	}
 
 	public interface IGitOptions

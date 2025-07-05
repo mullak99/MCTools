@@ -9,7 +9,7 @@ namespace MCTools.Shared.Dialog
 {
     public partial class TexturesBlacklistDialog : LayoutComponentBase
     {
-        [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+        [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
 
         [Parameter] public MCEdition Edition { get; set; }
         [Parameter] public List<string> Blacklist { get; set; }

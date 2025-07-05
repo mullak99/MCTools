@@ -7,13 +7,13 @@
 
 <MudDialog>
 	<DialogContent>
-		<MudGrid Justify="Justify.SpaceEvenly">
-			<MudList>
+		<MudGrid Spacing="3" Justify="Justify.SpaceEvenly">
+			<MudList T="object">
 				<ToggleSwitch @bind-Checked="ExpandedVersionSelector"
 				              Label="Show more versions"
 				              TooltipText="Show more versions in the version selector" />
 			</MudList>
-			<MudList>
+			<MudList T="object">
 				<ToggleSwitch @bind-Checked="DebugMode"
 				              Label="Debug Mode"
 				              TooltipText="Toggle debug/developer features"

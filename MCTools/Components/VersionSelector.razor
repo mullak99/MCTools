@@ -1,22 +1,19 @@
 ﻿@using MCTools.Enums
-@using MCTools.Models
 @using MCTools.SDK.Controllers
 @using MCTools.SDK.Models
-@using MudBlazor
-@using System.Globalization
 @using MCTools.Extensions
 
 @inject ISnackbar Snackbar
 
 <MudItem xs="6">
-	<MudSelect T="MCEdition" Label="Edition" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Disabled="DisableControls"
+	<MudSelect T="MCEdition" Label="Edition" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="DisableControls"
 			   SelectedValues="new List<MCEdition>() { SelectedEdition }" SelectedValuesChanged="(e) => SelectedEditionChanged(e.First())">
 		<MudSelectItem Value="MCEdition.Java" Disabled="@DisableJava">Java</MudSelectItem>
 		<MudSelectItem Value="MCEdition.Bedrock" Disabled="@DisableBedrock">Bedrock</MudSelectItem>
 	</MudSelect>
 </MudItem>
 <MudItem xs="6">
-	<MudSelect T="MCVersion" Label="Version" Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Disabled="DisableVersionSelector"
+	<MudSelect T="MCVersion" Label="Version" Variant="Variant.Outlined" Margin="Margin.Dense"Disabled="DisableVersionSelector"
 	           SelectedValues="new List<MCVersion>() { SelectedVersion }" SelectedValuesChanged="(e) => SelectedVersionChanged(e.First())">
 		@foreach (MCVersion ver in MinecraftVersions)
 		{

@@ -10,7 +10,7 @@ namespace MCTools.Shared.Dialog
 {
 	public partial class ErrorReportDialog : LayoutComponentBase
 	{
-		[CascadingParameter] MudDialogInstance MudDialog { get; set; }
+		[CascadingParameter] IMudDialogInstance MudDialog { get; set; }
 
 		[Parameter] public Exception Exception { get; set; }
 

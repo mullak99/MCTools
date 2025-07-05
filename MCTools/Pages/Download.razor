@@ -14,7 +14,7 @@
 
 <MudText Typo="Typo.h3" GutterBottom="true">Vanilla Assets</MudText>
 <MudPaper Class="px-8">
-	<MudGrid Justify="Justify.Center">
+	<MudGrid Spacing="3" Justify="Justify.Center">
 		<VersionSelector JavaController="JavaController"
 						 BedrockController="BedrockController"
 						 VersionChanged="SelectedVersionChanged"
@@ -25,7 +25,7 @@
 			<MudItem xs="12" Class="pa-2 my-1">
 				<MudText Typo="Typo.h6" GutterBottom="true">Options</MudText>
 				<MudGrid Justify="Justify.SpaceAround" Spacing="2" >
-					<MudList>
+					<MudList T="object">
 						<ToggleSwitch @bind-Checked="IncludeMcMetas"
 									  Label="Include MCMeta Files"
 									  TooltipText="Include MCMeta files in the assets"
@@ -39,7 +39,7 @@
 			<MudItem xs="12" Class="pa-2 my-1">
 				<MudText Typo="Typo.h6" GutterBottom="true">Debug</MudText>
 				<MudGrid Justify="Justify.SpaceAround" Spacing="2" >
-					<MudList>
+					<MudList T="object">
 						<ToggleSwitch @bind-Checked="OutputSourceUrl"
 									  Label="Output Source URL"
 									  TooltipText="Output Source URL to the console"
@@ -52,7 +52,7 @@
 										  IsProcessing="IsProcessing" />
 						}
 					</MudList>
-					<MudList>
+					<MudList T="object">
 						<ToggleSwitch @bind-Checked="PerfLogging"
 									  Label="Performance Logging"
 									  TooltipText="Log performance to the console"
@@ -61,7 +61,7 @@
 				</MudGrid>
 			</MudItem>
 		}
-		<MudItem xs="12">
+		<MudItem xs="12" Class="pb-4">
 			<MudProgressLinear Color="Color.Primary"
 			                   Size="@(string.IsNullOrWhiteSpace(ProgressText) ? Size.Small : Size.Large)"
 			                   Value="@(ProgressValue ?? 0)"

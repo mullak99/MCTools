@@ -12,28 +12,29 @@
 @inject JSHelper JsHelper
 @inject AppLinks AppLinks
 
-<MudThemeProvider Theme="CurrentTheme" />
+<MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode" />
 <MudDialogProvider />
 <MudSnackbarProvider />
+<MudPopoverProvider />
 
 <MudLayout>
 	<MudAppBar Elevation="0" Dense="true" Fixed="true">
-		<MudIconButton Icon="@(IsDrawerOpen ? Icons.Material.Filled.MenuOpen : Icons.Material.Filled.Menu)" Color="Color.Inherit" Edge="Edge.Start" OnClick="@(_ => ToggleDrawer())" />
+		<MudIconButton Icon="@(_drawerOpen? Icons.Material.Filled.MenuOpen : Icons.Material.Filled.Menu)" Color="Color.Inherit" Edge="Edge.Start" OnClick="@(_ => ToggleDrawer())" />
 		<MudText Typo="Typo.h6" Class="pl-4 pr-1">Minecraft Tools</MudText>
 		@if (Program.IsPreRelease())
 		{
 			<MudIcon Icon="@Icons.Material.Filled.Science" Title="@Program.GetReleaseType(true, true)" />
 		}
 		<MudSpacer />
-		<MudToolBar WrapContent="true" Dense="true" DisableGutters="true">
-			<MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Title="GitHub" aria-label="github" Href="@AppLinks.GitHub" />
-			<MudIconButton Icon="@Icons.Material.Filled.Api" Color="Color.Inherit" Title="Swagger" Href="@($"{Program.ApiAddress.TrimEnd('/', '\\')}/swagger")" />
+		<MudToolBar WrapContent="true" Dense="true" Gutters="false">
+			<MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" title="GitHub" aria-label="github" Href="@AppLinks.GitHub" />
+			<MudIconButton Icon="@Icons.Material.Filled.Api" Color="Color.Inherit" title="Swagger" Href="@($"{Program.ApiAddress.TrimEnd('/', '\\')}/swagger")" />
 
-			<MudIconButton Class="ml-8" Icon="@Icons.Material.Filled.Settings" Color="Color.Inherit" Title="Settings" OnClick="@OpenSettingsDialog" />
-			<MudIconButton Icon="@(IsDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" Title="@(IsDarkMode ? "Toggle Light Mode" : "Toggle Dark Mode")" Color="Color.Inherit" OnClick="@ToggleTheme" />
+			<MudIconButton Class="ml-8" Icon="@Icons.Material.Filled.Settings" Color="Color.Inherit" title="Settings" OnClick="@OpenSettingsDialog" />
+			<MudIconButton Icon="@(_isDarkMode? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" title="@(_isDarkMode ? "Toggle Light Mode" : "Toggle Dark Mode")" Color="Color.Inherit" OnClick="@ToggleTheme" />
 		</MudToolBar>
 	</MudAppBar>
-	<MudDrawer @bind-Open="IsDrawerOpen" ClipMode="DrawerClipMode.Docked" Variant="DrawerVariant.Responsive">
+	<MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Docked" Variant="DrawerVariant.Responsive">
 		<NavMenu />
 	</MudDrawer>
 	<MudMainContent>
@@ -47,9 +48,9 @@
 		</MudText>
 		<ApiStatusIcon Status="@ApiStatus" />
 		<MudSpacer/>
-		<MudToolBar WrapContent="true" Dense="true" DisableGutters="true">
-			<MudIconButton Icon="@Icons.Material.Filled.BugReport" Color="Color.Inherit" Title="Report a bug" Href="@AppLinks.GitHubIssues" />
-			<MudIconButton Icon="@Icons.Material.Filled.PrivacyTip" Color="Color.Inherit" Title="Privacy Policy" Href="/privacy" />
+		<MudToolBar WrapContent="true" Dense="true" Gutters="false">
+			<MudIconButton Icon="@Icons.Material.Filled.BugReport" Color="Color.Inherit" title="Report a bug" Href="@AppLinks.GitHubIssues" />
+			<MudIconButton Icon="@Icons.Material.Filled.PrivacyTip" Color="Color.Inherit" title="Privacy Policy" Href="/privacy" />
 		</MudToolBar>
 	</MudAppBar>
 </MudLayout>

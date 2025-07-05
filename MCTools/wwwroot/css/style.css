@@ -10,6 +10,7 @@
 
 .item-tab-panel-item {
 	position: relative;
+	height: 18rem;
 	min-height: 145px;
 	max-height: 260px;
 	width: 100%;
@@ -36,8 +37,8 @@
 
 .settings-version {
 	position: absolute;
-	bottom: 6px;
-	left: 2px;
+	bottom: 0.5rem;
+	left: 1rem;
 }
 
 .toolbar-version {

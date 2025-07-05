@@ -27,7 +27,7 @@ namespace MCTools.API
 		public Startup(IConfiguration configuration)
 		{
 			Configuration = configuration;
-			AuthConfig = Configuration.GetSection("Auth0").Get<Auth0Config>();
+			AuthConfig = Configuration.GetSection("Auth0").Get<Auth0Config>() ?? throw new NullReferenceException("Auth0 config missing!");
 		}
 
 		public GlobalSettings? GlobalSettings { get; set; }
@@ -41,7 +41,7 @@ namespace MCTools.API
 			{
 				options.AddDefaultPolicy(builder =>
 				{
-					builder.WithOrigins(Configuration["AllowedHosts"])
+					builder.WithOrigins(Configuration["AllowedHosts"] ?? "*")
 						.AllowAnyMethod()
 						.AllowAnyHeader()
 						.WithHeaders("Authorization");
@@ -98,9 +98,9 @@ namespace MCTools.API
 
 			GitOptions gitOptions = new()
 			{
-				PersonalAccessToken = Configuration["Tokens:GitHub"],
-				AuthorName = Configuration["Common:Name"],
-				AuthorEmail = Configuration["Common:Email"]
+				PersonalAccessToken = Configuration["Tokens:GitHub"] ?? throw new NullReferenceException("GitHub Token not provided!"),
+				AuthorName = Configuration["Common:Name"] ?? "UNKNOWN",
+				AuthorEmail = Configuration["Common:Email"] ?? "UNKNOWN"
 			};
 
 			GitHubClient githubClient = new(new ProductHeaderValue(Configuration["Common:UserAgent"]))

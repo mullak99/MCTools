@@ -1,20 +1,20 @@
 ﻿@using MCTools.Logic
 
 <MudTabPanel Text="@TabName" Class="item-tab-panel" BadgeData="@AssetList.Count" BadgeColor="@BadgeColor">
-	<MudList Dense="true" DisablePadding="true" Class="item-tab-root-list">
+	<MudList T="object" Dense="true" Padding="false" Class="item-tab-root-list">
 		@if (AssetList.Count > 0)
 		{
 			<MudItem Class="item-tab-panel-item">
-				<MudList Dense="true" DisablePadding="true">
+				<MudList Dense="true" Padding="true" ReadOnly="true">
 					<Virtualize TItem="string" Items="AssetList" ItemSize="@VIRTUALIZER_ITEM_SIZE" OverscanCount="@VIRTUALIZER_OVERSCAN">
-						<MudListItem Text="@context" />
+						<MudListItem Text="@context"  />
 					</Virtualize>
 				</MudList>
 			</MudItem>
 			@if (!HideToolbar)
 			{
 				<MudToolBar Dense="true" Class="item-table-toolbar" WrapContent="true">
-					<MudText Class="pl-2">@AssetList.Count</MudText>
+					<MudText Class="pl-4">@AssetList.Count</MudText>
 					<MudSpacer />
 					@if (CopyToClipboard && JSHelper != null)
 					{
@@ -40,7 +40,9 @@
 		}
 		else
 		{
-			<MudText Align="Align.Center" Class="mt-2">@EmptyListText</MudText>
+			<MudItem Class="d-flex justify-center align-content-center flex-wrap flex-grow-1 mud-height-full">
+				<MudText Align="Align.Center">@EmptyListText</MudText>
+			</MudItem>
 		}
 	</MudList>
 </MudTabPanel>

@@ -6,7 +6,7 @@ namespace MCTools.Shared.Dialog
 {
 	public partial class ConfirmationDialog : LayoutComponentBase
 	{
-		[CascadingParameter] MudDialogInstance MudDialog { get; set; }
+		[CascadingParameter] IMudDialogInstance MudDialog { get; set; }
 
 		[Parameter] public string ConfirmationText { get; set; }
 		[Parameter] public Action<bool> Callback { get; set; }

@@ -99,7 +99,7 @@ namespace MCTools.Pages
 			}
 			catch (Exception ex)
 			{
-				ErrorHandler.HandleException(ex);
+				await ErrorHandler.HandleException(ex);
 			}
 			finally
 			{

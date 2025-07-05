@@ -13,7 +13,7 @@ namespace MCTools.Shared.Dialog
 		private const float MULTI_TEX_VIRTUALIZE_SIZE = 329.35f;
 		private const int TEX_VIRTUALIZE_OVERSCAN = 2;
 
-		[CascadingParameter] MudDialogInstance MudDialog { get; set; }
+		[CascadingParameter] IMudDialogInstance MudDialog { get; set; }
 
 		[Parameter] public List<DiffImage> Images { get; set; }
 		[Parameter] public ConcurrentDictionary<string, byte[]> FromAssets { get; set; }

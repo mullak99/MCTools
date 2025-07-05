@@ -67,7 +67,7 @@ namespace MCTools.Pages
 		#region Defaults
 		private readonly List<string> DefaultBlacklistJava = new()
 			{
-				@"_MACOSX",
+				"_MACOSX",
 				@"assets\/minecraft\/textures\/ctm",
 				@"assets\/minecraft\/textures\/custom",
 				@"textures\/colormap",
@@ -76,12 +76,19 @@ namespace MCTools.Pages
 				@"assets\/minecraft\/textures\/trims\/color_palettes",
 				@"assets\/minecraft\/textures\/gui\/presets",
 				@"assets\/minecraft\/textures\/entity\/llama\/spit.png",
-				@"assets\/minecraft\/textures\/block\/lightning_rod_on.png"
+				@"assets\/minecraft\/textures\/block\/lightning_rod_on.png",
+				@"assets\/minecraft\/textures\/gui\/tab_header_background.png",
+				@"assets\/minecraft\/textures\/gui\/menu_background.png",
+				@"assets\/minecraft\/textures\/gui\/menu_list_background.png",
+				@"assets\/minecraft\/textures\/gui\/sprites\/container\/loom\/error.png",
+				@"assets\/minecraft\/textures\/gui\/sprites\/widget\/scroller_background.png",
+				@"assets\/minecraft\/textures\/gui\/inworld_menu_list_background.png",
+				@"assets\/minecraft\/textures\/gui\/inworld_menu_background.png"
 			};
 
 		private readonly List<string> DefaultBlacklistBedrock = new()
 			{
-				@"_MACOSX",
+				"_MACOSX",
 				@"texts\/",
 				@"textures\/persona_thumbnails",
 				@"textures\/colormap",
@@ -322,7 +329,7 @@ namespace MCTools.Pages
 			}
 			catch (Exception ex)
 			{
-				ErrorHandler.HandleException(ex);
+				await ErrorHandler.HandleException(ex);
 			}
 		}
 
@@ -451,7 +458,7 @@ namespace MCTools.Pages
 		/// <summary>
 		/// Open Blacklist Dialog with the appropriate regex list
 		/// </summary>
-		private void OpenBlacklistDialog(MCEdition edition)
+		private async Task OpenBlacklistDialog(MCEdition edition)
 		{
 			DialogOptions options = new() { MaxWidth = MaxWidth.Medium, FullWidth = true };
 			#pragma warning disable CS8974 // Converting method group to non-delegate type
@@ -465,7 +472,7 @@ namespace MCTools.Pages
 			#pragma warning restore CS8974 // Converting method group to non-delegate type
 
 			string title = $"Custom Blacklist ({(edition == MCEdition.Java ? "Java" : "Bedrock")})";
-			Dialog.Show<TexturesBlacklistDialog>(title, parameters, options);
+			await Dialog.ShowAsync<TexturesBlacklistDialog>(title, parameters, options);
 		}
 
 		/// <summary>
@@ -485,7 +492,7 @@ namespace MCTools.Pages
 		/// <summary>
 		/// Open Reset Blacklist Confirmation Dialog
 		/// </summary>
-		private void OpenResetConfirmationDialog()
+		private async Task OpenResetConfirmationDialog()
 		{
 			DialogOptions options = new() { MaxWidth = MaxWidth.Small, FullWidth = true };
 			#pragma warning disable CS8974 // Converting method group to non-delegate type
@@ -495,7 +502,7 @@ namespace MCTools.Pages
 				{"Callback", ResetBlacklistCallback}
 			};
 			#pragma warning restore CS8974 // Converting method group to non-delegate type
-			Dialog.Show<ConfirmationDialog>("Reset Both Blacklists?", parameters, options);
+			await Dialog.ShowAsync<ConfirmationDialog>("Reset Both Blacklists?", parameters, options);
 		}
 
 		/// <summary>
@@ -542,7 +549,7 @@ namespace MCTools.Pages
 			}
 			catch (Exception ex)
 			{
-				ErrorHandler.HandleException(ex);
+				await ErrorHandler.HandleException(ex);
 			}
 			finally
 			{

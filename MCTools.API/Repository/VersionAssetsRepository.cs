@@ -28,7 +28,7 @@ namespace MCTools.API.Repository
 		{
 			try
 			{
-				if (_cache.TryGetValue(name, edition, assetVersion, out MinecraftVersionAssets assets))
+				if (_cache.TryGetValue(name, edition, assetVersion, out MinecraftVersionAssets? assets))
 					return assets;
 
 				var filterBuilder = Builders<MinecraftVersionAssets>.Filter;

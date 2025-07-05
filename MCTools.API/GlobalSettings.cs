@@ -15,7 +15,7 @@
 				TelemetryIgnoreDev = parsedTeleIgnoreDev;
 
 			if (!string.IsNullOrWhiteSpace(configuration["Settings:DbNameSuffix"]))
-				DbNameSuffix = configuration["Settings:DbNameSuffix"];
+				DbNameSuffix = configuration["Settings:DbNameSuffix"] ?? string.Empty;
 		}
 	}
 }

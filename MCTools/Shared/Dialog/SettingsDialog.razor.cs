@@ -6,7 +6,7 @@ namespace MCTools.Shared.Dialog
 {
 	public partial class SettingsDialog : LayoutComponentBase
 	{
-		[CascadingParameter] MudDialogInstance MudDialog { get; set; }
+		[CascadingParameter] IMudDialogInstance MudDialog { get; set; }
 
 		private bool DebugMode { get; set; } = MainLayout.DebugMode;
 		private bool ExpandedVersionSelector { get; set; } = MainLayout.ExpandedVersionSelector;
