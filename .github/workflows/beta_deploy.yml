@@ -57,6 +57,7 @@ jobs:
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USERNAME }}
+        
         key: ${{ secrets.SSHKEY }}
         port: ${{ secrets.PORT }}
         source: "${{ env.PUBLISH_PATH }}/*"
@@ -67,6 +68,7 @@ jobs:
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USERNAME }}
+        password: ${{ secrets.PASSWORD }}
         key: ${{ secrets.SSHKEY }}
         port: ${{ secrets.PORT }}
         script: |
