@@ -154,7 +154,7 @@
 			</MudGrid>
 		</MudItem>
 		<MudItem xs="12" Class="py-4">
-			<MudTabs Outlined="true" Position="Position.Left" Rounded="true" Border="true" ApplyEffectsToContainer="true">
+			<MudTabs Outlined="true" Position="Position.Left" Rounded="true" Border="true" ApplyEffectsToContainer="true" TabPanelClass="item-tab-panel-tabs-wide">
 				<AssetTabPanel TabName="Matching Textures"
 							   EmptyListText="No matching textures"
 							   AssetList="@MatchingTexturesList"
@@ -215,7 +215,7 @@
 			{
 				<MudItem xs="12" Class="pt-1 pb-4">
 					<MudText Typo="Typo.h6" GutterBottom="true">Pack Content</MudText>
-					<MudTabs Outlined="true" Position="Position.Left" Rounded="true" Border="true" ApplyEffectsToContainer="true">
+					<MudTabs Outlined="true" Position="Position.Left" Rounded="true" Border="true" ApplyEffectsToContainer="true" TabPanelClass="item-tab-panel-tabs">
 						<AssetTabPanel TabName="Textures"
 									   EmptyListText="No textures"
 									   AssetList="@Pack.GetTextures()"

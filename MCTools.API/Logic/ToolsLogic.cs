@@ -1,6 +1,4 @@
-﻿using System.IO.Compression;
-using System.Text.RegularExpressions;
-using MCTools.API.Extentions;
+﻿using MCTools.API.Extentions;
 using MCTools.API.Repository;
 using MCTools.SDK.Enums;
 using MCTools.SDK.Models;
@@ -8,13 +6,16 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using Octokit;
+using System.IO.Compression;
+using System.Reflection;
+using System.Text.RegularExpressions;
 using FileMode = System.IO.FileMode;
 
 namespace MCTools.API.Logic
 {
 	public class ToolsLogic : IToolsLogic
 	{
-		private const int ASSET_VERSION = 3;
+		private const int ASSET_VERSION = 4;
 		private const string BEDROCK_ZIP_REGEX = "Mojang-bedrock-samples-[a-zA-Z0-9]+\\/resource_pack";
 
 		private readonly IVersionAssetsRepository _vaRepository;
@@ -427,27 +428,37 @@ namespace MCTools.API.Logic
 			}
 		}
 
-		private (List<string> textures, List<string> mcMetas) GetFileListFromJar(string jarPath)
+		private (List<string> textures, List<string> mcMetas, List<string> models, List<string> blockStates) GetFileListFromJar(string jarPath)
 		{
 			List<string> tex = new();
 			List<string> meta = new();
+			List<string> models = new();
+			List<string> blockStates = new();
+
 			using ZipArchive zip = ZipFile.OpenRead(jarPath);
 			foreach (var file in zip.Entries)
 			{
-				if (file.FullName.StartsWith("data"))
+				string normalizedPath = file.FullName.Replace('\\', '/');
+
+				if (normalizedPath.StartsWith("data") || normalizedPath.EndsWith("class"))
 					continue;
 
-				if (file.FullName.EndsWith("png"))
-					tex.Add(file.FullName);
+				if (normalizedPath.EndsWith("png"))
+					tex.Add(normalizedPath);
 
-				if (file.FullName.EndsWith("mcmeta"))
-					meta.Add(file.FullName);
+				if (normalizedPath.EndsWith("mcmeta"))
+					meta.Add(normalizedPath);
+
+				if (normalizedPath.StartsWith("assets/minecraft/models") && normalizedPath.EndsWith("json"))
+					models.Add(normalizedPath);
+
+				if (normalizedPath.StartsWith("assets/minecraft/blockstates") && normalizedPath.EndsWith("json"))
+					blockStates.Add(normalizedPath);
 			}
-			zip.Dispose();
-			return (tex, meta);
+			return (tex, meta, models, blockStates);
 		}
 
-		private (List<string> textures, List<string> mcMetas) GetFileListFromBedrockZip(string bedrockZip)
+		private (List<string> textures, List<string> mcMetas, List<string> models, List<string> blockStates) GetFileListFromBedrockZip(string bedrockZip)
 		{
 			List<string> files = new();
 			using ZipArchive zip = ZipFile.OpenRead(bedrockZip);
@@ -457,8 +468,7 @@ namespace MCTools.API.Logic
 				if (fileName.EndsWith("png") || fileName.EndsWith("tga"))
 					files.Add(fileName);
 			}
-			zip.Dispose();
-			return (files, new List<string>());
+			return (files, new List<string>(), new List<string>(), new List<string>());
 		}
 
 		private async Task<MCAssets> GenerateAssets(AssetMCVersion version, MinecraftEdition minecraftEdition)
@@ -473,7 +483,7 @@ namespace MCTools.API.Logic
 
 			if (minecraftEdition == MinecraftEdition.Java ? await DownloadJar(version, file) : await DownloadFile(version.Url, file))
 			{
-				(List<string> Textures, List<string> McMetas) files = minecraftEdition == MinecraftEdition.Java ? GetFileListFromJar(file) : GetFileListFromBedrockZip(file);
+				(List<string> Textures, List<string> McMetas, List<string> Models, List<string> BlockStates) files = minecraftEdition == MinecraftEdition.Java ? GetFileListFromJar(file) : GetFileListFromBedrockZip(file);
 
 				if (files.Textures is { Count: > 0 } || files.McMetas is { Count: > 0 })
 				{
@@ -491,6 +501,8 @@ namespace MCTools.API.Logic
 						},
 						Textures = files.Textures,
 						McMetas = files.McMetas,
+						Models = files.Models,
+						BlockStates = files.BlockStates,
 						OverlaySupport = version.ReleaseTime >= DateTime.Parse("2023-08-01T10:03:13+00:00") // Enable Overlays for >= 23w31a / 1.20.2
 					};
 				}

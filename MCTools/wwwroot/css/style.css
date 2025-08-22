@@ -1,5 +1,5 @@
 ﻿.item-tab-panel {
-	width: 250px;
+	width: 100%;
 }
 
 .item-tab-root-list {
@@ -16,6 +16,14 @@
 	width: 100%;
 	overflow-y: scroll;
 	padding: 0 0 0 0;
+}
+
+.item-tab-panel-tabs-wide {
+	width: 16rem;
+}
+
+.item-tab-panel-tabs {
+	width: 12rem;
 }
 
 .item-table-toolbar {

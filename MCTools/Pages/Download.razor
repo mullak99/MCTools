@@ -27,9 +27,15 @@
 				<MudGrid Justify="Justify.SpaceAround" Spacing="2" >
 					<MudList T="object">
 						<ToggleSwitch @bind-Checked="IncludeMcMetas"
-									  Label="Include MCMeta Files"
-									  TooltipText="Include MCMeta files in the assets"
-									  IsProcessing="IsProcessing" />
+						              Label="Include MCMeta Files"
+						              TooltipText="Include MCMeta files in the assets"
+						              IsProcessing="IsProcessing" />
+					</MudList>
+					<MudList T="object">
+						<ToggleSwitch @bind-Checked="IncludeModels"
+						              Label="Include Models"
+						              TooltipText="Include Models in the assets"
+						              IsProcessing="IsProcessing" />
 					</MudList>
 				</MudGrid>
 			</MudItem>
@@ -76,15 +82,17 @@
 					</MudText>
 				}
 			</MudProgressLinear>
-			<MudButton HtmlTag="label"
-					   Variant="Variant.Filled"
-					   Color="Color.Primary"
-					   StartIcon="@Icons.Material.Filled.CloudDownload"
-					   style="width: 100%;"
-					   Disabled="IsProcessing"
-					   OnClick="@DownloadAssets">
-				Download
-			</MudButton>
+			<MudTooltip Disabled="!_moduleDisabled" Text="This module is disabled when the database is down! Report this as an issue." Inline="false">
+				<MudButton HtmlTag="label"
+				           Variant="Variant.Filled"
+				           Color="Color.Primary"
+				           StartIcon="@Icons.Material.Filled.CloudDownload"
+						   FullWidth="true"
+				           Disabled="_downloadDisabled"
+				           OnClick="@DownloadAssets">
+					Download
+				</MudButton>
+			</MudTooltip>
 		</MudItem>
 	</MudGrid>
 </MudPaper>

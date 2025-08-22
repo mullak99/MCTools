@@ -1,6 +1,6 @@
 ﻿@using MCTools.Logic
 
-<MudTabPanel Text="@TabName" Class="item-tab-panel" BadgeData="@AssetList.Count" BadgeColor="@BadgeColor">
+<MudTabPanel Text="@TabName" Class="item-tab-panel w-100" BadgeData="@AssetList.Count" BadgeColor="@BadgeColor">
 	<MudList T="object" Dense="true" Padding="false" Class="item-tab-root-list">
 		@if (AssetList.Count > 0)
 		{
@@ -41,7 +41,7 @@
 		else
 		{
 			<MudItem Class="d-flex justify-center align-content-center flex-wrap flex-grow-1 mud-height-full">
-				<MudText Align="Align.Center">@EmptyListText</MudText>
+				<MudText Align="Align.Center" Class="my-2">@EmptyListText</MudText>
 			</MudItem>
 		}
 	</MudList>

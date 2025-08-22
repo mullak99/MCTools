@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using MCTools.Extensions;
 using MCTools.Models;
 using MCTools.SDK.Models.Telemetry;
+using MCTools.Shared;
 using MCTools.Shared.Dialog;
 
 namespace MCTools.Pages
@@ -44,7 +45,9 @@ namespace MCTools.Pages
 		private MCVersion SavedFromVersion;
 		private MCVersion SavedToVersion;
 
-		private bool _compareEnabled => IsProcessing || SelectedVersionFrom == SelectedVersionTo;
+		private readonly bool _moduleDisabled = !MainLayout.IsDbHealthy;
+
+		private bool _compareEnabled => _moduleDisabled || IsProcessing || SelectedVersionFrom == SelectedVersionTo;
 		private bool _enablePreview => DifferentAssets.Any() || AddedAssets.Any() || RemovedAssets.Any();
 
 		private void SelectedVersionChanged(MCVersion from, MCVersion to)

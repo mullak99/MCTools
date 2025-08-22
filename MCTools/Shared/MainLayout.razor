@@ -26,13 +26,18 @@
 			<MudIcon Icon="@Icons.Material.Filled.Science" Title="@Program.GetReleaseType(true, true)" />
 		}
 		<MudSpacer />
-		<MudToolBar WrapContent="true" Dense="true" Gutters="false">
+		<MudToolBar WrapContent="true" Dense="true" Gutters="false" Class="d-none d-md-flex">
 			<MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" title="GitHub" aria-label="github" Href="@AppLinks.GitHub" />
 			<MudIconButton Icon="@Icons.Material.Filled.Api" Color="Color.Inherit" title="Swagger" Href="@($"{Program.ApiAddress.TrimEnd('/', '\\')}/swagger")" />
-
 			<MudIconButton Class="ml-8" Icon="@Icons.Material.Filled.Settings" Color="Color.Inherit" title="Settings" OnClick="@OpenSettingsDialog" />
 			<MudIconButton Icon="@(_isDarkMode? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" title="@(_isDarkMode ? "Toggle Light Mode" : "Toggle Dark Mode")" Color="Color.Inherit" OnClick="@ToggleTheme" />
 		</MudToolBar>
+		<MudMenu Icon="@Icons.Material.Filled.MoreVert" Class="d-md-none" PopoverClass="d-md-none" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.BottomCenter">
+			<MudMenuItem Href="@AppLinks.GitHub" Icon="@Icons.Custom.Brands.GitHub" Label="GitHub" />
+			<MudMenuItem Href="@($"{Program.ApiAddress.TrimEnd('/', '\\')}/swagger")" Icon="@Icons.Material.Filled.Api" Label="Swagger" />
+			<MudMenuItem OnClick="@OpenSettingsDialog" Icon="@Icons.Material.Filled.Settings" Label="Settings" />
+			<MudMenuItem OnClick="@ToggleTheme" Icon="@(_isDarkMode? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" Label="@(_isDarkMode ? "Light Mode" : "Dark Mode")"/>
+		</MudMenu>
 	</MudAppBar>
 	<MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Docked" Variant="DrawerVariant.Responsive">
 		<NavMenu />

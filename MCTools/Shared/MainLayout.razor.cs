@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Threading.Tasks;
-using MCTools.Enums;
 using MCTools.SDK.Enums.Controllers;
 using MCTools.SDK.Models;
 using MCTools.Shared.Dialog;
@@ -17,7 +15,7 @@ namespace MCTools.Shared
 		private bool _drawerOpen = true;
 		private bool _isDarkMode = true;
 
-		public MCToolsHealthStatus ApiStatus { get; set; } = MCToolsHealthStatus.Unknown;
+		public static MCToolsHealthStatus ApiStatus { get; set; } = MCToolsHealthStatus.Unknown;
 
 		public static bool ExpandedVersionSelector { get; set; }
 
@@ -26,6 +24,9 @@ namespace MCTools.Shared
 		#else
 		public static bool DebugMode = false;
 		#endif
+
+		public static bool IsApiHealthy => ApiStatus.Status == Status.Healthy;
+		public static bool IsDbHealthy => ApiStatus.Database.Status == Status.Healthy;
 
 		protected override async Task OnInitializedAsync()
 		{

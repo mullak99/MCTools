@@ -8,6 +8,8 @@
 		public MinecraftRelease Minecraft { get; set; } = null!;
 		public List<string> Textures { get; set; } = new();
 		public List<string> McMetas { get; set; } = new();
+		public List<string> Models { get; set; } = new();
+		public List<string> BlockStates { get; set; } = new();
 		public bool OverlaySupport { get; set; } = true;
 	}
 }

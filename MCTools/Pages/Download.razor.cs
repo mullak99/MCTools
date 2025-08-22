@@ -1,16 +1,15 @@
 ﻿using ICSharpCode.SharpZipLib.Zip;
 using MCTools.Enums;
-using MCTools.Logic;
 using MCTools.SDK.Models;
+using MCTools.SDK.Models.Telemetry;
+using MCTools.Shared;
 using Microsoft.AspNetCore.Components;
-using MudBlazor;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
-using MCTools.SDK.Models.Telemetry;
 
 namespace MCTools.Pages
 {
@@ -25,6 +24,10 @@ namespace MCTools.Pages
 		private byte? ProgressValue;
 		private string ProgressText;
 
+		private readonly bool _moduleDisabled = !MainLayout.IsDbHealthy;
+
+		private bool _downloadDisabled => _moduleDisabled || IsProcessing;
+
 		private void SelectedVersionChanged(MCVersion version)
 			=> SelectedVersion = version;
 
@@ -33,6 +36,7 @@ namespace MCTools.Pages
 		#endregion
 
 		private bool IncludeMcMetas { get; set; } = true;
+		private bool IncludeModels { get; set; } = true;
 
 		private bool OutputSourceUrl { get; set; }
 		private bool DownloadRawJar { get; set; }
@@ -130,7 +134,10 @@ namespace MCTools.Pages
 				int currInterval = 0;
 				foreach (ZipEntry entry in archive)
 				{
-					if (!assets.Textures.Contains(entry.Name) && (!IncludeMcMetas || !assets.McMetas.Contains(entry.Name))) continue;
+					if (!assets.Textures.Contains(entry.Name) &&
+					    (!IncludeMcMetas || !assets.McMetas.Contains(entry.Name)) &&
+					    (!IncludeModels || !assets.Models.Contains(entry.Name)) &&
+					    (!IncludeModels || !assets.BlockStates.Contains(entry.Name))) continue;
 
 					using MemoryStream ms = new();
 					await using Stream entryStream = archive.GetInputStream(entry);
