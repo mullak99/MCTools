@@ -15,7 +15,9 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Http;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using Octokit;
@@ -77,15 +79,19 @@ namespace MCTools.API
 			services.AddScoped<IAuthenticationApiClient>(_ => new AuthenticationApiClient(AuthConfig.Authority.Replace("https://", "")));
 
 			services.AddSingleton<IMongoClient>(_ =>
-				{
-					MongoClientSettings? clientSettings =
-						MongoClientSettings.FromConnectionString(Configuration.GetConnectionString("MongoDb"));
-					clientSettings.MaxConnectionPoolSize = 1000;
-					return new MongoClient(clientSettings);
-				}).AddHealthChecks()
-				.AddMongoDb()
-				.AddCheck("self", () => HealthCheckResult.Healthy("API is running"), tags: ["api"]);
-			
+			{
+				MongoClientSettings? clientSettings =
+					MongoClientSettings.FromConnectionString(Configuration.GetConnectionString("MongoDb"));
+				clientSettings.MaxConnectionPoolSize = 1000;
+				return new MongoClient(clientSettings);
+			}).AddHealthChecks()
+			.AddCheck("self", () => HealthCheckResult.Healthy("API is running"), tags: ["api"])
+			.AddMongoDb(
+				name: "mongodb",
+				failureStatus: HealthStatus.Unhealthy,
+				tags: ["db"],
+				timeout: TimeSpan.FromSeconds(2)
+			);
 
 			services.AddSingleton(s => {
 				var client = s.GetRequiredService<IMongoClient>();
@@ -116,6 +122,7 @@ namespace MCTools.API
 
 			GlobalSettings = new(Configuration);
 
+			BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
 			BsonClassMap.RegisterClassMap<AppInfo>(cm =>
 			{
 				cm.AutoMap();
@@ -221,7 +228,6 @@ namespace MCTools.API
 			app.UseEndpoints(endpoints =>
 			{
 				endpoints.MapControllers();
-				endpoints.MapHealthChecks("health");
 			});
 		}
 
