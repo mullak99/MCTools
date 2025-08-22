@@ -1,19 +1,24 @@
-﻿@using MCTools.Enums
+﻿@using MCTools.SDK.Models
 
 <MudItem Class="mt-1">
-	@switch (Status)
+	@switch (Status.Status)
 	{
-		case ApiStatus.Online:
-			<MudTooltip Placement="Placement.Top" Text="The API is online. Everything should work as intended!">
-				<MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Title="Online" />
+		case SDK.Enums.Controllers.Status.Healthy:
+			<MudTooltip Placement="Placement.Top" Text="The API is healthy. Everything should work as intended!">
+				<MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Title="Healthy" />
 			</MudTooltip>
 			break;
-		case ApiStatus.Offline:
-			<MudTooltip Placement="Placement.Top" Text="The API is offline. Most of the web app functions will fail!">
-				<MudIcon Icon="@Icons.Material.Filled.Cancel" Color="Color.Error" Title="Offline" />
+		case SDK.Enums.Controllers.Status.Degraded:
+			<MudTooltip Placement="Placement.Top" Text="The API is degraded. Some of the web app functions will fail!">
+				<MudIcon Icon="@Icons.Material.Filled.Warning" Color="Color.Warning" Title="Degraded" />
 			</MudTooltip>
 			break;
-		case ApiStatus.Unknown:
+		case SDK.Enums.Controllers.Status.Unhealthy:
+			<MudTooltip Placement="Placement.Top" Text="The API is unhealthy. Most of the web app functions will fail!">
+				<MudIcon Icon="@Icons.Material.Filled.Cancel" Color="Color.Error" Title="Unhealthy" />
+			</MudTooltip>
+			break;
+		case SDK.Enums.Controllers.Status.Unknown:
 		default:
 			<MudTooltip Placement="Placement.Top" Text="The API status is unknown. This should change in a few seconds.">
 				<MudIcon Icon="@Icons.Material.Filled.Help" Color="Color.Info" Title="Unknown" />
@@ -23,5 +28,5 @@
 </MudItem>
 
 @code {
-	[Parameter] public ApiStatus Status { get; set; } = ApiStatus.Unknown;
+	[Parameter] public MCToolsHealthStatus Status { get; set; } = MCToolsHealthStatus.Unknown;
 }

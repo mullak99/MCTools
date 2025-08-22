@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using MCTools.Enums;
+using MCTools.SDK.Enums.Controllers;
+using MCTools.SDK.Models;
 using MCTools.Shared.Dialog;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
@@ -15,7 +17,7 @@ namespace MCTools.Shared
 		private bool _drawerOpen = true;
 		private bool _isDarkMode = true;
 
-		public ApiStatus ApiStatus { get; set; } = ApiStatus.Unknown;
+		public MCToolsHealthStatus ApiStatus { get; set; } = MCToolsHealthStatus.Unknown;
 
 		public static bool ExpandedVersionSelector { get; set; }
 
@@ -57,9 +59,25 @@ namespace MCTools.Shared
 
 		public async Task UpdateHealthStatus()
 		{
-			ApiStatus = await HealthController.GetApiStatus() == HttpStatusCode.OK ? ApiStatus.Online : ApiStatus.Offline;
-			if (ApiStatus == ApiStatus.Offline)
-				Snackbar.Add("The API is currently offline! Most features will not work!", Severity.Error);
+			ApiStatus = await HealthController.GetApiStatus();
+
+			string message = ApiStatus.Status switch
+			{
+				Status.Unhealthy => "The API is currently unhealthy! Most features will not work!",
+				Status.Degraded => "The API is currently degraded! Some features will not work!",
+				_ => null
+			};
+
+			if (message is not null)
+			{
+				var severity = ApiStatus.Status switch
+				{
+					Status.Unhealthy => Severity.Error,
+					Status.Degraded => Severity.Warning,
+					_ => Severity.Normal
+				};
+				Snackbar.Add(message, severity);
+			}
 
 			await InvokeAsync(StateHasChanged);
 		}

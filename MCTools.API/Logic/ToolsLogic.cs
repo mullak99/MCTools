@@ -241,48 +241,69 @@ namespace MCTools.API.Logic
 
 		private async Task<ResponseModel<MCAssets>> GetMinecraftAssets(string version, MinecraftEdition minecraftEdition, List<AssetMCVersion> supportedVersions)
 		{
-			string editionString = minecraftEdition == MinecraftEdition.Java ? "java" : "bedrock";
-			AssetMCVersion? mcVer = supportedVersions.FirstOrDefault(x => x.Id == version && x.Edition == editionString);
-
-			// Version is technically unsupported, but it still might exist in the db.
-			// This is basically a client-side cache work-around (old entries will eventually be wiped from the db).
-			if (mcVer == null)
+			try
 			{
-				MinecraftVersionAssets? existingAsset = await _vaRepository.GetVersionAssets(version, editionString, ASSET_VERSION);
-				if (existingAsset != null)
+				string editionString = minecraftEdition == MinecraftEdition.Java ? "java" : "bedrock";
+				AssetMCVersion? mcVer = supportedVersions.FirstOrDefault(x => x.Id == version && x.Edition == editionString);
+
+				// Version is technically unsupported, but it still might exist in the db.
+				// This is basically a client-side cache work-around (old entries will eventually be wiped from the db).
+				if (mcVer == null)
 				{
-					MCAssets? data = JsonConvert.DeserializeObject<MCAssets>(existingAsset.JSON);
-					if (data != null)
+					try
 					{
-						return new()
+						MinecraftVersionAssets? existingAsset = await _vaRepository.GetVersionAssets(version, editionString, ASSET_VERSION);
+						if (existingAsset != null)
 						{
-							IsSuccess = true,
-							Data = data
-						};
+							MCAssets? data = JsonConvert.DeserializeObject<MCAssets>(existingAsset.JSON);
+							if (data != null)
+							{
+								return new()
+								{
+									IsSuccess = true,
+									Data = data
+								};
+							}
+						}
+					}
+					catch (Exception ex)
+					{
+						_logger.LogError($"An unexpected error occurred when trying to get existing version {version} for {minecraftEdition}!", ex);
+					}
+				}
+				else
+				{
+					try
+					{
+						MinecraftVersionAssets? existingAsset = await _vaRepository.GetVersionAssets(version, editionString, ASSET_VERSION);
+
+						if (existingAsset == null)
+						{
+							return new()
+							{
+								IsSuccess = true,
+								Data = await CreateMCVA(mcVer, minecraftEdition)
+							};
+						}
+						MCAssets? data = JsonConvert.DeserializeObject<MCAssets>(existingAsset.JSON);
+						if (data != null)
+						{
+							return new()
+							{
+								IsSuccess = true,
+								Data = data
+							};
+						}
+					}
+					catch (Exception ex)
+					{
+						_logger.LogError($"An unexpected error occurred when trying to get existing version {version} for {minecraftEdition}!", ex);
 					}
 				}
 			}
-			else
+			catch (Exception ex)
 			{
-				MinecraftVersionAssets? existingAsset = await _vaRepository.GetVersionAssets(version, editionString, ASSET_VERSION);
-
-				if (existingAsset == null)
-				{
-					return new()
-					{
-						IsSuccess = true,
-						Data = await CreateMCVA(mcVer, minecraftEdition)
-					};
-				}
-				MCAssets? data = JsonConvert.DeserializeObject<MCAssets>(existingAsset.JSON);
-				if (data != null)
-				{
-					return new()
-					{
-						IsSuccess = true,
-						Data = data
-					};
-				}
+				_logger.LogError($"An unexpected error occurred when trying to get existing version {version} for {minecraftEdition}!", ex);
 			}
 			return new()
 			{

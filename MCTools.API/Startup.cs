@@ -11,6 +11,7 @@ using MCTools.API.Services;
 using MCTools.SDK.Enums.Telemetry;
 using MCTools.SDK.Models.Telemetry;
 using Microsoft.AspNetCore.Mvc.Versioning;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Http;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
@@ -57,6 +58,7 @@ namespace MCTools.API
 			{
 				options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
 				options.SerializerSettings.DefaultValueHandling = DefaultValueHandling.Populate;
+				options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
 			});
 
 			services.AddAuthenticationWithAuth0(AuthConfig);
@@ -75,11 +77,15 @@ namespace MCTools.API
 			services.AddScoped<IAuthenticationApiClient>(_ => new AuthenticationApiClient(AuthConfig.Authority.Replace("https://", "")));
 
 			services.AddSingleton<IMongoClient>(_ =>
-			{
-				MongoClientSettings? clientSettings = MongoClientSettings.FromConnectionString(Configuration.GetConnectionString("MongoDb"));
-				clientSettings.MaxConnectionPoolSize = 1000;
-				return new MongoClient(clientSettings);
-			});
+				{
+					MongoClientSettings? clientSettings =
+						MongoClientSettings.FromConnectionString(Configuration.GetConnectionString("MongoDb"));
+					clientSettings.MaxConnectionPoolSize = 1000;
+					return new MongoClient(clientSettings);
+				}).AddHealthChecks()
+				.AddMongoDb()
+				.AddCheck("self", () => HealthCheckResult.Healthy("API is running"), tags: ["api"]);
+			
 
 			services.AddSingleton(s => {
 				var client = s.GetRequiredService<IMongoClient>();
@@ -214,8 +220,8 @@ namespace MCTools.API
 
 			app.UseEndpoints(endpoints =>
 			{
-				endpoints.MapHealthChecks("/health");
 				endpoints.MapControllers();
+				endpoints.MapHealthChecks("health");
 			});
 		}
 

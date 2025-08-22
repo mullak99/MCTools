@@ -1,5 +1,6 @@
 ﻿using MCTools.SDK.Interfaces.Controllers;
-using System.Net;
+using MCTools.SDK.Models;
+using Newtonsoft.Json;
 
 namespace MCTools.SDK.Controllers
 {
@@ -12,20 +13,22 @@ namespace MCTools.SDK.Controllers
 			_client = client;
 		}
 
-		public async Task<HttpStatusCode> GetApiStatus(uint timeoutMs = 2000)
+		public async Task<MCToolsHealthStatus> GetApiStatus(uint timeoutMs = 5000)
 		{
 			using CancellationTokenSource cancellationTokenSource = new(TimeSpan.FromMilliseconds(timeoutMs));
-			HttpRequestMessage req = new(HttpMethod.Get, _client.BuildRequestUriRaw("health"));
+			HttpRequestMessage req = new(HttpMethod.Get, _client.BuildRequestUriRaw("health/summary"));
 
 			try
 			{
 				HttpResponseMessage res = await _client.GetClient().SendAsync(req, cancellationTokenSource.Token);
-				return res.StatusCode;
+
+				string rawJson = await res.Content.ReadAsStringAsync(cancellationTokenSource.Token);
+				return JsonConvert.DeserializeObject<MCToolsHealthStatus>(rawJson) ?? MCToolsHealthStatus.Unknown;
 			}
 			catch (TaskCanceledException)
 			{
 				// The task was canceled due to timeout
-				return HttpStatusCode.BadGateway;
+				return MCToolsHealthStatus.Unhealthy;
 			}
 		}
 	}
