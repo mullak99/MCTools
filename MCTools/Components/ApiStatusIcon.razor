@@ -1,26 +1,26 @@
-﻿@using MCTools.SDK.Models
+﻿@using MCTools.SDK.Enums.Controllers
 
 <MudItem Class="mt-1">
-	@switch (Status.Status)
+	@switch (Status)
 	{
-		case SDK.Enums.Controllers.Status.Healthy:
-			<MudTooltip Placement="Placement.Top" Text="The API is healthy. Everything should work as intended!">
+		case Status.Healthy:
+			<MudTooltip Placement="@TooltipPlacement" Text="@HealthyText">
 				<MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Title="Healthy" />
 			</MudTooltip>
 			break;
-		case SDK.Enums.Controllers.Status.Degraded:
-			<MudTooltip Placement="Placement.Top" Text="The API is degraded. Some of the web app functions will fail!">
+		case Status.Degraded:
+			<MudTooltip Placement="@TooltipPlacement" Text="@DegradedText">
 				<MudIcon Icon="@Icons.Material.Filled.Warning" Color="Color.Warning" Title="Degraded" />
 			</MudTooltip>
 			break;
-		case SDK.Enums.Controllers.Status.Unhealthy:
-			<MudTooltip Placement="Placement.Top" Text="The API is unhealthy. Most of the web app functions will fail!">
+		case Status.Unhealthy:
+			<MudTooltip Placement="@TooltipPlacement" Text="@UnhealthyText">
 				<MudIcon Icon="@Icons.Material.Filled.Cancel" Color="Color.Error" Title="Unhealthy" />
 			</MudTooltip>
 			break;
-		case SDK.Enums.Controllers.Status.Unknown:
+		case Status.Unknown:
 		default:
-			<MudTooltip Placement="Placement.Top" Text="The API status is unknown. This should change in a few seconds.">
+			<MudTooltip Placement="@TooltipPlacement" Text="@UnknownText">
 				<MudIcon Icon="@Icons.Material.Filled.Help" Color="Color.Info" Title="Unknown" />
 			</MudTooltip>
 			break;
@@ -28,5 +28,17 @@
 </MudItem>
 
 @code {
-	[Parameter] public MCToolsHealthStatus Status { get; set; } = MCToolsHealthStatus.Unknown;
+	[Parameter] public Status Status { get; set; } = Status.Unknown;
+	[Parameter] public string ServiceName { get; set; } = "API";
+
+	[Parameter] public string HealthySubText { get; set; } = "Everything should work as intended!";
+	[Parameter] public string DegradedSubText { get; set; } = "Some of the web app functions will fail!";
+	[Parameter] public string UnhealthySubText { get; set; } = "Most of the web app functions will fail!";
+
+	[Parameter] public Placement TooltipPlacement { get; set; } = Placement.Top;
+
+	private string HealthyText => $"The {ServiceName} is healthy. {HealthySubText}";
+	private string DegradedText => $"The {ServiceName} is degraded. {DegradedSubText}";
+	private string UnhealthyText => $"The {ServiceName} is unhealthy. {UnhealthySubText}";
+	private string UnknownText => $"The {ServiceName} status is unknown. This should change in a few seconds.";
 }

@@ -203,5 +203,15 @@ namespace MCTools.Shared
 			HoverOpacity = 0.2,
 			TextDisabled = "rgba(255,255,255, 0.25)"
 		};
+
+		private async Task OpenStatusDialog()
+		{
+			DialogOptions options = new() { MaxWidth = MaxWidth.Small, FullWidth = true };
+			#pragma warning disable CS8974 // Converting method group to non-delegate type
+			DialogParameters parameters = new()
+			{ };
+			#pragma warning restore CS8974 // Converting method group to non-delegate type
+			await Dialog.ShowAsync<ApiStatusModal>("API Status", parameters, options);
+		}
 	}
 }

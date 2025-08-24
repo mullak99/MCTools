@@ -1,0 +1,20 @@
+﻿@using MCTools.Components
+@inherits LayoutComponentBase
+
+<MudDialog>
+	<DialogContent>
+		<MudGrid Spacing="3" Justify="Justify.SpaceEvenly">
+			<MudItem Class="d-flex justify-center flex-grow-1 gap-4">
+				<MudText Class="mt-1">MCTools API:</MudText>
+				<ApiStatusIcon Status="API.Status" ServiceName="API" TooltipPlacement="Placement.Bottom"/>
+			</MudItem>
+			<MudItem Class="d-flex justify-center flex-grow-1 gap-4">
+				<MudText Class="mt-1">MCTools Database:</MudText>
+				<ApiStatusIcon Status="Database.Status" ServiceName="Database" TooltipPlacement="Placement.Bottom"/>
+			</MudItem>
+		</MudGrid>
+	</DialogContent>
+	<DialogActions>
+		<MudButton Color="Color.Error" OnClick="Close">Close</MudButton>
+	</DialogActions>
+</MudDialog>
