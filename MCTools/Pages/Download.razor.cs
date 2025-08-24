@@ -24,9 +24,21 @@ namespace MCTools.Pages
 		private byte? ProgressValue;
 		private string ProgressText;
 
-		private readonly bool _moduleDisabled = !MainLayout.IsDbHealthy;
+		private bool _moduleDisabled = !MainLayout.IsDbHealthy;
 
 		private bool _downloadDisabled => _moduleDisabled || IsProcessing;
+
+		protected override Task OnInitializedAsync()
+		{
+			MainLayout.OnApiStatusChanged += ApiStatusChanged;
+			return base.OnInitializedAsync();
+		}
+
+		private void ApiStatusChanged(MCToolsHealthStatus obj)
+		{
+			_moduleDisabled = !MainLayout.IsDbHealthy;
+			StateHasChanged();
+		}
 
 		private void SelectedVersionChanged(MCVersion version)
 			=> SelectedVersion = version;

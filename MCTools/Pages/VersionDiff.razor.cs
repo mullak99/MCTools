@@ -45,10 +45,22 @@ namespace MCTools.Pages
 		private MCVersion SavedFromVersion;
 		private MCVersion SavedToVersion;
 
-		private readonly bool _moduleDisabled = !MainLayout.IsDbHealthy;
+		private bool _moduleDisabled = !MainLayout.IsDbHealthy;
 
 		private bool _compareEnabled => _moduleDisabled || IsProcessing || SelectedVersionFrom == SelectedVersionTo;
 		private bool _enablePreview => DifferentAssets.Any() || AddedAssets.Any() || RemovedAssets.Any();
+
+		protected override Task OnInitializedAsync()
+		{
+			MainLayout.OnApiStatusChanged += ApiStatusChanged;
+			return base.OnInitializedAsync();
+		}
+
+		private void ApiStatusChanged(MCToolsHealthStatus obj)
+		{
+			_moduleDisabled = !MainLayout.IsDbHealthy;
+			StateHasChanged();
+		}
 
 		private void SelectedVersionChanged(MCVersion from, MCVersion to)
 		{

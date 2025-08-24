@@ -25,8 +25,17 @@ namespace MCTools.Shared
 		public static bool DebugMode = false;
 		#endif
 
+		public static event Action<MCToolsHealthStatus> OnApiStatusChanged;
+
 		public static bool IsApiHealthy => ApiStatus.Status == Status.Healthy;
 		public static bool IsDbHealthy => ApiStatus.Database.Status == Status.Healthy;
+
+		public void ApiStatusChanged(MCToolsHealthStatus status)
+		{
+			ApiStatus = status;
+			OnApiStatusChanged?.Invoke(status);
+			StateHasChanged();
+		}
 
 		protected override async Task OnInitializedAsync()
 		{
@@ -60,9 +69,9 @@ namespace MCTools.Shared
 
 		public async Task UpdateHealthStatus()
 		{
-			ApiStatus = await HealthController.GetApiStatus();
+			var status = await HealthController.GetApiStatus();
 
-			string message = ApiStatus.Status switch
+			string message = status.Status switch
 			{
 				Status.Unhealthy => "The API is currently unhealthy! Most features will not work!",
 				Status.Degraded => "The API is currently degraded! Some features will not work!",
@@ -71,7 +80,7 @@ namespace MCTools.Shared
 
 			if (message is not null)
 			{
-				var severity = ApiStatus.Status switch
+				var severity = status.Status switch
 				{
 					Status.Unhealthy => Severity.Error,
 					Status.Degraded => Severity.Warning,
@@ -79,8 +88,7 @@ namespace MCTools.Shared
 				};
 				Snackbar.Add(message, severity);
 			}
-
-			await InvokeAsync(StateHasChanged);
+			ApiStatusChanged(status);
 		}
 
 		private async Task OpenSettingsDialog()
