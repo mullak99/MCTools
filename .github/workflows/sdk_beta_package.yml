@@ -2,14 +2,14 @@ name: MCTools SDK (Beta)
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ beta ]
-    paths:
-      - 'MCTools.SDK/**'
-  pull_request:
-    branches: [ beta ]
-    paths:
-      - 'MCTools.SDK/**'
+#  push:
+#    branches: [ beta ]
+#    paths:
+#      - 'MCTools.SDK/**'
+#  pull_request:
+#    branches: [ beta ]
+#    paths:
+#      - 'MCTools.SDK/**'
 
 env:
   CSPROJ: MCTools.SDK/MCTools.SDK.csproj

@@ -2,14 +2,14 @@ name: MCTools SDK (Stable)
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ master ]
-    paths:
-      - 'MCTools.SDK/**'
-  pull_request:
-    branches: [ master ]
-    paths:
-      - 'MCTools.SDK/**'
+#  push:
+#    branches: [ master ]
+#    paths:
+#      - 'MCTools.SDK/**'
+#  pull_request:
+#    branches: [ master ]
+#    paths:
+#      - 'MCTools.SDK/**'
 
 env:
   CSPROJ: MCTools.SDK/MCTools.SDK.csproj
